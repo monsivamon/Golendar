@@ -52,15 +52,17 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
 
-    // 週の範囲を計算
+    // 週の開始日と終了日を計算
     val offset = (selectedDate.dayOfWeek.value - weekStartDay.value + 7) % 7
     val startOfWeek = selectedDate.minusDays(offset.toLong())
     val endOfWeek = startOfWeek.plusDays(6)
 
-    // 週内のイベントをフィルタ
+    // 週内のイベントをフィルタ（終日予定はUTC、時間指定はシステムタイムゾーンで判定）
     val weekEvents = events.filter { event ->
-        val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), ZoneId.systemDefault()).toLocalDate()
-        val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), ZoneId.systemDefault()).toLocalDate()
+        val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+        val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone).toLocalDate()
+        val adjustedEndTime = if (event.endTime > event.startTime) event.endTime - 1 else event.endTime
+        val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEndTime), zone).toLocalDate()
         eventStart <= endOfWeek && eventEnd >= startOfWeek
     }
 
@@ -90,7 +92,7 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
                     val title = "${startOfWeek.year}/${startOfWeek.monthValue}/${startOfWeek.dayOfMonth}~${endOfWeek.monthValue}/${endOfWeek.dayOfMonth}"
                     DateTitleWithPicker(title = title, colors = colors, onClick = { showDatePickerDialog = true })
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        // 今日ボタン（カレンダーアイコン風）
+                        // 今日ボタン
                         Box(
                             modifier = Modifier
                                 .size(22.dp)
@@ -101,13 +103,7 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
                             Column(modifier = Modifier.fillMaxSize()) {
                                 Box(modifier = Modifier.fillMaxWidth().height(6.dp).background(colors.sunRed))
                                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text(
-                                        text = LocalDate.now().dayOfMonth.toString(),
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = colors.text,
-                                        modifier = Modifier.offset(y = (-1).dp)
-                                    )
+                                    Text(text = LocalDate.now().dayOfMonth.toString(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.text, modifier = Modifier.offset(y = (-1).dp))
                                 }
                             }
                         }
@@ -122,9 +118,7 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 Text("<", fontSize = 18.sp, color = colors.text, modifier = Modifier.clickable { navigateTab(navController, Routes.WEEKLY, -1) }.padding(8.dp))
                 Text("日", fontSize = 16.sp, color = colors.text, modifier = Modifier.clickable { navController.navigate(Routes.DAILY) { launchSingleTop = true } })
-                Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(colors.primaryAccent).padding(horizontal = 24.dp, vertical = 6.dp)) {
-                    Text("週", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
+                Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(colors.primaryAccent).padding(horizontal = 24.dp, vertical = 6.dp)) { Text("週", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White) }
                 Text("月", fontSize = 16.sp, color = colors.text, modifier = Modifier.clickable { navController.navigate(Routes.MONTHLY) { launchSingleTop = true } })
                 Text(">", fontSize = 18.sp, color = colors.text, modifier = Modifier.clickable { navigateTab(navController, Routes.WEEKLY, 1) }.padding(8.dp))
             }
@@ -137,8 +131,10 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
                 weekDates.forEach { date ->
                     item {
                         val dayEvents = filteredEvents.filter { event ->
-                            val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), ZoneId.systemDefault()).toLocalDate()
-                            val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), ZoneId.systemDefault()).toLocalDate()
+                            val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+                            val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone).toLocalDate()
+                            val adjustedEndTime = if (event.endTime > event.startTime) event.endTime - 1 else event.endTime
+                            val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEndTime), zone).toLocalDate()
                             date in eventStart..eventEnd
                         }
 
@@ -149,67 +145,29 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
 
                         if (dayEvents.isEmpty()) {
                             // 予定なし → タップで追加
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        editingEvent = null
-                                        dialogDateForNewEvent = date
-                                        showEventDialog = true
-                                    }
-                                    .padding(vertical = 8.dp)
-                            ) {
-                                Text(
-                                    if (isSearchMode && searchQuery.isNotBlank()) "該当する予定はありません" else "予定なし",
-                                    color = colors.textGray,
-                                    modifier = Modifier.padding(vertical = 4.dp)
-                                )
+                            Box(modifier = Modifier.fillMaxWidth().clickable { editingEvent = null; dialogDateForNewEvent = date; showEventDialog = true }.padding(vertical = 8.dp)) {
+                                Text(if (isSearchMode && searchQuery.isNotBlank()) "該当する予定はありません" else "予定なし", color = colors.textGray, modifier = Modifier.padding(vertical = 4.dp))
                             }
                         } else {
                             dayEvents.forEach { event: Event ->
-                                EventCard(event = event, colors = colors, onClick = { ev: Event ->
-                                    viewingEvent = ev
-                                    viewingDate = date
-                                    showEventDetailDialog = true
-                                })
+                                EventCard(event = event, colors = colors, onClick = { ev: Event -> viewingEvent = ev; viewingDate = date; showEventDetailDialog = true })
                             }
                         }
 
                         // 予定追加ボタン
                         Button(
-                            onClick = {
-                                editingEvent = null
-                                dialogDateForNewEvent = date
-                                showEventDialog = true
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.primaryAccent.copy(alpha = 0.15f),
-                                contentColor = colors.primaryAccent
-                            ),
+                            onClick = { editingEvent = null; dialogDateForNewEvent = date; showEventDialog = true },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.primaryAccent.copy(alpha = 0.15f), contentColor = colors.primaryAccent),
                             shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("+ 予定を追加", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        }
+                        ) { Text("+ 予定を追加", fontSize = 14.sp, fontWeight = FontWeight.Medium) }
                     }
                 }
 
                 // 検索結果が空の場合のメッセージ
                 if (isSearchMode && searchQuery.isNotBlank() && filteredEvents.isEmpty()) {
                     item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    editingEvent = null
-                                    dialogDateForNewEvent = selectedDate
-                                    showEventDialog = true
-                                }
-                                .padding(vertical = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
+                        Box(modifier = Modifier.fillMaxWidth().clickable { editingEvent = null; dialogDateForNewEvent = selectedDate; showEventDialog = true }.padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
                             Text("該当する予定はありません\nタップして予定を追加", color = colors.textGray, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                         }
                     }
@@ -218,7 +176,7 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
         }
     }
 
-    // 各ダイアログ
+    // 各種ダイアログ
     if (showSyncDialog) SyncConfirmDialog(colors, onDismiss = { showSyncDialog = false }, onConfirm = { viewModel.loadEvents() })
 
     if (showDatePickerDialog) {
@@ -235,49 +193,28 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
 
     if (showEventDetailDialog && viewingEvent != null && viewingDate != null) {
         EventDetailDialog(
-            event = viewingEvent!!,
-            currentDate = viewingDate!!,
-            colors = colors,
-            onDismiss = {
-                showEventDetailDialog = false
-                viewingEvent = null
-                viewingDate = null
-            },
-            onEdit = {
-                showEventDetailDialog = false
-                editingEvent = viewingEvent
-                showEventDialog = true
-            },
-            onSplitDelete = {
-                viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!)
-                showEventDetailDialog = false
-                viewingEvent = null
-                viewingDate = null
-            }
+            event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
+            onDismiss = { showEventDetailDialog = false; viewingEvent = null; viewingDate = null },
+            onEdit = { showEventDetailDialog = false; editingEvent = viewingEvent; showEventDialog = true },
+            onSplitDelete = { viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!); showEventDetailDialog = false; viewingEvent = null; viewingDate = null }
         )
     }
 
     if (showEventDialog) {
-        val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate() }
+        val zone = editingEvent?.let { if (it.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault() } ?: ZoneId.systemDefault()
+        val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(zone).toLocalDate() }
             ?: dialogDateForNewEvent
             ?: selectedDate
+
         EventDialog(
-            event = editingEvent,
-            selectedDate = dialogDate,
-            colors = colors,
+            event = editingEvent, selectedDate = dialogDate, colors = colors,
             onDismiss = { showEventDialog = false },
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule ->
-                if (editingEvent == null) {
-                    viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)
-                } else {
-                    viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule)
-                }
+                if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)
+                else viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule)
                 showEventDialog = false
             },
-            onDelete = { ev: Event ->
-                viewModel.deleteEvent(ev.id)
-                showEventDialog = false
-            }
+            onDelete = { ev: Event -> viewModel.deleteEvent(ev.id); showEventDialog = false }
         )
     }
 }

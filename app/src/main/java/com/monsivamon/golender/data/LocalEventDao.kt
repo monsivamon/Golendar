@@ -8,7 +8,7 @@ import androidx.room.Update
 
 @Dao
 interface LocalEventDao {
-    // 指定期間内の予定を取得（繰り返しルールがあるものは常に含める）
+    // 指定期間内（重複含む）または繰り返し予定を取得
     @Query("SELECT * FROM local_events WHERE (startTime <= :end AND endTime >= :start) OR rrule IS NOT NULL ORDER BY startTime ASC")
     suspend fun getEventsInRange(start: Long, end: Long): List<LocalEvent>
 
@@ -27,6 +27,10 @@ interface LocalEventDao {
     // ID指定で削除
     @Query("DELETE FROM local_events WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    // システム祝日データのみ削除（更新用）
+    @Query("DELETE FROM local_events WHERE description = 'system_holiday'")
+    suspend fun deleteSystemHolidays()
 
     // 全件削除（復元前の初期化用）
     @Query("DELETE FROM local_events")

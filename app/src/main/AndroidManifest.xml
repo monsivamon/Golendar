@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- アプリのマニフェスト：権限、コンポーネント、ウィジェットを宣言 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- カレンダーと通知の基本権限 -->
+    <!-- カレンダー操作に必要な権限（Googleモード時） -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+
+    <!-- 通知表示に必要な権限（Android 13+） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- 正確なアラーム設定に必要な権限（Android 12+） -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
-    <!-- 正確なアラームとバッテリー最適化除外の権限 -->
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <!-- バッテリー最適化を無効化するための権限（通知遅延防止） -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
-    <!-- ★ 新規追加: スマホ再起動の検知権限 ★ -->
+    <!-- 端末再起動時に通知を再スケジュールするための権限 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- 祝日データ取得のためのインターネット通信 -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".GolenderApplication"
@@ -25,6 +32,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
+
+        <!-- メインアクティビティ（ランチャー） -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -37,11 +46,12 @@
             </intent-filter>
         </activity>
 
+        <!-- 通知受信用ブロードキャストレシーバー（アプリ内完結） -->
         <receiver
             android:name=".notification.NotificationReceiver"
             android:exported="false" />
 
-        <!-- ★ 新規追加: スマホ再起動時とアプリアップデート時に通知を再セットするレシーバー ★ -->
+        <!-- 端末起動時/アプデ時に通知を再スケジュール -->
         <receiver
             android:name=".notification.BootReceiver"
             android:exported="true">
@@ -51,7 +61,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- ★ DayWidget ★ -->
+        <!-- 日次ウィジェット（今日の予定を表示） -->
         <receiver
             android:name=".widget.DayWidgetReceiver"
             android:label="1日の予定"
@@ -64,7 +74,7 @@
                 android:resource="@xml/day_widget_info" />
         </receiver>
 
-        <!-- ★ WeekWidget ★ -->
+        <!-- 週間ウィジェット（週間予定を表示） -->
         <receiver
             android:name=".widget.WeekWidgetReceiver"
             android:label="週間カレンダー"
@@ -77,7 +87,7 @@
                 android:resource="@xml/week_widget_info" />
         </receiver>
 
-        <!-- ★ MonthWidget ★ -->
+        <!-- 月間ウィジェット（月間カレンダーグリッド） -->
         <receiver
             android:name=".widget.MonthWidgetReceiver"
             android:label="月間カレンダー"

@@ -37,8 +37,14 @@ fun EventCard(event: Event, colors: AppColors, onClick: (Event) -> Unit) {
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            // 左端のアクセントライン
-            Box(modifier = Modifier.width(4.dp).height(40.dp).clip(RoundedCornerShape(2.dp)).background(colors.primaryAccent))
+            // 左端のアクセントライン（種別で色分け）
+            val accentColor = when {
+                event.isBirthdayCalendar -> Color(0xFFFF9800)
+                event.isCulturalEvent -> Color(0xFF4CAF50)
+                else -> colors.primaryAccent
+            }
+
+            Box(modifier = Modifier.width(4.dp).height(40.dp).clip(RoundedCornerShape(2.dp)).background(accentColor))
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
@@ -79,7 +85,13 @@ fun SearchResultCard(event: Event, colors: AppColors, onClick: (Event) -> Unit) 
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.width(4.dp).height(50.dp).clip(RoundedCornerShape(2.dp)).background(colors.primaryAccent))
+            val accentColor = when {
+                event.isBirthdayCalendar -> Color(0xFFFF9800)
+                event.isCulturalEvent -> Color(0xFF4CAF50)
+                else -> colors.primaryAccent
+            }
+
+            Box(modifier = Modifier.width(4.dp).height(50.dp).clip(RoundedCornerShape(2.dp)).background(accentColor))
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {

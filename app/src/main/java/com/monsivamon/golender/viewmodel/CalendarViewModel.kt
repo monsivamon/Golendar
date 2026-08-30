@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -25,13 +26,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.LocalDateTime
 import java.time.Instant
-import androidx.glance.appwidget.GlanceAppWidgetManager
+import java.time.ZoneOffset
 
 // テーマモード（システム/ライト/ダーク）
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
@@ -111,12 +113,35 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         private val BG_COLOR_KEY = stringPreferencesKey("calendar_bg_color")
         private val NOTIFY_AT_START_KEY = booleanPreferencesKey("notify_at_start")
         private val NOTIFY_10MIN_KEY = booleanPreferencesKey("notify_10min_before")
+        // 祝日取得の最終実行時刻を保存するキー
+        val LAST_HOLIDAY_FETCH_KEY = longPreferencesKey("last_holiday_fetch_time")
     }
 
-    // 起動時に設定を読み込み、アカウント一覧を取得
+    // 起動時：設定読込、アカウント取得、祝日チェック
     init {
         loadSettingsFromDataStore()
         loadAccounts()
+        checkAndFetchHolidays(force = false)
+    }
+
+    // 30日ごとに外部APIから日本の祝日を取得してローカルDBに保存
+    private fun checkAndFetchHolidays(force: Boolean = false) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val prefs = dataStore.data.first()
+                val lastFetch = prefs[LAST_HOLIDAY_FETCH_KEY] ?: 0L
+                val now = System.currentTimeMillis()
+                val thirtyDays = 30L * 24 * 60 * 60 * 1000L
+
+                if (force || now - lastFetch > thirtyDays) {
+                    repository.fetchAndSaveHolidays()
+                    dataStore.edit { it[LAST_HOLIDAY_FETCH_KEY] = now }
+                    loadEvents()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     // DataStoreから全設定を読み込む
@@ -215,7 +240,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // カレンダーモードに応じて予定を読み込む
+    // カレンダーモードに応じて予定を読み込む（Googleモードでは祝日・文化イベント・誕生日フラグを付与）
     fun loadEvents() {
         viewModelScope.launch(Dispatchers.IO) {
             val yearMonth = _currentMonth.value
@@ -225,17 +250,51 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
             try {
                 val fetchedEvents = if (_calendarMode.value == CalendarMode.GOOGLE) {
                     val calendarIds = _selectedAccount.value?.let { repository.getCalendarIdsForAccount(it) }
-                    repository.getEventsForMonth(start, end, calendarIds)
+                    val googleEvents = repository.getEventsForMonth(start, end, calendarIds)
+
+                    // ローカルDBから公式祝日データを取得（日付セットとして保持）
+                    val officialHolidays = repository.getLocalEventsForMonth(start, end).filter { it.description == "system_holiday" }
+                    val officialDates = officialHolidays.map {
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), ZoneOffset.UTC).toLocalDate()
+                    }.toSet()
+
+                    googleEvents.map { event ->
+                        // 誕生日フラグ（カレンダー判定＋タイトルに「誕生日」が含まれる）
+                        val isBirthday = event.isBirthdayCalendar || event.title.contains("誕生日") || event.title.contains("Birthday", ignoreCase = true)
+                        var updatedEvent = event.copy(isBirthdayCalendar = isBirthday)
+
+                        // 祝日カレンダー以外で、終日かつ読み取り専用の予定は文化イベント候補
+                        if (!isBirthday && (updatedEvent.isHolidayCalendar || (updatedEvent.isAllDay && updatedEvent.isReadOnly))) {
+                            val zone = if (updatedEvent.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+                            val eventDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(updatedEvent.startTime), zone).toLocalDate()
+
+                            if (officialDates.isNotEmpty()) {
+                                // 公式祝日一覧に含まれていなければ文化イベントとみなす
+                                if (!officialDates.contains(eventDate)) {
+                                    updatedEvent = updatedEvent.copy(isCulturalEvent = true)
+                                }
+                            } else {
+                                // 公式祝日がない場合はタイトルで判定（主要な文化イベント）
+                                val isCultural = listOf("七夕", "バレンタイン", "節分", "ひな祭り", "母の日", "父の日", "ハロウィン", "クリスマス", "大晦日", "元日").any { updatedEvent.title.contains(it) }
+                                if (isCultural) updatedEvent = updatedEvent.copy(isCulturalEvent = true)
+                            }
+                        }
+                        updatedEvent
+                    }
                 } else {
-                    repository.getLocalEventsForMonth(start, end)
+                    // Golendarモード：タイトルに「誕生日」が含まれるものにフラグを付与
+                    repository.getLocalEventsForMonth(start, end).map { event ->
+                        val isBirthday = event.title.contains("誕生日") || event.title.contains("Birthday", ignoreCase = true)
+                        event.copy(isBirthdayCalendar = isBirthday)
+                    }
                 }
+
                 _events.value = fetchedEvents
 
                 // 予定読込後に通知アラームを更新
                 viewModelScope.launch(Dispatchers.IO) {
                     NotificationScheduler.updateAlarms(context)
                 }
-
                 updateWidgets()
             } catch (_: SecurityException) {
                 _events.value = emptyList()
@@ -257,7 +316,19 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     fun updateSearchQuery(query: String) { _searchQuery.value = query }
     fun setThemeMode(mode: ThemeMode) { _themeMode.value = mode; viewModelScope.launch(Dispatchers.IO) { saveSettings(theme = mode); updateWidgets() } }
     fun setWeekStartDay(day: DayOfWeek) { _weekStartDay.value = day; viewModelScope.launch(Dispatchers.IO) { saveSettings(weekStart = day); updateWidgets() } }
-    fun setCalendarMode(mode: CalendarMode) { _calendarMode.value = mode; viewModelScope.launch(Dispatchers.IO) { saveSettings(mode = mode) }; loadEvents() }
+
+    // カレンダーモードを切り替え（Golendarモード時は強制的に祝日を取得）
+    fun setCalendarMode(mode: CalendarMode) {
+        _calendarMode.value = mode
+        viewModelScope.launch(Dispatchers.IO) {
+            saveSettings(mode = mode)
+            if (mode == CalendarMode.GOLENDAR) {
+                checkAndFetchHolidays(force = true)
+            }
+        }
+        loadEvents()
+    }
+
     fun setSelectedAccount(accountName: String?) { _selectedAccount.value = accountName; viewModelScope.launch(Dispatchers.IO) { saveSettings(account = accountName) }; loadEvents() }
 
     // ホーム画面ウィジェットを更新
@@ -312,22 +383,24 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         val isGoogle = _calendarMode.value == CalendarMode.GOOGLE
         val targetAccount = _selectedAccount.value
         viewModelScope.launch(Dispatchers.IO) {
-            val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), ZoneId.systemDefault()).toLocalDate()
-            val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), ZoneId.systemDefault()).toLocalDate()
+            val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+            val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone).toLocalDate()
+            val adjustedEndTime = if (event.endTime > event.startTime) event.endTime - 1 else event.endTime
+            val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEndTime), zone).toLocalDate()
 
             if (eventStart == eventEnd) return@launch
 
             if (dateToRemove == eventStart) {
-                val newStart = dateToRemove.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val newStart = dateToRemove.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
                 if (isGoogle) repository.updateEvent(event.id, event.title, newStart, event.endTime, event.isAllDay, event.location, event.description, null)
                 else repository.updateLocalEvent(event.id, event.title, newStart, event.endTime, event.isAllDay, event.location, event.description, null)
             } else if (dateToRemove == eventEnd) {
-                val newEnd = dateToRemove.minusDays(1).atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val newEnd = dateToRemove.minusDays(1).atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
                 if (isGoogle) repository.updateEvent(event.id, event.title, event.startTime, newEnd, event.isAllDay, event.location, event.description, null)
                 else repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd, event.isAllDay, event.location, event.description, null)
             } else {
-                val newEnd1 = dateToRemove.minusDays(1).atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                val newStart2 = dateToRemove.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val newEnd1 = dateToRemove.minusDays(1).atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
+                val newStart2 = dateToRemove.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
                 if (isGoogle) {
                     repository.updateEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null)
                     repository.insertEvent(event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null, targetAccount)

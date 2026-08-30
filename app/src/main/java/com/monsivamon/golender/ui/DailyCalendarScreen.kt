@@ -50,10 +50,12 @@ fun DailyCalendarScreen(viewModel: CalendarViewModel, navController: NavControll
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
 
-    // 選択日のイベントを抽出
+    // 選択日のイベントを抽出（終日予定はUTC、時間指定はシステムタイムゾーンで判定）
     val dailyEvents = events.filter { event ->
-        val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), ZoneId.systemDefault()).toLocalDate()
-        val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), ZoneId.systemDefault()).toLocalDate()
+        val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+        val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone).toLocalDate()
+        val adjustedEndTime = if (event.endTime > event.startTime) event.endTime - 1 else event.endTime
+        val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEndTime), zone).toLocalDate()
         selectedDate in eventStart..eventEnd
     }
 
@@ -80,6 +82,7 @@ fun DailyCalendarScreen(viewModel: CalendarViewModel, navController: NavControll
                 } else {
                     DateTitleWithPicker(title = "${selectedDate.year}年${selectedDate.monthValue}月${selectedDate.dayOfMonth}日", colors = colors, onClick = { showDatePickerDialog = true })
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        // 今日ボタン
                         Box(
                             modifier = Modifier
                                 .size(22.dp)
@@ -90,13 +93,7 @@ fun DailyCalendarScreen(viewModel: CalendarViewModel, navController: NavControll
                             Column(modifier = Modifier.fillMaxSize()) {
                                 Box(modifier = Modifier.fillMaxWidth().height(6.dp).background(colors.sunRed))
                                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text(
-                                        text = LocalDate.now().dayOfMonth.toString(),
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = colors.text,
-                                        modifier = Modifier.offset(y = (-1).dp)
-                                    )
+                                    Text(text = LocalDate.now().dayOfMonth.toString(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.text, modifier = Modifier.offset(y = (-1).dp))
                                 }
                             }
                         }
@@ -107,12 +104,10 @@ fun DailyCalendarScreen(viewModel: CalendarViewModel, navController: NavControll
                 }
             }
 
-            // タブ
+            // タブ切り替え
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 Text("<", fontSize = 18.sp, color = colors.text, modifier = Modifier.clickable { navigateTab(navController, Routes.DAILY, -1) }.padding(8.dp))
-                Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(colors.primaryAccent).padding(horizontal = 24.dp, vertical = 6.dp)) {
-                    Text("日", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                }
+                Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(colors.primaryAccent).padding(horizontal = 24.dp, vertical = 6.dp)) { Text("日", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White) }
                 Text("週", fontSize = 16.sp, color = colors.text, modifier = Modifier.clickable { navController.navigate(Routes.WEEKLY) { launchSingleTop = true } })
                 Text("月", fontSize = 16.sp, color = colors.text, modifier = Modifier.clickable { navController.navigate(Routes.MONTHLY) { launchSingleTop = true } })
                 Text(">", fontSize = 18.sp, color = colors.text, modifier = Modifier.clickable { navigateTab(navController, Routes.DAILY, 1) }.padding(8.dp))
@@ -125,71 +120,34 @@ fun DailyCalendarScreen(viewModel: CalendarViewModel, navController: NavControll
                 Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(bottom = 12.dp)) {
                     val c = dayColors[selectedDate.dayOfWeek] ?: Color.Unspecified
                     val dayColor = if (c == Color.Unspecified) colors.text else c
-
                     Text("${selectedDate.monthValue}月${selectedDate.dayOfMonth}日 (${getJpDayOfWeek(selectedDate.dayOfWeek)})", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = dayColor)
                     Spacer(modifier = Modifier.width(8.dp))
-                    if (isSearchMode && searchQuery.isNotBlank()) {
-                        Text("検索結果: ${filteredEvents.size}件", fontSize = 14.sp, color = colors.primaryAccent)
-                    } else {
-                        Text("${filteredEvents.size}件", fontSize = 14.sp, color = colors.textGray)
-                    }
+                    if (isSearchMode && searchQuery.isNotBlank()) Text("検索結果: ${filteredEvents.size}件", fontSize = 14.sp, color = colors.primaryAccent)
+                    else Text("${filteredEvents.size}件", fontSize = 14.sp, color = colors.textGray)
                 }
 
                 LazyColumn {
                     if (filteredEvents.isEmpty()) {
                         item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        editingEvent = null
-                                        showEventDialog = true
-                                    }
-                                    .padding(vertical = 16.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    if (isSearchMode && searchQuery.isNotBlank()) "該当する予定はありません" else "予定なし",
-                                    color = colors.textGray,
-                                    fontSize = 16.sp
-                                )
+                            Box(modifier = Modifier.fillMaxWidth().clickable { editingEvent = null; showEventDialog = true }.padding(vertical = 16.dp), contentAlignment = Alignment.Center) {
+                                Text(if (isSearchMode && searchQuery.isNotBlank()) "該当する予定はありません" else "予定なし", color = colors.textGray, fontSize = 16.sp)
                             }
                         }
                     } else {
                         items(filteredEvents) { event: Event ->
-                            if (isSearchMode && searchQuery.isNotBlank()) {
-                                SearchResultCard(event = event, colors = colors, onClick = { ev: Event ->
-                                    viewingEvent = ev
-                                    viewingDate = selectedDate
-                                    showEventDetailDialog = true
-                                })
-                            } else {
-                                EventCard(event = event, colors = colors, onClick = { ev: Event ->
-                                    viewingEvent = ev
-                                    viewingDate = selectedDate
-                                    showEventDetailDialog = true
-                                })
-                            }
+                            if (isSearchMode && searchQuery.isNotBlank()) SearchResultCard(event = event, colors = colors, onClick = { ev: Event -> viewingEvent = ev; viewingDate = selectedDate; showEventDetailDialog = true })
+                            else EventCard(event = event, colors = colors, onClick = { ev: Event -> viewingEvent = ev; viewingDate = selectedDate; showEventDetailDialog = true })
                         }
                     }
 
+                    // 予定追加ボタン
                     item {
                         Button(
-                            onClick = {
-                                editingEvent = null
-                                showEventDialog = true
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.primaryAccent.copy(alpha = 0.15f),
-                                contentColor = colors.primaryAccent
-                            ),
+                            onClick = { editingEvent = null; showEventDialog = true },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.primaryAccent.copy(alpha = 0.15f), contentColor = colors.primaryAccent),
                             shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("+ 予定を追加", fontSize = 16.sp, fontWeight = FontWeight.Medium)
-                        }
+                        ) { Text("+ 予定を追加", fontSize = 16.sp, fontWeight = FontWeight.Medium) }
                     }
                 }
             }
@@ -213,47 +171,26 @@ fun DailyCalendarScreen(viewModel: CalendarViewModel, navController: NavControll
 
     if (showEventDetailDialog && viewingEvent != null && viewingDate != null) {
         EventDetailDialog(
-            event = viewingEvent!!,
-            currentDate = viewingDate!!,
-            colors = colors,
-            onDismiss = {
-                showEventDetailDialog = false
-                viewingEvent = null
-                viewingDate = null
-            },
-            onEdit = {
-                showEventDetailDialog = false
-                editingEvent = viewingEvent
-                showEventDialog = true
-            },
-            onSplitDelete = {
-                viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!)
-                showEventDetailDialog = false
-                viewingEvent = null
-                viewingDate = null
-            }
+            event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
+            onDismiss = { showEventDetailDialog = false; viewingEvent = null; viewingDate = null },
+            onEdit = { showEventDetailDialog = false; editingEvent = viewingEvent; showEventDialog = true },
+            onSplitDelete = { viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!); showEventDetailDialog = false; viewingEvent = null; viewingDate = null }
         )
     }
 
     if (showEventDialog) {
-        val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(ZoneId.systemDefault()).toLocalDate() } ?: selectedDate
+        val zone = editingEvent?.let { if (it.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault() } ?: ZoneId.systemDefault()
+        val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(zone).toLocalDate() } ?: selectedDate
+
         EventDialog(
-            event = editingEvent,
-            selectedDate = dialogDate,
-            colors = colors,
+            event = editingEvent, selectedDate = dialogDate, colors = colors,
             onDismiss = { showEventDialog = false },
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule ->
-                if (editingEvent == null) {
-                    viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)
-                } else {
-                    viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule)
-                }
+                if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)
+                else viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule)
                 showEventDialog = false
             },
-            onDelete = { ev: Event ->
-                viewModel.deleteEvent(ev.id)
-                showEventDialog = false
-            }
+            onDelete = { ev: Event -> viewModel.deleteEvent(ev.id); showEventDialog = false }
         )
     }
 }

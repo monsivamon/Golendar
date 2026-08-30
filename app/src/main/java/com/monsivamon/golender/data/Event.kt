@@ -11,5 +11,8 @@ data class Event(
     val location: String = "",
     val description: String = "",
     val rrule: String? = null,
-    val isReadOnly: Boolean = false
+    val isReadOnly: Boolean = false,
+    val isHolidayCalendar: Boolean = false,
+    val isCulturalEvent: Boolean = false,
+    val isBirthdayCalendar: Boolean = false
 )

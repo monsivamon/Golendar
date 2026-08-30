@@ -8,30 +8,63 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.TimeZone
+import java.net.URL
+import java.net.HttpURLConnection
+import org.json.JSONObject
+import java.time.LocalDate
+import java.time.ZoneOffset
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+
+data class CalendarInfo(val accessLevel: Int, val isHoliday: Boolean, val isBirthday: Boolean)
 
 class CalendarRepository(private val context: Context) {
 
     private val database = AppDatabase.getInstance(context)
     private val localEventDao = database.localEventDao()
 
-    // カレンダーIDごとのアクセス権限をマップで取得
-    private fun getCalendarAccessLevels(): Map<Long, Int> {
-        val map = mutableMapOf<Long, Int>()
-        val projection = arrayOf(CalendarContract.Calendars._ID, CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL)
+    // カレンダーIDごとのアクセス権限・祝日カレンダー・誕生日カレンダー情報を取得
+    private fun getCalendarInfo(): Map<Long, CalendarInfo> {
+        val map = mutableMapOf<Long, CalendarInfo>()
+        val projection = arrayOf(
+            CalendarContract.Calendars._ID,
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+            CalendarContract.Calendars.ACCOUNT_NAME,
+            CalendarContract.Calendars.NAME
+        )
         try {
             context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, projection, null, null, null)?.use { cursor ->
                 while (cursor.moveToNext()) {
-                    map[cursor.getLong(0)] = cursor.getInt(1)
+                    val accessLevel = cursor.getInt(1)
+                    val dispName = cursor.getString(2) ?: ""
+                    val accountName = cursor.getString(3) ?: ""
+                    val sysName = cursor.getString(4) ?: ""
+
+                    // 祝日カレンダーの判定
+                    val isHoliday = dispName.contains("祝日") ||
+                            dispName.contains("休日") ||
+                            dispName.contains("holiday", ignoreCase = true) ||
+                            accountName.contains("holiday", ignoreCase = true) ||
+                            sysName.contains("holiday", ignoreCase = true)
+
+                    // 誕生日カレンダーの判定
+                    val isBirthday = dispName.contains("誕生日") ||
+                            dispName.contains("birthdays", ignoreCase = true) ||
+                            accountName.contains("#contacts@group.v.calendar.google.com") ||
+                            sysName.contains("contacts", ignoreCase = true)
+
+                    map[cursor.getLong(0)] = CalendarInfo(accessLevel, isHoliday, isBirthday)
                 }
             }
         } catch (_: Exception) {}
         return map
     }
 
-    // 月表示用にシステムカレンダーの予定を取得（読み取り専用判定付き）
+    // 月表示用にシステムカレンダーの予定を取得（読み取り専用・祝日・誕生日フラグ付き）
     fun getEventsForMonth(startMillis: Long, endMillis: Long, calendarIds: List<Long>? = null): List<Event> {
         val events = mutableListOf<Event>()
-        val accessLevels = getCalendarAccessLevels()
+        val calInfo = getCalendarInfo()
 
         val builder = CalendarContract.Instances.CONTENT_URI.buildUpon()
         ContentUris.appendId(builder, startMillis)
@@ -71,8 +104,14 @@ class CalendarRepository(private val context: Context) {
 
             while (cursor.moveToNext()) {
                 val calId = cursor.getLong(calendarIdIdx)
-                val accessLevel = accessLevels[calId] ?: 500
-                val isReadOnly = accessLevel < 500
+                val info = calInfo[calId] ?: CalendarInfo(500, false, false)
+                val isReadOnly = info.accessLevel < 500
+                val isHolidayCalendar = info.isHoliday
+                val isBirthdayCalendar = info.isBirthday
+
+                // 祝日カレンダーや「非表示」の説明は空にする
+                val rawDescription = cursor.getString(descIdx) ?: ""
+                val finalDescription = if (isHolidayCalendar || rawDescription.contains("非表示")) "" else rawDescription
 
                 events.add(
                     Event(
@@ -83,9 +122,11 @@ class CalendarRepository(private val context: Context) {
                         isAllDay = cursor.getInt(allDayIdx) == 1,
                         calendarId = calId,
                         location = cursor.getString(locIdx) ?: "",
-                        description = cursor.getString(descIdx) ?: "",
+                        description = finalDescription,
                         rrule = cursor.getString(rruleIdx),
-                        isReadOnly = isReadOnly
+                        isReadOnly = isReadOnly,
+                        isHolidayCalendar = isHolidayCalendar,
+                        isBirthdayCalendar = isBirthdayCalendar
                     )
                 )
             }
@@ -93,10 +134,10 @@ class CalendarRepository(private val context: Context) {
         return events
     }
 
-    // バックアップ用に指定アカウントの全イベントを取得
+    // バックアップ用に指定アカウントの全イベントを取得（祝日・誕生日フラグ付き）
     fun getAllGoogleEvents(accountName: String?): List<Event> {
         val events = mutableListOf<Event>()
-        val accessLevels = getCalendarAccessLevels()
+        val calInfo = getCalendarInfo()
 
         val projection = arrayOf(
             CalendarContract.Events._ID,
@@ -142,12 +183,17 @@ class CalendarRepository(private val context: Context) {
 
             while (cursor.moveToNext()) {
                 val calId = cursor.getLong(calendarIdIdx)
-                val accessLevel = accessLevels[calId] ?: 500
-                val isReadOnly = accessLevel < 500
+                val info = calInfo[calId] ?: CalendarInfo(500, false, false)
+                val isReadOnly = info.accessLevel < 500
+                val isHolidayCalendar = info.isHoliday
+                val isBirthdayCalendar = info.isBirthday
 
                 // DTENDが欠落している場合は開始時刻を代用
                 val start = cursor.getLong(startIdx)
                 val end = cursor.getLong(endIdx).takeIf { it > 0 } ?: start
+
+                val rawDescription = cursor.getString(descIdx) ?: ""
+                val finalDescription = if (isHolidayCalendar || rawDescription.contains("非表示")) "" else rawDescription
 
                 events.add(
                     Event(
@@ -158,9 +204,11 @@ class CalendarRepository(private val context: Context) {
                         isAllDay = cursor.getInt(allDayIdx) == 1,
                         calendarId = calId,
                         location = cursor.getString(locIdx) ?: "",
-                        description = cursor.getString(descIdx) ?: "",
+                        description = finalDescription,
                         rrule = cursor.getString(rruleIdx),
-                        isReadOnly = isReadOnly
+                        isReadOnly = isReadOnly,
+                        isHolidayCalendar = isHolidayCalendar,
+                        isBirthdayCalendar = isBirthdayCalendar
                     )
                 )
             }
@@ -168,7 +216,7 @@ class CalendarRepository(private val context: Context) {
         return events
     }
 
-    // 利用可能なカレンダーアカウントの一覧を取得
+    // 利用可能なカレンダーアカウント一覧を取得
     fun getAccountNames(): List<String> {
         val cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars.ACCOUNT_NAME), null, null, null)
         val accounts = mutableSetOf<String>()
@@ -176,7 +224,7 @@ class CalendarRepository(private val context: Context) {
         return accounts.toList().sorted()
     }
 
-    // アカウント名からカレンダーIDのリストを取得
+    // アカウント名からカレンダーIDリストを取得
     fun getCalendarIdsForAccount(accountName: String): List<Long> {
         val cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars._ID), "${CalendarContract.Calendars.ACCOUNT_NAME} = ?", arrayOf(accountName), null)
         val ids = mutableListOf<Long>()
@@ -258,6 +306,7 @@ class CalendarRepository(private val context: Context) {
                             local.isAllDay, -1L, local.location, local.description, local.rrule, isReadOnly = false
                         ))
                     }
+                    // 繰り返し種類に応じて次の日付へ進める
                     val nextStep = when (local.rrule) {
                         "FREQ=DAILY" -> 1L to java.time.temporal.ChronoUnit.DAYS
                         "FREQ=WEEKLY" -> 1L to java.time.temporal.ChronoUnit.WEEKS
@@ -302,5 +351,52 @@ class CalendarRepository(private val context: Context) {
     // ローカルDBにリストを追記（重複は置き換え）
     suspend fun appendLocalEvents(events: List<LocalEvent>) {
         localEventDao.insertAll(events)
+    }
+
+    // 外部APIから日本の祝日データを取得してローカルDBに保存（既存祝日は置き換え）
+    suspend fun fetchAndSaveHolidays() = withContext(Dispatchers.IO) {
+        try {
+            val url = URL("https://holidays-jp.github.io/api/v1/date.json")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+
+            if (connection.responseCode == 200) {
+                val stream = connection.inputStream
+                val jsonStr = stream.bufferedReader().use { it.readText() }
+                val jsonObject = JSONObject(jsonStr)
+
+                val holidays = mutableListOf<LocalEvent>()
+                val keys = jsonObject.keys()
+                while (keys.hasNext()) {
+                    val dateStr = keys.next()
+                    val title = jsonObject.getString(dateStr)
+
+                    val localDate = LocalDate.parse(dateStr)
+                    val startMillis = localDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+                    val endMillis = localDate.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+
+                    holidays.add(
+                        LocalEvent(
+                            title = title,
+                            startTime = startMillis,
+                            endTime = endMillis,
+                            isAllDay = true,
+                            location = "",
+                            description = "system_holiday",
+                            rrule = null
+                        )
+                    )
+                }
+
+                if (holidays.isNotEmpty()) {
+                    localEventDao.deleteSystemHolidays() // 古い祝日を削除
+                    localEventDao.insertAll(holidays)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
