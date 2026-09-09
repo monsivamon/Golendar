@@ -16,6 +16,7 @@ import java.time.ZoneOffset
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 
+// カレンダー情報（アクセス権限・祝日カレンダーか・誕生日カレンダーか）
 data class CalendarInfo(val accessLevel: Int, val isHoliday: Boolean, val isBirthday: Boolean)
 
 class CalendarRepository(private val context: Context) {
@@ -41,14 +42,14 @@ class CalendarRepository(private val context: Context) {
                     val accountName = cursor.getString(3) ?: ""
                     val sysName = cursor.getString(4) ?: ""
 
-                    // 祝日カレンダーの判定
+                    // 祝日カレンダーの判定（表示名・アカウント名・システム名でチェック）
                     val isHoliday = dispName.contains("祝日") ||
                             dispName.contains("休日") ||
                             dispName.contains("holiday", ignoreCase = true) ||
                             accountName.contains("holiday", ignoreCase = true) ||
                             sysName.contains("holiday", ignoreCase = true)
 
-                    // 誕生日カレンダーの判定
+                    // 誕生日カレンダーの判定（Googleの連絡先カレンダーなど）
                     val isBirthday = dispName.contains("誕生日") ||
                             dispName.contains("birthdays", ignoreCase = true) ||
                             accountName.contains("#contacts@group.v.calendar.google.com") ||
@@ -243,14 +244,14 @@ class CalendarRepository(private val context: Context) {
         return 1L
     }
 
-    // システムカレンダーに予定を新規作成
+    // システムカレンダーに予定を新規作成（終日予定はタイムゾーンをUTCに設定）
     fun insertEvent(title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?, accountName: String? = null): Long? {
         val values = ContentValues().apply {
             put(CalendarContract.Events.DTSTART, startMillis)
             put(CalendarContract.Events.DTEND, endMillis)
             put(CalendarContract.Events.TITLE, title)
             put(CalendarContract.Events.CALENDAR_ID, getTargetCalendarId(accountName))
-            put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
+            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else TimeZone.getDefault().id)
             put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
             put(CalendarContract.Events.EVENT_LOCATION, location)
             put(CalendarContract.Events.DESCRIPTION, description)
@@ -259,14 +260,14 @@ class CalendarRepository(private val context: Context) {
         return context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)?.lastPathSegment?.toLongOrNull()
     }
 
-    // システムカレンダーの予定を更新
+    // システムカレンダーの予定を更新（終日予定はタイムゾーンをUTCに設定）
     fun updateEvent(eventId: Long, title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?): Boolean {
         val values = ContentValues().apply {
             put(CalendarContract.Events.DTSTART, startMillis)
             put(CalendarContract.Events.DTEND, endMillis)
             put(CalendarContract.Events.TITLE, title)
             put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
-            put(CalendarContract.Events.EVENT_TIMEZONE, TimeZone.getDefault().id)
+            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else TimeZone.getDefault().id)
             put(CalendarContract.Events.EVENT_LOCATION, location)
             put(CalendarContract.Events.DESCRIPTION, description)
             put(CalendarContract.Events.RRULE, rrule)
@@ -391,7 +392,7 @@ class CalendarRepository(private val context: Context) {
                 }
 
                 if (holidays.isNotEmpty()) {
-                    localEventDao.deleteSystemHolidays() // 古い祝日を削除
+                    localEventDao.deleteSystemHolidays()
                     localEventDao.insertAll(holidays)
                 }
             }

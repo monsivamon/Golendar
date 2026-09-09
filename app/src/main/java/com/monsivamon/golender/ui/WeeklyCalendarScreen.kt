@@ -7,6 +7,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +34,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.DayOfWeek
 
-// 週間カレンダー画面
+// 週間カレンダー画面（週の日付ごとにイベントを表示）
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavController) {
@@ -77,25 +84,25 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
 
-            // ヘッダー（タイトル＋アイコン群）
+            // ヘッダー（週範囲タイトル＋アイコン群）
             Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 if (isSearchMode) {
-                    // 検索モード
                     Box(modifier = Modifier.weight(1f).height(40.dp).border(1.dp, colors.textGray, RoundedCornerShape(8.dp)).padding(horizontal = 12.dp), contentAlignment = Alignment.CenterStart) {
                         if (searchQuery.isEmpty()) Text("予定を検索...", color = colors.textGray, fontSize = 14.sp)
                         BasicTextField(value = searchQuery, onValueChange = { viewModel.updateSearchQuery(it) }, singleLine = true, textStyle = TextStyle(color = colors.text, fontSize = 14.sp), modifier = Modifier.fillMaxWidth())
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("✕", fontSize = 18.sp, color = colors.textGray, modifier = Modifier.clickable { isSearchMode = false; viewModel.updateSearchQuery("") }.padding(8.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    IconButton(onClick = { isSearchMode = false; viewModel.updateSearchQuery("") }) {
+                        Icon(Icons.Default.Close, contentDescription = "閉じる", tint = colors.textGray)
+                    }
                 } else {
-                    // 通常表示
                     val title = "${startOfWeek.year}/${startOfWeek.monthValue}/${startOfWeek.dayOfMonth}~${endOfWeek.monthValue}/${endOfWeek.dayOfMonth}"
                     DateTitleWithPicker(title = title, colors = colors, onClick = { showDatePickerDialog = true })
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         // 今日ボタン
                         Box(
                             modifier = Modifier
-                                .size(22.dp)
+                                .size(24.dp)
                                 .clip(RoundedCornerShape(4.dp))
                                 .border(1.5.dp, colors.text, RoundedCornerShape(4.dp))
                                 .clickable { navigateToTodayMonth(viewModel, navController) }
@@ -107,20 +114,31 @@ fun WeeklyCalendarScreen(viewModel: CalendarViewModel, navController: NavControl
                                 }
                             }
                         }
-                        Text("🔍", fontSize = 20.sp, modifier = Modifier.clickable { isSearchMode = true })
-                        Text("🔄", fontSize = 20.sp, modifier = Modifier.clickable { showSyncDialog = true })
-                        Text("⚙️", fontSize = 20.sp, modifier = Modifier.clickable { navController.navigate(Routes.SETTINGS) })
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(onClick = { isSearchMode = true }) {
+                            Icon(Icons.Default.Search, contentDescription = "検索", tint = colors.text)
+                        }
+                        IconButton(onClick = { showSyncDialog = true }) {
+                            Icon(Icons.Default.Refresh, contentDescription = "同期", tint = colors.text)
+                        }
+                        IconButton(onClick = { navController.navigate(Routes.SETTINGS) }) {
+                            Icon(Icons.Default.Settings, contentDescription = "設定", tint = colors.text)
+                        }
                     }
                 }
             }
 
             // タブ切り替え（日・週・月）
-            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                Text("<", fontSize = 18.sp, color = colors.text, modifier = Modifier.clickable { navigateTab(navController, Routes.WEEKLY, -1) }.padding(8.dp))
-                Text("日", fontSize = 16.sp, color = colors.text, modifier = Modifier.clickable { navController.navigate(Routes.DAILY) { launchSingleTop = true } })
+            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { navigateTab(navController, Routes.WEEKLY, -1) }) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "前の週", tint = colors.text)
+                }
+                Text("日", fontSize = 16.sp, color = colors.text, modifier = Modifier.clickable { navController.navigate(Routes.DAILY) { launchSingleTop = true } }.padding(8.dp))
                 Box(modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(colors.primaryAccent).padding(horizontal = 24.dp, vertical = 6.dp)) { Text("週", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White) }
-                Text("月", fontSize = 16.sp, color = colors.text, modifier = Modifier.clickable { navController.navigate(Routes.MONTHLY) { launchSingleTop = true } })
-                Text(">", fontSize = 18.sp, color = colors.text, modifier = Modifier.clickable { navigateTab(navController, Routes.WEEKLY, 1) }.padding(8.dp))
+                Text("月", fontSize = 16.sp, color = colors.text, modifier = Modifier.clickable { navController.navigate(Routes.MONTHLY) { launchSingleTop = true } }.padding(8.dp))
+                IconButton(onClick = { navigateTab(navController, Routes.WEEKLY, 1) }) {
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "次の週", tint = colors.text)
+                }
             }
 
             HorizontalDivider(thickness = 1.dp, color = colors.divider)

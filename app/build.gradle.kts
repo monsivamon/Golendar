@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0.1" // 現在のバージョン（更新時はインクリメント）
+        versionName = "1.0.2" // 現在のバージョン（更新時はインクリメント）
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

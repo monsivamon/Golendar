@@ -1,5 +1,6 @@
 package com.monsivamon.golender.ui
 
+import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,10 +58,17 @@ fun EventDialog(
     }
     val recurringOptions = listOf("DAILY" to "毎日", "WEEKLY" to "毎週", "MONTHLY" to "毎月", "YEARLY" to "毎年")
 
-    val initialStart = event?.let { LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), ZoneId.systemDefault()) }
+    // 終日予定はUTC、時間指定はシステムタイムゾーンで保存
+    val initialZone = if (event?.isAllDay == true) ZoneOffset.UTC else ZoneId.systemDefault()
+
+    val initialStart = event?.let { LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), initialZone) }
         ?: selectedDate.atTime(10, 0)
-    val initialEnd = event?.let { LocalDateTime.ofInstant(Instant.ofEpochMilli(it.endTime), ZoneId.systemDefault()) }
-        ?: selectedDate.atTime(11, 0)
+
+    // 終日予定の終了時刻は表示上、当日に留めるため1ミリ秒減算
+    val initialEnd = event?.let {
+        val adjustedEnd = if (it.isAllDay && it.endTime > it.startTime) it.endTime - 1 else it.endTime
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEnd), initialZone)
+    } ?: selectedDate.atTime(11, 0)
 
     var startDate by remember { mutableStateOf(initialStart.toLocalDate()) }
     var startTime by remember { mutableStateOf(initialStart.toLocalTime()) }
@@ -183,10 +191,15 @@ fun EventDialog(
         confirmButton = {
             TextButton(onClick = {
                 val finalTitle = title.ifBlank { "名称未設定" }
+
+                // 終日予定はUTC、それ以外はシステムタイムゾーンで保存
+                val saveZone = if (isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+
                 val startDateTime = startDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else startTime)
-                val endDateTime = endDate.atTime(if (isAllDay) LocalTime.MAX else endTime)
-                val startMillis = startDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                val endMillis = endDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                val endDateTime = endDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else endTime)
+
+                val startMillis = startDateTime.atZone(saveZone).toInstant().toEpochMilli()
+                val endMillis = endDateTime.atZone(saveZone).toInstant().toEpochMilli()
 
                 val finalRrule = if (isRecurring) "FREQ=$recurringType" else null
 
@@ -312,8 +325,12 @@ fun EventDetailDialog(
     onSplitDelete: () -> Unit
 ) {
     val formatter = DateTimeFormatter.ofPattern("HH:mm")
-    val startDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), ZoneId.systemDefault())
-    val endDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), ZoneId.systemDefault())
+    val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+
+    // 終日予定は表示用に1ミリ秒減算して当日表示に調整
+    val startDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone)
+    val adjustedEnd = if (event.isAllDay && event.endTime > event.startTime) event.endTime - 1 else event.endTime
+    val endDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEnd), zone)
 
     val startLocalDate = startDate.toLocalDate()
     val endLocalDate = endDate.toLocalDate()

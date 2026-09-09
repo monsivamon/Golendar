@@ -6,6 +6,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -55,7 +59,7 @@ val PastelColorPalette = listOf(
     Color(0xFFB5EAD7), Color(0xFFC7CEEA), Color(0xFFF4C2C2), Color(0xFFFDECDA)
 )
 
-// 同期確認ダイアログ
+// 同期確認ダイアログ（カレンダーデータを再読み込みする前に確認）
 @Composable
 fun SyncConfirmDialog(colors: AppColors, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
@@ -76,7 +80,7 @@ fun SyncConfirmDialog(colors: AppColors, onDismiss: () -> Unit, onConfirm: () ->
     )
 }
 
-// 日付タイトル＋ドロップダウンアイコン（年月選択用）
+// 日付タイトル＋ドロップダウンアイコン（年月選択ダイアログを開く）
 @Composable
 fun DateTitleWithPicker(title: String, colors: AppColors, onClick: () -> Unit) {
     Row(
@@ -87,11 +91,11 @@ fun DateTitleWithPicker(title: String, colors: AppColors, onClick: () -> Unit) {
             .padding(4.dp)
     ) {
         Text(text = title, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text)
-        Text(" ▼", fontSize = 16.sp, color = colors.primaryAccent)
+        Icon(Icons.Default.ArrowDropDown, contentDescription = "月を選択", tint = colors.primaryAccent)
     }
 }
 
-// 年月選択ダイアログ（月表示用）
+// 年月選択ダイアログ（月表示用のジャンプ機能）
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YearMonthPickerDialog(
@@ -114,9 +118,13 @@ fun YearMonthPickerDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                 ) {
-                    IconButton(onClick = { tempYear-- }) { Text("◀", color = colors.primaryAccent) }
+                    IconButton(onClick = { tempYear-- }) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "前年", tint = colors.primaryAccent)
+                    }
                     Text("$tempYear 年", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
-                    IconButton(onClick = { tempYear++ }) { Text("▶", color = colors.primaryAccent) }
+                    IconButton(onClick = { tempYear++ }) {
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "翌年", tint = colors.primaryAccent)
+                    }
                 }
 
                 LazyVerticalGrid(

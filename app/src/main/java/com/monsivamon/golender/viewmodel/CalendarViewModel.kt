@@ -40,6 +40,7 @@ enum class ThemeMode { SYSTEM, LIGHT, DARK }
 // カレンダーデータソース（アプリ内/Google）
 enum class CalendarMode { GOLENDAR, GOOGLE }
 
+// UI状態とビジネスロジックを管理するViewModel
 class CalendarViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = CalendarRepository(application)
     private val context = application.applicationContext
@@ -259,8 +260,10 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                     }.toSet()
 
                     googleEvents.map { event ->
-                        // 誕生日フラグ（カレンダー判定＋タイトルに「誕生日」が含まれる）
-                        val isBirthday = event.isBirthdayCalendar || event.title.contains("誕生日") || event.title.contains("Birthday", ignoreCase = true)
+                        // 誕生日フラグ（カレンダー判定＋タイトルに「誕生日」が含まれるが「天皇誕生日」は除外）
+                        val isBirthday = event.isBirthdayCalendar ||
+                                (event.title.contains("誕生日") && !event.title.contains("天皇誕生日")) ||
+                                event.title.contains("Birthday", ignoreCase = true)
                         var updatedEvent = event.copy(isBirthdayCalendar = isBirthday)
 
                         // 祝日カレンダー以外で、終日かつ読み取り専用の予定は文化イベント候補
@@ -282,9 +285,10 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                         updatedEvent
                     }
                 } else {
-                    // Golendarモード：タイトルに「誕生日」が含まれるものにフラグを付与
+                    // Golendarモード：タイトルに「誕生日」が含まれるものにフラグを付与（「天皇誕生日」は除外）
                     repository.getLocalEventsForMonth(start, end).map { event ->
-                        val isBirthday = event.title.contains("誕生日") || event.title.contains("Birthday", ignoreCase = true)
+                        val isBirthday = (event.title.contains("誕生日") && !event.title.contains("天皇誕生日")) ||
+                                event.title.contains("Birthday", ignoreCase = true)
                         event.copy(isBirthdayCalendar = isBirthday)
                     }
                 }
@@ -343,24 +347,70 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // 予定を追加
+    // 予定を追加（終日予定の時刻をUTC日付境界に補正）
     fun addEvent(title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?) {
         viewModelScope.launch(Dispatchers.IO) {
+            var finalStart = startMillis
+            var finalEnd = endMillis
+
+            if (isAllDay) {
+                // 開始時刻をシステムタイムゾーンの日付のUTC 00:00に補正
+                if (startMillis % 86400000L != 0L) {
+                    finalStart = Instant.ofEpochMilli(startMillis)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate()
+                        .atStartOfDay(ZoneOffset.UTC)
+                        .toInstant()
+                        .toEpochMilli()
+                }
+                // 終了時刻をシステムタイムゾーンの日付のUTC 00:00（または翌日00:00）に補正
+                if (endMillis % 86400000L != 0L) {
+                    val endZoned = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault())
+                    finalEnd = if (endZoned.hour >= 23) {
+                        endZoned.toLocalDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+                    } else {
+                        endZoned.toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+                    }
+                }
+                // 終了が開始より前にならないように最低1日分確保
+                if (finalEnd <= finalStart) {
+                    finalEnd = finalStart + 86400000L
+                }
+            }
+
             if (_calendarMode.value == CalendarMode.GOOGLE) {
-                repository.insertEvent(title, startMillis, endMillis, isAllDay, location, description, rrule, _selectedAccount.value)
+                repository.insertEvent(title, finalStart, finalEnd, isAllDay, location, description, rrule, _selectedAccount.value)
             } else {
-                repository.insertLocalEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)
+                repository.insertLocalEvent(title, finalStart, finalEnd, isAllDay, location, description, rrule)
             }
             loadEvents()
             updateWidgets()
         }
     }
 
-    // 予定を更新
+    // 予定を更新（終日予定の時刻をUTC日付境界に補正）
     fun updateEvent(eventId: Long, title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?) {
         viewModelScope.launch(Dispatchers.IO) {
-            if (_calendarMode.value == CalendarMode.GOOGLE) repository.updateEvent(eventId, title, startMillis, endMillis, isAllDay, location, description, rrule)
-            else repository.updateLocalEvent(eventId, title, startMillis, endMillis, isAllDay, location, description, rrule)
+            var finalStart = startMillis
+            var finalEnd = endMillis
+
+            if (isAllDay) {
+                if (startMillis % 86400000L != 0L) {
+                    finalStart = Instant.ofEpochMilli(startMillis).atZone(ZoneId.systemDefault()).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+                }
+                if (endMillis % 86400000L != 0L) {
+                    val endZoned = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault())
+                    finalEnd = if (endZoned.hour >= 23) {
+                        endZoned.toLocalDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+                    } else {
+                        endZoned.toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+                    }
+                }
+                if (finalEnd <= finalStart) finalEnd = finalStart + 86400000L
+            }
+
+            if (_calendarMode.value == CalendarMode.GOOGLE) repository.updateEvent(eventId, title, finalStart, finalEnd, isAllDay, location, description, rrule)
+            else repository.updateLocalEvent(eventId, title, finalStart, finalEnd, isAllDay, location, description, rrule)
             loadEvents()
             updateWidgets()
         }
@@ -376,7 +426,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // 複数日予定の指定日のみを削除（前後に分割）
+    // 複数日予定の指定日のみを削除（前後に分割、終日予定にも対応）
     fun splitAndDeleteDay(event: Event, dateToRemove: LocalDate) {
         if (event.rrule != null || event.isReadOnly) return
 
@@ -390,17 +440,25 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
             if (eventStart == eventEnd) return@launch
 
-            if (dateToRemove == eventStart) {
-                val newStart = dateToRemove.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
-                if (isGoogle) repository.updateEvent(event.id, event.title, newStart, event.endTime, event.isAllDay, event.location, event.description, null)
-                else repository.updateLocalEvent(event.id, event.title, newStart, event.endTime, event.isAllDay, event.location, event.description, null)
-            } else if (dateToRemove == eventEnd) {
-                val newEnd = dateToRemove.minusDays(1).atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
-                if (isGoogle) repository.updateEvent(event.id, event.title, event.startTime, newEnd, event.isAllDay, event.location, event.description, null)
-                else repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd, event.isAllDay, event.location, event.description, null)
+            // 削除日の翌日開始時刻を計算
+            val newStart2 = dateToRemove.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+            // 削除日の前日終了時刻を計算（終日予定の場合は当日00:00）
+            val newEnd1 = if (event.isAllDay) {
+                dateToRemove.atStartOfDay(zone).toInstant().toEpochMilli()
             } else {
-                val newEnd1 = dateToRemove.minusDays(1).atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
-                val newStart2 = dateToRemove.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+                dateToRemove.minusDays(1).atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
+            }
+
+            if (dateToRemove == eventStart) {
+                // 先頭日を削除 → 開始日を翌日に更新
+                if (isGoogle) repository.updateEvent(event.id, event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null)
+                else repository.updateLocalEvent(event.id, event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null)
+            } else if (dateToRemove == eventEnd) {
+                // 最終日を削除 → 終了日を前日に更新
+                if (isGoogle) repository.updateEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null)
+                else repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null)
+            } else {
+                // 中間日を削除 → 前後で2つの予定に分割
                 if (isGoogle) {
                     repository.updateEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null)
                     repository.insertEvent(event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null, targetAccount)
