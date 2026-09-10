@@ -241,7 +241,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // カレンダーモードに応じて予定を読み込む（Googleモードでは祝日・文化イベント・誕生日フラグを付与）
+    // カレンダーモードに応じて予定を読み込む
     fun loadEvents() {
         viewModelScope.launch(Dispatchers.IO) {
             val yearMonth = _currentMonth.value
@@ -250,46 +250,87 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
             try {
                 val fetchedEvents = if (_calendarMode.value == CalendarMode.GOOGLE) {
-                    val calendarIds = _selectedAccount.value?.let { repository.getCalendarIdsForAccount(it) }
+                    // Googleモード：選択中アカウントのカレンダーID＋祝日/誕生日カレンダーのIDを統合
+                    val calendarIds = _selectedAccount.value?.let {
+                        (repository.getCalendarIdsForAccount(it) + repository.getSpecialCalendarIds()).distinct()
+                    }
                     val googleEvents = repository.getEventsForMonth(start, end, calendarIds)
 
-                    // ローカルDBから公式祝日データを取得（日付セットとして保持）
+                    // ローカルDBの公式祝日データを日付セットとして取得
                     val officialHolidays = repository.getLocalEventsForMonth(start, end).filter { it.description == "system_holiday" }
                     val officialDates = officialHolidays.map {
                         LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), ZoneOffset.UTC).toLocalDate()
                     }.toSet()
 
-                    googleEvents.map { event ->
-                        // 誕生日フラグ（カレンダー判定＋タイトルに「誕生日」が含まれるが「天皇誕生日」は除外）
+                    // Googleの各イベントに祝日・文化イベント・誕生日フラグを付与
+                    val mappedGoogleEvents = googleEvents.map { event ->
+                        // 誕生日判定（「天皇誕生日」は除外）
                         val isBirthday = event.isBirthdayCalendar ||
                                 (event.title.contains("誕生日") && !event.title.contains("天皇誕生日")) ||
                                 event.title.contains("Birthday", ignoreCase = true)
                         var updatedEvent = event.copy(isBirthdayCalendar = isBirthday)
 
-                        // 祝日カレンダー以外で、終日かつ読み取り専用の予定は文化イベント候補
+                        // 祝日カレンダー、または終日かつ読み取り専用の予定を祝日/文化イベント候補として判定
                         if (!isBirthday && (updatedEvent.isHolidayCalendar || (updatedEvent.isAllDay && updatedEvent.isReadOnly))) {
                             val zone = if (updatedEvent.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
                             val eventDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(updatedEvent.startTime), zone).toLocalDate()
 
                             if (officialDates.isNotEmpty()) {
-                                // 公式祝日一覧に含まれていなければ文化イベントとみなす
-                                if (!officialDates.contains(eventDate)) {
-                                    updatedEvent = updatedEvent.copy(isCulturalEvent = true)
-                                }
+                                // 公式祝日一覧に含まれていれば祝日、そうでなければ文化イベント
+                                val isOfficial = officialDates.contains(eventDate)
+                                updatedEvent = updatedEvent.copy(isHolidayCalendar = isOfficial, isCulturalEvent = isOfficial)
                             } else {
-                                // 公式祝日がない場合はタイトルで判定（主要な文化イベント）
+                                // 公式祝日がない場合はタイトルで文化イベントを判定
                                 val isCultural = listOf("七夕", "バレンタイン", "節分", "ひな祭り", "母の日", "父の日", "ハロウィン", "クリスマス", "大晦日", "元日").any { updatedEvent.title.contains(it) }
-                                if (isCultural) updatedEvent = updatedEvent.copy(isCulturalEvent = true)
+                                if (isCultural || updatedEvent.isHolidayCalendar) updatedEvent = updatedEvent.copy(isCulturalEvent = true)
                             }
                         }
                         updatedEvent
                     }
+
+                    // Google側に存在しない公式祝日を抽出（重複表示を防ぐため差分のみ取得）
+                    val existingHolidayDates = mappedGoogleEvents.filter { it.isHolidayCalendar || it.isCulturalEvent }.map {
+                        val zone = if (it.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+                        LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), zone).toLocalDate()
+                    }.toSet()
+
+                    // 欠落している祝日を擬似イベントとして注入（IDはマイナス値で衝突回避）
+                    val missingHolidays = officialHolidays.filter { localHoliday ->
+                        val localDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(localHoliday.startTime), ZoneOffset.UTC).toLocalDate()
+                        !existingHolidayDates.contains(localDate)
+                    }.map { localHoliday ->
+                        Event(
+                            id = -(localHoliday.id + 1000L),
+                            title = localHoliday.title,
+                            startTime = localHoliday.startTime,
+                            endTime = localHoliday.endTime,
+                            isAllDay = true,
+                            calendarId = -1L,
+                            location = "",
+                            description = "",
+                            isReadOnly = true,
+                            isHolidayCalendar = true,
+                            isCulturalEvent = true
+                        )
+                    }
+
+                    (mappedGoogleEvents + missingHolidays).sortedBy { it.startTime }
                 } else {
-                    // Golendarモード：タイトルに「誕生日」が含まれるものにフラグを付与（「天皇誕生日」は除外）
+                    // Golendarモード：システム祝日は閲覧専用として扱い、誕生日フラグを付与
                     repository.getLocalEventsForMonth(start, end).map { event ->
                         val isBirthday = (event.title.contains("誕生日") && !event.title.contains("天皇誕生日")) ||
                                 event.title.contains("Birthday", ignoreCase = true)
-                        event.copy(isBirthdayCalendar = isBirthday)
+
+                        // descriptionが「system_holiday」なら祝日データとみなして閲覧専用にする
+                        val isSystemHoliday = event.description == "system_holiday"
+
+                        event.copy(
+                            isBirthdayCalendar = isBirthday,
+                            isReadOnly = isSystemHoliday,
+                            isHolidayCalendar = isSystemHoliday,
+                            isCulturalEvent = isSystemHoliday,
+                            description = if (isSystemHoliday) "" else event.description // 内部識別子はUIに出さない
+                        )
                     }
                 }
 

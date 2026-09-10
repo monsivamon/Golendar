@@ -2,6 +2,7 @@ package com.monsivamon.golender.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -16,13 +17,58 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.monsivamon.golender.viewmodel.CalendarViewModel
+import com.monsivamon.golender.viewmodel.ThemeMode
 import java.time.DayOfWeek
 import java.time.LocalDate
+
+// アプリ全体のカラーパレット（全プロパティにデフォルト値を設定して引数不足を防止）
+data class AppColors(
+    val bg: Color = Color.Unspecified,
+    val surface: Color = Color.Unspecified,
+    val text: Color = Color.Unspecified,
+    val textGray: Color = Color.Unspecified,
+    val primaryAccent: Color = Color.Unspecified,
+    val sunRed: Color = Color.Unspecified,
+    val satBlue: Color = Color.Unspecified,
+    val divider: Color = Color.Unspecified
+)
+
+// テーマと背景色の輝度に応じて最適なカラーパレットを生成
+@Composable
+fun getAppColors(themeMode: ThemeMode, customBg: Color = Color.Unspecified): AppColors {
+    // システムのダークモード設定を取得
+    val isSystemDark = isSystemInDarkTheme()
+    val isDarkTheme = when (themeMode) {
+        ThemeMode.DARK -> true
+        ThemeMode.LIGHT -> false
+        ThemeMode.SYSTEM -> isSystemDark
+    }
+
+    // カスタム背景色があれば優先、なければテーマに応じたデフォルト背景色
+    val defaultBg = if (isDarkTheme) Color(0xFF121212) else Color(0xFFF0F2F5)
+    val finalBg = if (customBg != Color.Unspecified && customBg != Color.Transparent) customBg else defaultBg
+
+    // 背景色の輝度から明るい/暗いを判定（0.5より大きければ明るい）
+    val isLightBg = finalBg.luminance() > 0.5f
+
+    // 背景の明るさに合わせて文字色・アクセントカラーを自動選択
+    return AppColors(
+        bg = finalBg,
+        surface = if (isDarkTheme) Color(0xFF1E1E1E) else Color(0xFFFFFFFF),
+        text = if (isLightBg) Color(0xFF1A1A1A) else Color(0xFFF1F3F4),
+        textGray = if (isLightBg) Color(0xFF666666) else Color(0xFFAAAAAA),
+        primaryAccent = if (isLightBg) Color(0xFF6A1B9A) else Color(0xFFCE93D8),
+        sunRed = if (isLightBg) Color(0xFFE53935) else Color(0xFFEF9A9A),
+        satBlue = if (isLightBg) Color(0xFF1E88E5) else Color(0xFF81D4FA),
+        divider = if (isDarkTheme) Color(0xFF333333) else Color(0xFFE0E0E0)
+    )
+}
 
 // 今日ボタン押下時：選択日を今日にリセットし月表示へ遷移
 fun navigateToTodayMonth(viewModel: CalendarViewModel, navController: NavController) {
@@ -59,7 +105,7 @@ val PastelColorPalette = listOf(
     Color(0xFFB5EAD7), Color(0xFFC7CEEA), Color(0xFFF4C2C2), Color(0xFFFDECDA)
 )
 
-// 同期確認ダイアログ（カレンダーデータを再読み込みする前に確認）
+// 同期確認ダイアログ
 @Composable
 fun SyncConfirmDialog(colors: AppColors, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(

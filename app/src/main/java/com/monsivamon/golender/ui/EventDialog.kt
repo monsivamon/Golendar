@@ -3,6 +3,7 @@ package com.monsivamon.golender.ui
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -58,13 +59,13 @@ fun EventDialog(
     }
     val recurringOptions = listOf("DAILY" to "毎日", "WEEKLY" to "毎週", "MONTHLY" to "毎月", "YEARLY" to "毎年")
 
-    // 終日予定はUTC、時間指定はシステムタイムゾーンで保存
+    // 終日予定はUTC、時間指定はシステムタイムゾーンで初期値を復元
     val initialZone = if (event?.isAllDay == true) ZoneOffset.UTC else ZoneId.systemDefault()
 
     val initialStart = event?.let { LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), initialZone) }
         ?: selectedDate.atTime(10, 0)
 
-    // 終日予定の終了時刻は表示上、当日に留めるため1ミリ秒減算
+    // 終日予定の終了時刻は当日表示に収めるため1ミリ秒減算
     val initialEnd = event?.let {
         val adjustedEnd = if (it.isAllDay && it.endTime > it.startTime) it.endTime - 1 else it.endTime
         LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEnd), initialZone)
@@ -138,11 +139,13 @@ fun EventDialog(
                     ) {
                         Text("開始", color = colors.textGray, modifier = Modifier.width(40.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(colors.bg).clickable { showStartDatePicker = true }.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                            // 日付選択ボタン（枠線スタイル）
+                            Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, colors.textGray, RoundedCornerShape(8.dp)).clickable { showStartDatePicker = true }.padding(horizontal = 12.dp, vertical = 10.dp)) {
                                 Text("${startDate.year}年${startDate.monthValue}月${startDate.dayOfMonth}日", color = colors.text)
                             }
                             if (!isAllDay) {
-                                Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(colors.bg).clickable { showStartTimePicker = true }.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                                // 時刻選択ボタン（枠線スタイル）
+                                Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, colors.textGray, RoundedCornerShape(8.dp)).clickable { showStartTimePicker = true }.padding(horizontal = 12.dp, vertical = 10.dp)) {
                                     Text(String.format("%02d:%02d", startTime.hour, startTime.minute), color = colors.text)
                                 }
                             }
@@ -157,11 +160,13 @@ fun EventDialog(
                     ) {
                         Text("終了", color = colors.textGray, modifier = Modifier.width(40.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(colors.bg).clickable { showEndDatePicker = true }.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                            // 日付選択ボタン（枠線スタイル）
+                            Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, colors.textGray, RoundedCornerShape(8.dp)).clickable { showEndDatePicker = true }.padding(horizontal = 12.dp, vertical = 10.dp)) {
                                 Text("${endDate.year}年${endDate.monthValue}月${endDate.dayOfMonth}日", color = colors.text)
                             }
                             if (!isAllDay) {
-                                Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).background(colors.bg).clickable { showEndTimePicker = true }.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                                // 時刻選択ボタン（枠線スタイル）
+                                Box(modifier = Modifier.clip(RoundedCornerShape(8.dp)).border(1.dp, colors.textGray, RoundedCornerShape(8.dp)).clickable { showEndTimePicker = true }.padding(horizontal = 12.dp, vertical = 10.dp)) {
                                     Text(String.format("%02d:%02d", endTime.hour, endTime.minute), color = colors.text)
                                 }
                             }
@@ -191,13 +196,10 @@ fun EventDialog(
         confirmButton = {
             TextButton(onClick = {
                 val finalTitle = title.ifBlank { "名称未設定" }
-
                 // 終日予定はUTC、それ以外はシステムタイムゾーンで保存
                 val saveZone = if (isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
-
                 val startDateTime = startDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else startTime)
                 val endDateTime = endDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else endTime)
-
                 val startMillis = startDateTime.atZone(saveZone).toInstant().toEpochMilli()
                 val endMillis = endDateTime.atZone(saveZone).toInstant().toEpochMilli()
 

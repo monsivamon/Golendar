@@ -50,14 +50,14 @@ fun WeekWidgetContent(data: WeekWidgetData) {
     val events = data.events
 
     val customBg = data.bgColor?.let { Color(it) }
-    val backgroundColor = customBg?.let { ColorProvider(day = it, night = it) } ?: ColorProvider(day = Color(0xFFF0F2F5), night = Color(0xFF121212))
+    // カスタム背景色があれば優先、なければテーマ連動のデフォルト背景色
+    val backgroundColor = customBg?.let { ColorProvider(day = it, night = it) } ?: getWidgetColorProvider(data.themeMode, Color(0xFFF0F2F5), Color(0xFF121212))
+    val surfaceColor = customBg?.let { ColorProvider(day = it, night = it) } ?: getWidgetColorProvider(data.themeMode, Color(0xFFFFFFFF), Color(0xFF1E1E1E))
 
-    // カスタム背景色を予定行にも適用
-    val surfaceColor = customBg?.let { ColorProvider(day = it, night = it) } ?: ColorProvider(day = Color(0xFFFFFFFF), night = Color(0xFF1E1E1E))
-
-    val textColor = ColorProvider(day = Color(0xFF1A1A1A), night = Color(0xFFF1F3F4))
-    val subTextColor = ColorProvider(day = Color(0xFF888888), night = Color(0xFFAAAAAA))
-    val primaryAccent = ColorProvider(day = Color(0xFF6A1B9A), night = Color(0xFFCE93D8))
+    // 背景の輝度に合わせて文字色・アクセントカラーを自動反転
+    val textColor = getAdaptiveColorProvider(data.themeMode, customBg, Color(0xFF1A1A1A), Color(0xFFF1F3F4))
+    val subTextColor = getAdaptiveColorProvider(data.themeMode, customBg, Color(0xFF888888), Color(0xFFAAAAAA))
+    val primaryAccent = getAdaptiveColorProvider(data.themeMode, customBg, Color(0xFF6A1B9A), Color(0xFFCE93D8))
 
     Column(
         modifier = GlanceModifier
@@ -66,6 +66,7 @@ fun WeekWidgetContent(data: WeekWidgetData) {
             .clickable(onClick = actionStartActivity(Intent(context, MainActivity::class.java)))
             .padding(12.dp)
     ) {
+        // ヘッダー（週範囲＋更新ボタン）
         Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = "${weekStart.monthValue}/${weekStart.dayOfMonth} 〜 ${weekEnd.monthValue}/${weekEnd.dayOfMonth}",
@@ -74,7 +75,7 @@ fun WeekWidgetContent(data: WeekWidgetData) {
             )
             Text(
                 text = "🔄",
-                style = TextStyle(fontSize = 14.sp),
+                style = TextStyle(color = textColor, fontSize = 14.sp),
                 modifier = GlanceModifier.padding(4.dp).clickable(onClick = actionRunCallback<WidgetUpdateAction>())
             )
         }

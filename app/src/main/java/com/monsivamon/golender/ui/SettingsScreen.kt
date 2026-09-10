@@ -87,14 +87,18 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
     var colorPickerDay by remember { mutableStateOf<DayOfWeek?>(null) }
     var showBgColorPicker by remember { mutableStateOf(false) }
 
-    // カレンダー権限リクエスト用ランチャー
+    // アプリ再起動を促すモーダルの表示状態
+    var showRestartModal by remember { mutableStateOf(false) }
+
+    // カレンダー権限リクエスト用ランチャー（許可後は再起動モーダルを表示）
     val calendarPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val readGranted = permissions[Manifest.permission.READ_CALENDAR] ?: false
         val writeGranted = permissions[Manifest.permission.WRITE_CALENDAR] ?: false
         if (readGranted && writeGranted) {
-            viewModel.setCalendarMode(CalendarMode.GOOGLE)
+            // 権限取得後、Googleアカウント認識のため再起動を促す
+            showRestartModal = true
         } else {
             viewModel.setCalendarMode(CalendarMode.GOLENDAR)
             Toast.makeText(context, "カレンダーへのアクセスが許可されなかったため、Golendarモードに切り替えました", Toast.LENGTH_LONG).show()
@@ -208,7 +212,8 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                                 if (calendarMode != CalendarMode.GOOGLE) {
                                     if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED &&
                                         ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
-                                        viewModel.setCalendarMode(CalendarMode.GOOGLE)
+                                        // 既に権限がある場合も再起動モーダルを表示
+                                        showRestartModal = true
                                     } else {
                                         calendarPermissionLauncher.launch(arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
                                     }
@@ -481,6 +486,33 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                 }
             },
             confirmButton = { TextButton(onClick = { colorPickerDay = null }) { Text("閉じる", color = colors.textGray) } }
+        )
+    }
+
+    // アプリ再起動を促すモーダル（Googleモード切り替え時）
+    if (showRestartModal) {
+        AlertDialog(
+            onDismissRequest = { showRestartModal = false },
+            containerColor = colors.surface,
+            title = { Text("再起動が必要です", color = colors.text, fontWeight = FontWeight.Bold) },
+            text = { Text("Googleアカウントを認識して同期するため、アプリを再起動します。", color = colors.text) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showRestartModal = false
+                    viewModel.setCalendarMode(CalendarMode.GOOGLE)
+                    val packageManager = context.packageManager
+                    val intent = packageManager.getLaunchIntentForPackage(context.packageName)
+                    if (intent != null) {
+                        val componentName = intent.component
+                        val mainIntent = Intent.makeRestartActivityTask(componentName)
+                        context.startActivity(mainIntent)
+                        Runtime.getRuntime().exit(0)
+                    }
+                }) { Text("再起動", color = colors.primaryAccent, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRestartModal = false }) { Text("キャンセル", color = colors.textGray) }
+            }
         )
     }
 }

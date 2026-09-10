@@ -52,16 +52,16 @@ fun MonthWidgetContent(data: MonthWidgetData) {
     val offset = (firstDayOfMonth.dayOfWeek.value - weekStartDay.value + 7) % 7
 
     val customBg = data.bgColor?.let { Color(it) }
-    val backgroundColor = customBg?.let { ColorProvider(day = it, night = it) } ?: ColorProvider(day = Color(0xFFF0F2F5), night = Color(0xFF121212))
+    // カスタム背景色があれば優先、なければテーマ連動のデフォルト背景色
+    val backgroundColor = customBg?.let { ColorProvider(day = it, night = it) } ?: getWidgetColorProvider(data.themeMode, Color(0xFFF0F2F5), Color(0xFF121212))
+    val surfaceColor = customBg?.let { ColorProvider(day = it, night = it) } ?: getWidgetColorProvider(data.themeMode, Color(0xFFFFFFFF), Color(0xFF1E1E1E))
 
-    // カスタム背景色を月間グリッド全体にも適用
-    val surfaceColor = customBg?.let { ColorProvider(day = it, night = it) } ?: ColorProvider(day = Color(0xFFFFFFFF), night = Color(0xFF1E1E1E))
-
-    val textColor = ColorProvider(day = Color(0xFF1A1A1A), night = Color(0xFFF1F3F4))
-    val subTextColor = ColorProvider(day = Color(0xFF888888), night = Color(0xFF888888))
-    val primaryAccent = ColorProvider(day = Color(0xFF6A1B9A), night = Color(0xFFCE93D8))
-    val sunColor = ColorProvider(day = Color(0xFFE53935), night = Color(0xFFEF9A9A))
-    val satColor = ColorProvider(day = Color(0xFF1A73E8), night = Color(0xFF81D4FA))
+    // 背景の輝度に合わせて文字色・アクセントカラーを自動反転
+    val textColor = getAdaptiveColorProvider(data.themeMode, customBg, Color(0xFF1A1A1A), Color(0xFFF1F3F4))
+    val subTextColor = getAdaptiveColorProvider(data.themeMode, customBg, Color(0xFF888888), Color(0xFF888888))
+    val primaryAccent = getAdaptiveColorProvider(data.themeMode, customBg, Color(0xFF6A1B9A), Color(0xFFCE93D8))
+    val sunColor = getAdaptiveColorProvider(data.themeMode, customBg, Color(0xFFE53935), Color(0xFFEF9A9A))
+    val satColor = getAdaptiveColorProvider(data.themeMode, customBg, Color(0xFF1A73E8), Color(0xFF81D4FA))
 
     Column(
         modifier = GlanceModifier
@@ -71,9 +71,10 @@ fun MonthWidgetContent(data: MonthWidgetData) {
             .padding(8.dp)
     ) {
         Column(modifier = GlanceModifier.fillMaxSize().background(surfaceColor).padding(12.dp)) {
+            // ヘッダー（年月＋更新ボタン）
             Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(text = "${yearMonth.year}年 ${yearMonth.monthValue}月", style = TextStyle(color = textColor, fontSize = 16.sp, fontWeight = FontWeight.Bold), modifier = GlanceModifier.defaultWeight())
-                Text(text = "🔄", style = TextStyle(fontSize = 14.sp), modifier = GlanceModifier.padding(4.dp).clickable(onClick = actionRunCallback<WidgetUpdateAction>()))
+                Text(text = "🔄", style = TextStyle(color = textColor, fontSize = 14.sp), modifier = GlanceModifier.padding(4.dp).clickable(onClick = actionRunCallback<WidgetUpdateAction>()))
             }
 
             Spacer(modifier = GlanceModifier.height(8.dp))

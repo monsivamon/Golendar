@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.monsivamon.golender.data.CalendarRepository
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.viewmodel.ThemeMode
 import kotlinx.coroutines.flow.first
 import java.time.DayOfWeek
 import java.time.Instant
@@ -23,6 +24,15 @@ object WidgetDataManager {
     private val MODE_KEY = stringPreferencesKey("calendar_mode")
     private val ACCOUNT_KEY = stringPreferencesKey("selected_account")
     private val BG_COLOR_KEY = stringPreferencesKey("calendar_bg_color")
+    private val THEME_KEY = stringPreferencesKey("theme_mode")
+
+    // DataStoreからテーマモードを取得（デフォルトはSYSTEM）
+    private suspend fun getThemeMode(context: Context): ThemeMode {
+        val prefs = context.dataStore.data.first()
+        return prefs[THEME_KEY]?.let {
+            try { ThemeMode.valueOf(it) } catch (e: Exception) { ThemeMode.SYSTEM }
+        } ?: ThemeMode.SYSTEM
+    }
 
     // DataStoreから週の開始曜日を取得（デフォルトは日曜日）
     private suspend fun getWeekStartDay(context: Context): DayOfWeek {
@@ -75,7 +85,8 @@ object WidgetDataManager {
         return DayWidgetData(
             date = today,
             events = filtered.map { WidgetEvent(it.id, it.title, it.startTime, it.endTime, it.isAllDay) },
-            bgColor = getBgColor(context)
+            bgColor = getBgColor(context),
+            themeMode = getThemeMode(context)
         )
     }
 
@@ -116,7 +127,8 @@ object WidgetDataManager {
             weekEnd = endOfWeek,
             events = eventsByDate.mapValues { it.value.toList() },
             weekStartDay = weekStartDay,
-            bgColor = getBgColor(context)
+            bgColor = getBgColor(context),
+            themeMode = getThemeMode(context)
         )
     }
 
@@ -162,7 +174,8 @@ object WidgetDataManager {
             yearMonth = yearMonth,
             events = eventsByDate.mapValues { it.value.toList() },
             weekStartDay = weekStartDay,
-            bgColor = getBgColor(context)
+            bgColor = getBgColor(context),
+            themeMode = getThemeMode(context)
         )
     }
 }

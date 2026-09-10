@@ -217,11 +217,19 @@ class CalendarRepository(private val context: Context) {
         return events
     }
 
-    // 利用可能なカレンダーアカウント一覧を取得
+    // 利用可能なGoogleアカウント一覧を取得（「@」を含む実アカウントのみ）
     fun getAccountNames(): List<String> {
         val cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars.ACCOUNT_NAME), null, null, null)
         val accounts = mutableSetOf<String>()
-        cursor?.use { while (it.moveToNext()) { accounts.add(it.getString(0)) } }
+        cursor?.use {
+            while (it.moveToNext()) {
+                val accountName = it.getString(0) ?: ""
+                // account_name_local などの内部アカウントを除外するため、「@」を含むものだけを対象にする
+                if (accountName.contains("@")) {
+                    accounts.add(accountName)
+                }
+            }
+        }
         return accounts.toList().sorted()
     }
 
@@ -231,6 +239,11 @@ class CalendarRepository(private val context: Context) {
         val ids = mutableListOf<Long>()
         cursor?.use { while (it.moveToNext()) { ids.add(it.getLong(0)) } }
         return ids
+    }
+
+    // 祝日・誕生日カレンダーのIDのみを取得（特殊カレンダーの識別用）
+    fun getSpecialCalendarIds(): List<Long> {
+        return getCalendarInfo().filter { it.value.isHoliday || it.value.isBirthday }.map { it.key }
     }
 
     // 優先カレンダーIDを解決（プライマリ→最初のID→デフォルト1）
