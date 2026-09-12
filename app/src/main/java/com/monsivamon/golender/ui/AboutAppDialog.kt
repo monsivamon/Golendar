@@ -15,12 +15,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.ui.theme.AppColors
 
-// 「このアプリについて」の内容表示
+// 「このアプリについて」の内容表示（バージョン・説明・GitHubリンク）
 @Composable
 fun AboutAppContent(colors: AppColors) {
     val context = LocalContext.current
 
+    // パッケージ情報からバージョン名を取得（失敗時はフォールバック）
     val pInfo = try {
         context.packageManager.getPackageInfo(context.packageName, 0)
     } catch (e: PackageManager.NameNotFoundException) { null }
@@ -44,7 +46,7 @@ fun AboutAppContent(colors: AppColors) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // GitHubリポジトリへのリンク
+        // GitHubリポジトリへのリンクボタン
         Button(
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/monsivamon/Golendar"))

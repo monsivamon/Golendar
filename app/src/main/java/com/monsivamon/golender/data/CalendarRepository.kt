@@ -367,7 +367,7 @@ class CalendarRepository(private val context: Context) {
         localEventDao.insertAll(events)
     }
 
-    // 外部APIから日本の祝日データを取得してローカルDBに保存（既存祝日は置き換え）
+    // 外部APIから日本の祝日データを取得してローカルDBに保存（既存祝日は@Transactionで原子的に置換）
     suspend fun fetchAndSaveHolidays() = withContext(Dispatchers.IO) {
         try {
             val url = URL("https://holidays-jp.github.io/api/v1/date.json")
@@ -398,15 +398,16 @@ class CalendarRepository(private val context: Context) {
                             endTime = endMillis,
                             isAllDay = true,
                             location = "",
-                            description = "system_holiday",
+                            description = LocalEvent.DESCRIPTION_HOLIDAY,
                             rrule = null
                         )
                     )
                 }
 
                 if (holidays.isNotEmpty()) {
-                    localEventDao.deleteSystemHolidays()
-                    localEventDao.insertAll(holidays)
+                    // deleteSystemHolidays() + insertAll() を別々に呼ぶと
+                    // 並行実行時に二重挿入が発生するため、@Transaction メソッドで一括置換する
+                    localEventDao.replaceSystemHolidays(holidays)
                 }
             }
         } catch (e: Exception) {

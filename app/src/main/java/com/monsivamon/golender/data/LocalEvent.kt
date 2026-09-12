@@ -14,4 +14,12 @@ data class LocalEvent(
     val location: String,
     val description: String,
     val rrule: String? = null
-)
+) {
+    companion object {
+        // システム祝日データを識別する description 値
+        const val DESCRIPTION_HOLIDAY = "system_holiday"
+
+        // ローカル予定を表す calendarId（Google側と衝突しない負値）
+        const val LOCAL_CALENDAR_ID = -1L
+    }
+}

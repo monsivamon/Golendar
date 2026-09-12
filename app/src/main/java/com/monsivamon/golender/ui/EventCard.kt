@@ -11,105 +11,84 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.data.Event
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.monsivamon.golender.data.util.accentColor
+import com.monsivamon.golender.data.util.getJpDayOfWeek
+import com.monsivamon.golender.data.util.localStartDateTime
+import com.monsivamon.golender.data.util.timeRangeString
+import com.monsivamon.golender.ui.theme.AppColors
 
 // 予定カード（日・週表示用）
 @Composable
-fun EventCard(event: Event, colors: AppColors, onClick: (Event) -> Unit) {
-    val formatter = DateTimeFormatter.ofPattern("HH:mm")
-    val startTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), ZoneId.systemDefault())
-    val endTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), ZoneId.systemDefault())
-    val timeString = if (event.isAllDay) "終日" else "${startTime.format(formatter)} - ${endTime.format(formatter)}"
-
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { onClick(event) },
-        colors = CardDefaults.cardColors(containerColor = colors.surface),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            // 左端のアクセントライン（種別で色分け）
-            val accentColor = when {
-                event.isBirthdayCalendar -> Color(0xFFFF9800)
-                event.isCulturalEvent -> Color(0xFF4CAF50)
-                else -> colors.primaryAccent
-            }
-
-            Box(modifier = Modifier.width(4.dp).height(40.dp).clip(RoundedCornerShape(2.dp)).background(accentColor))
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = event.title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = colors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = timeString, fontSize = 14.sp, color = colors.textGray)
-            }
-
-            // 説明文がある場合のみ表示
-            if (event.description.isNotBlank()) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = event.description,
-                    fontSize = 12.sp,
-                    color = colors.textGray,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.widthIn(max = 120.dp),
-                    textAlign = TextAlign.End
-                )
-            }
-        }
-    }
-}
+fun EventCard(event: Event, colors: AppColors, onClick: (Event) -> Unit) =
+    EventCardBase(
+        event = event,
+        colors = colors,
+        timeLine = event.timeRangeString(),
+        lineHeight = 40.dp,
+        onClick = onClick,
+    )
 
 // 検索結果用カード（日付情報を追加表示）
 @Composable
 fun SearchResultCard(event: Event, colors: AppColors, onClick: (Event) -> Unit) {
-    val startTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), ZoneId.systemDefault())
-    val endTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), ZoneId.systemDefault())
-    val jpDay = getJpDayOfWeek(startTime.dayOfWeek)
-    val dateString = "${startTime.monthValue}月${startTime.dayOfMonth}日($jpDay)"
-    val timeString = if (event.isAllDay) "終日" else "${startTime.format(DateTimeFormatter.ofPattern("HH:mm"))} - ${endTime.format(DateTimeFormatter.ofPattern("HH:mm"))}"
+    val dt = event.localStartDateTime()
+    val dateLabel = "${dt.monthValue}月${dt.dayOfMonth}日(${getJpDayOfWeek(dt.dayOfWeek)})"
+    EventCardBase(
+        event = event,
+        colors = colors,
+        timeLine = "$dateLabel  ${event.timeRangeString()}",
+        lineHeight = 50.dp,
+        onClick = onClick,
+    )
+}
 
+// 予定カードの共通レイアウト（アクセントライン＋タイトル＋時刻＋メモ）
+@Composable
+private fun EventCardBase(
+    event: Event,
+    colors: AppColors,
+    timeLine: String,
+    lineHeight: Dp,
+    onClick: (Event) -> Unit,
+) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { onClick(event) },
         colors = CardDefaults.cardColors(containerColor = colors.surface),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
     ) {
-        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            val accentColor = when {
-                event.isBirthdayCalendar -> Color(0xFFFF9800)
-                event.isCulturalEvent -> Color(0xFF4CAF50)
-                else -> colors.primaryAccent
-            }
+        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            // 種別ごとのアクセントライン（誕生日/文化イベント/通常予定）
+            Box(
+                Modifier.width(4.dp).height(lineHeight)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(event.accentColor(colors))
+            )
+            Spacer(Modifier.width(12.dp))
 
-            Box(modifier = Modifier.width(4.dp).height(50.dp).clip(RoundedCornerShape(2.dp)).background(accentColor))
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = event.title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = colors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "$dateString  $timeString", fontSize = 14.sp, color = colors.textGray)
-            }
-
-            if (event.description.isNotBlank()) {
-                Spacer(modifier = Modifier.width(8.dp))
+            Column(Modifier.weight(1f)) {
                 Text(
-                    text = event.description,
-                    fontSize = 12.sp,
-                    color = colors.textGray,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    event.title, fontSize = 16.sp, fontWeight = FontWeight.Bold,
+                    color = colors.text, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(timeLine, fontSize = 14.sp, color = colors.textGray)
+            }
+
+            // メモがあれば右端に最大2行表示
+            if (event.description.isNotBlank()) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    event.description, fontSize = 12.sp, color = colors.textGray,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.widthIn(max = 120.dp),
-                    textAlign = TextAlign.End
+                    textAlign = TextAlign.End,
                 )
             }
         }

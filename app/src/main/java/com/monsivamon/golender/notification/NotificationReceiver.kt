@@ -9,14 +9,18 @@ import androidx.core.app.NotificationCompat
 // 受信した通知をシステム通知として表示する
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val title = intent.getStringExtra("EXTRA_TITLE") ?: "予定の時間です"
-        val message = intent.getStringExtra("EXTRA_MESSAGE") ?: ""
-        val notificationId = intent.getIntExtra("EXTRA_ID", System.currentTimeMillis().toInt())
+        // Intentから通知内容を取得（未設定時はフォールバック値）
+        val title = intent.getStringExtra(NotificationConfig.EXTRA_TITLE) ?: "予定の時間です"
+        val message = intent.getStringExtra(NotificationConfig.EXTRA_MESSAGE) ?: ""
+        val notificationId = intent.getIntExtra(
+            NotificationConfig.EXTRA_ID, System.currentTimeMillis().toInt(),
+        )
 
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val notification = NotificationCompat.Builder(context, "GOLENDAR_CHANNEL_ID")
-            // アイコンは適宜変更
+        // 高優先度の通知を生成して表示
+        val notification = NotificationCompat.Builder(context, NotificationConfig.CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(message)

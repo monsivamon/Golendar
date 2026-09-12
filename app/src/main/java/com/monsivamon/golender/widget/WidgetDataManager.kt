@@ -1,35 +1,29 @@
 package com.monsivamon.golender.widget
 
 import android.content.Context
-import androidx.datastore.preferences.core.stringPreferencesKey
 import com.monsivamon.golender.data.CalendarRepository
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.data.prefs.SettingsKeys
+import com.monsivamon.golender.data.util.localEndDate
+import com.monsivamon.golender.data.util.localStartDate
+import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.viewmodel.ThemeMode
 import kotlinx.coroutines.flow.first
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.ZoneId
-import java.time.ZoneOffset
 
 // 各ウィジェットに表示するデータを収集・加工するオブジェクト
 object WidgetDataManager {
 
     private fun getRepository(context: Context): CalendarRepository = CalendarRepository(context)
 
-    private val WEEK_START_KEY = stringPreferencesKey("week_start_day")
-    private val MODE_KEY = stringPreferencesKey("calendar_mode")
-    private val ACCOUNT_KEY = stringPreferencesKey("selected_account")
-    private val BG_COLOR_KEY = stringPreferencesKey("calendar_bg_color")
-    private val THEME_KEY = stringPreferencesKey("theme_mode")
-
     // DataStoreからテーマモードを取得（デフォルトはSYSTEM）
     private suspend fun getThemeMode(context: Context): ThemeMode {
         val prefs = context.dataStore.data.first()
-        return prefs[THEME_KEY]?.let {
+        return prefs[SettingsKeys.THEME]?.let {
             try { ThemeMode.valueOf(it) } catch (e: Exception) { ThemeMode.SYSTEM }
         } ?: ThemeMode.SYSTEM
     }
@@ -37,25 +31,28 @@ object WidgetDataManager {
     // DataStoreから週の開始曜日を取得（デフォルトは日曜日）
     private suspend fun getWeekStartDay(context: Context): DayOfWeek {
         val prefs = context.dataStore.data.first()
-        return prefs[WEEK_START_KEY]?.let { try { DayOfWeek.valueOf(it) } catch (e: Exception) { DayOfWeek.SUNDAY } } ?: DayOfWeek.SUNDAY
+        return prefs[SettingsKeys.WEEK_START]?.let {
+            try { DayOfWeek.valueOf(it) } catch (e: Exception) { DayOfWeek.SUNDAY }
+        } ?: DayOfWeek.SUNDAY
     }
 
-    // DataStoreから背景色を取得（未設定の場合はnull）
+    // DataStoreから背景色を取得（未設定はnull）
     private suspend fun getBgColor(context: Context): Int? {
         val prefs = context.dataStore.data.first()
-        val colorStr = prefs[BG_COLOR_KEY]
-        return if (colorStr == null || colorStr == "UNSPECIFIED") null else colorStr.toIntOrNull()
+        val colorStr = prefs[SettingsKeys.BG_COLOR]
+        return if (colorStr == null || colorStr == SettingsKeys.COLOR_UNSPECIFIED) null
+        else colorStr.toIntOrNull()
     }
 
-    // 指定期間の予定をカレンダーモードに応じて取得（GoogleモードはアカウントIDでフィルタ）
+    // 指定期間の予定をカレンダーモードに応じて取得
     private suspend fun getEventsForRange(context: Context, start: Long, end: Long): List<Event> {
         val repo = getRepository(context)
         val prefs = context.dataStore.data.first()
-        val mode = prefs[MODE_KEY] ?: "GOLENDAR"
+        val mode = prefs[SettingsKeys.MODE] ?: "GOLENDAR"
 
         return try {
             if (mode == "GOOGLE") {
-                val account = prefs[ACCOUNT_KEY]
+                val account = prefs[SettingsKeys.ACCOUNT]
                 val calendarIds = account?.let { repo.getCalendarIdsForAccount(it) }
                 repo.getEventsForMonth(start, end, calendarIds)
             } else {
@@ -66,31 +63,23 @@ object WidgetDataManager {
         }
     }
 
-    // 日次ウィジェット用データを生成（今日の日付でフィルタ）
+    // 日次ウィジェット用データ（今日の予定）
     suspend fun getDayWidgetData(context: Context): DayWidgetData {
         val today = LocalDate.now()
         val start = today.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val end = today.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-        val events = getEventsForRange(context, start, end)
-        // 終日予定はUTC、時間指定はシステムタイムゾーンで日付判定
-        val filtered = events.filter { event ->
-            val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
-            val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone).toLocalDate()
-            val adjustedEndTime = if (event.endTime > event.startTime) event.endTime - 1 else event.endTime
-            val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEndTime), zone).toLocalDate()
-            today in eventStart..eventEnd
-        }
+        val events = getEventsForRange(context, start, end).filter { it.occursOn(today) }
 
         return DayWidgetData(
             date = today,
-            events = filtered.map { WidgetEvent(it.id, it.title, it.startTime, it.endTime, it.isAllDay) },
+            events = events.map { WidgetEvent(it.id, it.title, it.startTime, it.endTime, it.isAllDay) },
             bgColor = getBgColor(context),
-            themeMode = getThemeMode(context)
+            themeMode = getThemeMode(context),
         )
     }
 
-    // 週次ウィジェット用データを生成（週の開始〜終了範囲でフィルタ）
+    // 週次ウィジェット用データ（週の日付ごとに予定をマッピング）
     suspend fun getWeekWidgetData(context: Context): WeekWidgetData {
         val today = LocalDate.now()
         val weekStartDay = getWeekStartDay(context)
@@ -103,17 +92,12 @@ object WidgetDataManager {
         val end = endOfWeek.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
         val events = getEventsForRange(context, start, end)
-        // イベントを日付ごとに展開（複数日にまたがる場合は各日に分配）
         val eventsByDate = mutableMapOf<LocalDate, MutableList<WidgetEvent>>()
 
+        // 複数日にまたがる予定は各日に分配してマッピング
         events.forEach { event ->
-            val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
-            val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone).toLocalDate()
-            val adjustedEndTime = if (event.endTime > event.startTime) event.endTime - 1 else event.endTime
-            val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEndTime), zone).toLocalDate()
-
-            val current = maxOf(eventStart, startOfWeek)
-            val limit = minOf(eventEnd, endOfWeek)
+            val current = maxOf(event.localStartDate(), startOfWeek)
+            val limit = minOf(event.localEndDate(), endOfWeek)
             var d = current
             while (!d.isAfter(limit)) {
                 eventsByDate.getOrPut(d) { mutableListOf() }
@@ -128,11 +112,11 @@ object WidgetDataManager {
             events = eventsByDate.mapValues { it.value.toList() },
             weekStartDay = weekStartDay,
             bgColor = getBgColor(context),
-            themeMode = getThemeMode(context)
+            themeMode = getThemeMode(context),
         )
     }
 
-    // 月次ウィジェット用データを生成（カレンダーグリッド全体の範囲でフィルタ）
+    // 月次ウィジェット用データ（カレンダーグリッド全体の予定）
     suspend fun getMonthWidgetData(context: Context): MonthWidgetData {
         val today = LocalDate.now()
         val yearMonth = YearMonth.from(today)
@@ -143,7 +127,7 @@ object WidgetDataManager {
         val offset = (firstDayOfMonth.dayOfWeek.value - weekStartDay.value + 7) % 7
         val totalCells = ((daysInMonth + offset + 6) / 7) * 7
 
-        // グリッド全体の日付範囲を計算（前月・次月の日付も含む）
+        // グリッド全体の日付範囲（前月・翌月の日付も含む）
         val gridStartDate = firstDayOfMonth.minusDays(offset.toLong())
         val gridEndDate = gridStartDate.plusDays((totalCells - 1).toLong())
 
@@ -151,17 +135,12 @@ object WidgetDataManager {
         val end = gridEndDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
         val events = getEventsForRange(context, start, end)
-        // イベントを日付ごとに展開（グリッド範囲内のみ）
         val eventsByDate = mutableMapOf<LocalDate, MutableList<WidgetEvent>>()
 
+        // 複数日にまたがる予定は各日に分配してマッピング
         events.forEach { event ->
-            val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
-            val eventStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone).toLocalDate()
-            val adjustedEndTime = if (event.endTime > event.startTime) event.endTime - 1 else event.endTime
-            val eventEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEndTime), zone).toLocalDate()
-
-            val current = maxOf(eventStart, gridStartDate)
-            val limit = minOf(eventEnd, gridEndDate)
+            val current = maxOf(event.localStartDate(), gridStartDate)
+            val limit = minOf(event.localEndDate(), gridEndDate)
             var d = current
             while (!d.isAfter(limit)) {
                 eventsByDate.getOrPut(d) { mutableListOf() }
@@ -175,7 +154,7 @@ object WidgetDataManager {
             events = eventsByDate.mapValues { it.value.toList() },
             weekStartDay = weekStartDay,
             bgColor = getBgColor(context),
-            themeMode = getThemeMode(context)
+            themeMode = getThemeMode(context),
         )
     }
 }

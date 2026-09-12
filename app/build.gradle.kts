@@ -14,7 +14,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0.3" // 現在のバージョン（更新時はインクリメント）
+        versionName = "1.0.4" // 現在のバージョン（更新時はインクリメント）
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -92,10 +92,8 @@ dependencies {
     ksp(libs.androidx.room.compiler) // KSPでコード生成
 
     // Glance（ウィジェット）とWorkManager（バックグラウンド更新）
-    @Suppress("DSL_SCOPE_VIOLATION")
-    implementation("androidx.glance:glance-appwidget:1.1.1")
-    @Suppress("DSL_SCOPE_VIOLATION")
-    implementation("androidx.work:work-runtime-ktx:2.11.2")
+    implementation(libs.androidx.glance.appwidget)
+    implementation(libs.androidx.work.runtime.ktx)
 
     // テスト用
     testImplementation(libs.junit)

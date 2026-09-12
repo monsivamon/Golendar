@@ -4,10 +4,12 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 
 @Dao
 interface LocalEventDao {
+
     // 指定期間内（重複含む）または繰り返し予定を取得
     @Query("SELECT * FROM local_events WHERE (startTime <= :end AND endTime >= :start) OR rrule IS NOT NULL ORDER BY startTime ASC")
     suspend fun getEventsInRange(start: Long, end: Long): List<LocalEvent>
@@ -28,9 +30,9 @@ interface LocalEventDao {
     @Query("DELETE FROM local_events WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    // システム祝日データのみ削除（更新用）
-    @Query("DELETE FROM local_events WHERE description = 'system_holiday'")
-    suspend fun deleteSystemHolidays()
+    // description指定で削除（システム祝日更新用）
+    @Query("DELETE FROM local_events WHERE description = :description")
+    suspend fun deleteByDescription(description: String)
 
     // 全件削除（復元前の初期化用）
     @Query("DELETE FROM local_events")
@@ -39,4 +41,11 @@ interface LocalEventDao {
     // 一括挿入（競合時は置き換え）
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(events: List<LocalEvent>)
+
+    // 祝日データを原子的に置き換える（並行呼び出しによる二重挿入を防ぐ）
+    @Transaction
+    suspend fun replaceSystemHolidays(holidays: List<LocalEvent>) {
+        deleteByDescription(LocalEvent.DESCRIPTION_HOLIDAY)
+        insertAll(holidays)
+    }
 }
