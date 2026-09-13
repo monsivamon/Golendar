@@ -25,9 +25,7 @@ import com.monsivamon.golender.ui.theme.previewColor
 import com.monsivamon.golender.viewmodel.ThemeMode
 import java.time.DayOfWeek
 
-// ── 背景色ピッカー ──
-
-// カレンダー背景色を選択するダイアログ（ダークテーマ時は暗色プレビュー）
+// アプリ全体の背景色を選択するダイアログを表示する。
 @Composable
 fun BackgroundColorPickerDialog(
     colors: AppColors,
@@ -36,7 +34,6 @@ fun BackgroundColorPickerDialog(
     onDismiss: () -> Unit,
     onColorSelected: (Color) -> Unit,
 ) {
-    // 現在のテーマでダークになるかどうかを判定（スウォッチのプレビューに使う）
     val isDarkTheme = when (themeMode) {
         ThemeMode.DARK -> true
         ThemeMode.LIGHT -> false
@@ -46,11 +43,10 @@ fun BackgroundColorPickerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
-        title = { Text("背景色を選択", color = colors.text, fontWeight = FontWeight.Bold) },
+        title = { Text("アプリ背景色を選択", color = colors.text, fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
 
-                // ダークテーマ時の挙動を説明
                 Text(
                     text = if (isDarkTheme)
                         "ダークモードでは選択した色が自動的に暗く表示されます。"
@@ -61,7 +57,6 @@ fun BackgroundColorPickerDialog(
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
 
-                // 標準（カスタムなし）
                 StandardRow(colors) {
                     onColorSelected(Color.Unspecified)
                     onDismiss()
@@ -69,12 +64,10 @@ fun BackgroundColorPickerDialog(
 
                 Spacer(Modifier.height(12.dp))
 
-                // 16色を4×4で表示（ダークテーマ時は暗色プレビューで描画）
                 ColorSwatchGrid(
                     palette = PastelColorPalette,
                     isDarkTheme = isDarkTheme,
                 ) { baseColor ->
-                    // 保存するのは明色のまま（暗色化は表示側で毎回実行）
                     onColorSelected(baseColor)
                     onDismiss()
                 }
@@ -86,9 +79,7 @@ fun BackgroundColorPickerDialog(
     )
 }
 
-// ── 曜日色ピッカー（単一パレット） ──
-
-// 指定曜日の文字色を選択するダイアログ
+// 指定曜日の文字色を選択するダイアログを表示する。
 @Composable
 fun DayColorPickerDialog(
     day: DayOfWeek,
@@ -109,7 +100,7 @@ fun DayColorPickerDialog(
                 Spacer(Modifier.height(12.dp))
                 ColorSwatchGrid(
                     palette = DayColorPalette,
-                    isDarkTheme = false, // 曜日色は暗色化しない
+                    isDarkTheme = false,
                 ) { c ->
                     onColorSelected(c)
                     onDismiss()
@@ -122,9 +113,7 @@ fun DayColorPickerDialog(
     )
 }
 
-// ── 内部コンポーネント ──
-
-// 「標準（カスタムなし）」行（カスタム背景色を解除する）
+// カスタム色を解除する「標準（カスタムなし）」行を表示する。
 @Composable
 private fun StandardRow(colors: AppColors, onClick: () -> Unit) {
     Row(
@@ -149,8 +138,7 @@ private fun StandardRow(colors: AppColors, onClick: () -> Unit) {
     }
 }
 
-// 4列の色見本グリッド（各行を1/4幅で均等配置し、4個未満の行はSpacerで右詰めを揃える）
-// isDarkTheme=trueなら暗色プレビューで描画（クリック時は元の明色をコールバック）
+// 4列の色見本グリッドを表示し、選択された色をコールバックする。
 @Composable
 private fun ColorSwatchGrid(
     palette: List<Color>,

@@ -2,10 +2,12 @@ package com.monsivamon.golender.ui
 
 import android.graphics.drawable.ColorDrawable
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -29,13 +31,14 @@ import com.monsivamon.golender.ui.common.CalendarTabRow
 import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.YearMonthPickerDialog
 import com.monsivamon.golender.ui.common.findActivity
+import com.monsivamon.golender.ui.common.swipeToNavigateHorizontal
 import com.monsivamon.golender.ui.dialogs.ExitConfirmDialog
 import com.monsivamon.golender.ui.dialogs.SyncConfirmDialog
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 import java.time.LocalDate
 
-// 画面遷移用のルート定義
+// 画面遷移で使うルート文字列を定義する。
 object Routes {
     const val DAILY = "daily"
     const val WEEKLY = "weekly"
@@ -43,10 +46,10 @@ object Routes {
     const val SETTINGS = "settings"
 }
 
-// タブの順序（日→週→月の並び）
+// タブの並び順（日→週→月）を保持する。
 val tabOrder = listOf(Routes.DAILY, Routes.WEEKLY, Routes.MONTHLY)
 
-// タブ移動の標準パターン（状態保存・復元付き）
+// 状態保存・復元付きで指定タブへ遷移する。
 fun navigateToTab(navController: NavController, route: String) {
     navController.navigate(route) {
         popUpTo(Routes.MONTHLY) { saveState = true }
@@ -55,7 +58,7 @@ fun navigateToTab(navController: NavController, route: String) {
     }
 }
 
-// 左右矢印操作によるタブ切り替え（循環あり）
+// 現在のタブから前後方向のタブへ循環移動する。
 fun navigateTab(navController: NavController, currentRoute: String, direction: Int) {
     val currentIndex = tabOrder.indexOf(currentRoute)
     if (currentIndex == -1) return
@@ -63,7 +66,7 @@ fun navigateTab(navController: NavController, currentRoute: String, direction: I
     navigateToTab(navController, tabOrder[newIndex])
 }
 
-// スライドアニメーションの方向を決定（タブ順序に基づく）
+// タブ順序に基づきスライドアニメーションの方向を返す。
 fun getSlideDirection(initialRoute: String?, targetRoute: String?): Int {
     val initialIndex = tabOrder.indexOf(initialRoute)
     val targetIndex = tabOrder.indexOf(targetRoute)
@@ -71,7 +74,7 @@ fun getSlideDirection(initialRoute: String?, targetRoute: String?): Int {
     return if (targetIndex > initialIndex) 1 else -1
 }
 
-// 今日ボタン押下時：選択日を今日にリセットし月表示へ遷移
+// 選択日を今日にリセットし月表示へ遷移する。
 fun navigateToTodayMonth(viewModel: CalendarViewModel, navController: NavController) {
     viewModel.resetToToday()
     navController.navigate(Routes.MONTHLY) {
@@ -79,7 +82,7 @@ fun navigateToTodayMonth(viewModel: CalendarViewModel, navController: NavControl
     }
 }
 
-// ステータスバー/ナビゲーションバーのアイコン色を背景輝度に応じて切り替える
+// 背景輝度に応じてステータスバー・ナビゲーションバーのアイコン色を切り替える。
 @Composable
 private fun SystemBarsAppearanceSync(bgColor: Color) {
     val view = LocalView.current
@@ -92,7 +95,6 @@ private fun SystemBarsAppearanceSync(bgColor: Color) {
 
             window.setBackgroundDrawable(ColorDrawable(bgColor.toArgb()))
 
-            // 明るい背景ならステータスバーアイコンを黒く
             val isLightBg = bgColor.luminance() > 0.5f
 
             val controller = WindowCompat.getInsetsController(window, view)
@@ -102,22 +104,25 @@ private fun SystemBarsAppearanceSync(bgColor: Color) {
     }
 }
 
-// メインナビゲーション（ヘッダー・タブ行・NavHost・各種ダイアログを統括）
+// ヘッダー・タブ行・NavHost・設定オーバーレイ・各種ダイアログを統括するメイン画面。
 @Composable
 fun AppNavigation(viewModel: CalendarViewModel) {
     val navController = rememberNavController()
     val animSpec = tween<IntOffset>(durationMillis = 220, easing = FastOutSlowInEasing)
 
-    // 初回のみ：ウィジェットタップで渡されたルートを startDestination として使用
-    val startDestination: String = remember {
+    val initialRoute: String? = remember {
         val initial = viewModel.pendingRoute.value
         if (initial != null) viewModel.consumeNavigation()
+        initial
+    }
+    val startDestination: String = remember {
         when {
-            initial == Routes.SETTINGS -> Routes.SETTINGS
-            initial != null && initial in tabOrder -> initial
+            initialRoute != null && initialRoute in tabOrder -> initialRoute
             else -> Routes.MONTHLY
         }
     }
+
+    var isSettingsOpen by remember { mutableStateOf(initialRoute == Routes.SETTINGS) }
 
     val themeMode by viewModel.themeMode.collectAsState()
     val customBg by viewModel.calendarBgColor.collectAsState()
@@ -131,14 +136,11 @@ fun AppNavigation(viewModel: CalendarViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // 設定画面ではカスタム背景を適用しない
-    val settingsColors = getAppColors(themeMode, Color.Unspecified)
-    val effectiveBg = if (currentRoute == Routes.SETTINGS) settingsColors.bg else colors.bg
+    val effectiveBg = colors.bg
 
     SystemBarsAppearanceSync(effectiveBg)
 
     var isSearchMode by remember { mutableStateOf(false) }
-    // 「戻る」操作で MONTHLY へ遷移する際に戻る風アニメーションを適用するためのフラグ
     var backNavFlag by remember { mutableStateOf(false) }
 
     var showSyncDialog by remember { mutableStateOf(false) }
@@ -149,7 +151,6 @@ fun AppNavigation(viewModel: CalendarViewModel) {
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
 
-    // 画面切替時に検索モードとbackNavFlagをリセット
     LaunchedEffect(currentRoute) {
         if (currentRoute == null) return@LaunchedEffect
         isSearchMode = false
@@ -157,19 +158,12 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         viewModel.updateSearchQuery("")
     }
 
-    // アプリ起動中のウィジェットタップによる遷移要求を監視
     val pendingRoute by viewModel.pendingRoute.collectAsState()
     LaunchedEffect(pendingRoute) {
         val route = pendingRoute ?: return@LaunchedEffect
         viewModel.consumeNavigation()
         when {
-            // 設定画面への遷移要求
-            route == Routes.SETTINGS -> {
-                if (currentRoute != Routes.SETTINGS) {
-                    navController.navigate(Routes.SETTINGS)
-                }
-            }
-            // タブ画面への遷移要求
+            route == Routes.SETTINGS -> isSettingsOpen = true
             route in tabOrder -> {
                 if (route != currentRoute) {
                     navigateToTab(navController, route)
@@ -178,13 +172,13 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         }
     }
 
-    // 戻るボタンの一元処理（検索閉じ→月表示なら終了確認→それ以外は月表示へ）
     BackHandler {
         when {
             isSearchMode -> {
                 isSearchMode = false
                 viewModel.updateSearchQuery("")
             }
+            isSettingsOpen -> isSettingsOpen = false
             currentRoute == Routes.MONTHLY -> showExitDialog = true
             else -> {
                 val popped = navController.popBackStack(Routes.MONTHLY, inclusive = false)
@@ -199,7 +193,6 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         }
     }
 
-    // 画面ごとのヘッダータイトルを決定
     val headerTitle = when (currentRoute) {
         Routes.MONTHLY -> "${currentMonth.year}年 ${currentMonth.monthValue}月"
         Routes.DAILY -> "${selectedDate.year}年${selectedDate.monthValue}月${selectedDate.dayOfMonth}日"
@@ -213,10 +206,10 @@ fun AppNavigation(viewModel: CalendarViewModel) {
     }
 
     Surface(modifier = Modifier.fillMaxSize(), color = effectiveBg) {
-        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-            // 設定画面以外は共通ヘッダーとタブ行を表示
-            if (currentRoute != null && currentRoute != Routes.SETTINGS) {
+            Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+
                 CalendarHeader(
                     title = headerTitle,
                     colors = colors,
@@ -233,62 +226,80 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                     onSearchClose = { isSearchMode = false; viewModel.updateSearchQuery("") },
                     onSearchQueryChange = { viewModel.updateSearchQuery(it) },
                     onSyncClick = { showSyncDialog = true },
-                    onSettingsClick = { navController.navigate(Routes.SETTINGS) },
+                    onSettingsClick = { isSettingsOpen = true },
                 )
 
-                CalendarTabRow(currentRoute, colors, navController)
+                CalendarTabRow(currentRoute ?: Routes.MONTHLY, colors, navController)
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .swipeToNavigateHorizontal(
+                            onSwipeLeft = {
+                                currentRoute?.let { route ->
+                                    if (route in tabOrder) navigateTab(navController, route, 1)
+                                }
+                            },
+                            onSwipeRight = {
+                                currentRoute?.let { route ->
+                                    if (route in tabOrder) navigateTab(navController, route, -1)
+                                }
+                            },
+                        )
+                ) {
+                    NavHost(
+                        navController = navController,
+                        startDestination = startDestination,
+                        modifier = Modifier.fillMaxSize(),
+                        enterTransition = {
+                            if (backNavFlag) {
+                                slideInHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth }
+                            } else {
+                                slideInHorizontally(animationSpec = animSpec) { fullWidth ->
+                                    fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route)
+                                }
+                            }
+                        },
+                        exitTransition = {
+                            if (backNavFlag) {
+                                slideOutHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth }
+                            } else {
+                                slideOutHorizontally(animationSpec = animSpec) { fullWidth ->
+                                    -fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route)
+                                }
+                            }
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(animationSpec = animSpec) { fullWidth ->
+                                fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route)
+                            }
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(animationSpec = animSpec) { fullWidth ->
+                                -fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route)
+                            }
+                        }
+                    ) {
+                        composable(Routes.MONTHLY) { MonthlyCalendarScreen(viewModel, navController, isSearchMode) }
+                        composable(Routes.DAILY) { DailyCalendarScreen(viewModel, navController, isSearchMode) }
+                        composable(Routes.WEEKLY) { WeeklyCalendarScreen(viewModel, navController, isSearchMode) }
+                    }
+                }
             }
 
-            NavHost(
-                navController = navController,
-                startDestination = startDestination,
-                modifier = Modifier.weight(1f),
-                // backNavFlag時は「戻る」風、それ以外はタブ順序に応じたスライド
-                enterTransition = {
-                    if (backNavFlag) {
-                        slideInHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth }
-                    } else {
-                        slideInHorizontally(animationSpec = animSpec) { fullWidth ->
-                            fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route)
-                        }
-                    }
-                },
-                exitTransition = {
-                    if (backNavFlag) {
-                        slideOutHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth }
-                    } else {
-                        slideOutHorizontally(animationSpec = animSpec) { fullWidth ->
-                            -fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route)
-                        }
-                    }
-                },
-                // 設定画面からの復帰は専用アニメーション
-                popEnterTransition = {
-                    if (initialState.destination.route == Routes.SETTINGS)
-                        slideInHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth }
-                    else
-                        slideInHorizontally(animationSpec = animSpec) { fullWidth ->
-                            fullWidth * getSlideDirection(targetState.destination.route, initialState.destination.route)
-                        }
-                },
-                popExitTransition = {
-                    if (initialState.destination.route == Routes.SETTINGS)
-                        slideOutHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth }
-                    else
-                        slideOutHorizontally(animationSpec = animSpec) { fullWidth ->
-                            -fullWidth * getSlideDirection(targetState.destination.route, initialState.destination.route)
-                        }
-                }
+            AnimatedVisibility(
+                visible = isSettingsOpen,
+                enter = slideInHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth },
+                exit = slideOutHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth },
             ) {
-                composable(Routes.MONTHLY) { MonthlyCalendarScreen(viewModel, navController, isSearchMode) }
-                composable(Routes.DAILY) { DailyCalendarScreen(viewModel, navController, isSearchMode) }
-                composable(Routes.WEEKLY) { WeeklyCalendarScreen(viewModel, navController, isSearchMode) }
-                composable(Routes.SETTINGS) { SettingsScreen(viewModel, navController) }
+                SettingsScreen(
+                    viewModel = viewModel,
+                    onBack = { isSettingsOpen = false },
+                )
             }
         }
     }
 
-    // 同期確認ダイアログ
     if (showSyncDialog) {
         SyncConfirmDialog(
             colors = colors,
@@ -297,7 +308,6 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         )
     }
 
-    // アプリ終了確認ダイアログ
     if (showExitDialog) {
         ExitConfirmDialog(
             colors = colors,
@@ -309,7 +319,6 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         )
     }
 
-    // 年月選択ダイアログ（月表示用）
     if (showMonthPickerDialog) {
         YearMonthPickerDialog(
             currentYear = currentMonth.year,
@@ -323,7 +332,6 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         )
     }
 
-    // 日付選択ダイアログ（日・週表示用）
     if (showDatePickerDialog) {
         GolendarDatePickerDialog(
             initialDate = selectedDate,

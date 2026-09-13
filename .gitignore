@@ -8,6 +8,7 @@ captures/
 .cxx/
 .kotlin/
 all_sources.txt
+all_sources.bat
 
 # ── Gradle ──
 /build

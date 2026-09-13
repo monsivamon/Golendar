@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavController
 import com.monsivamon.golender.data.util.getJpDayOfWeek
 import com.monsivamon.golender.ui.dialogs.BackgroundColorPickerDialog
 import com.monsivamon.golender.ui.dialogs.DayColorPickerDialog
@@ -42,7 +41,7 @@ import com.monsivamon.golender.viewmodel.CalendarViewModel
 import com.monsivamon.golender.viewmodel.ThemeMode
 import java.time.DayOfWeek
 
-// 折りたたみ可能な設定セクション
+// タイトルをタップで開閉できる折りたたみ式の設定セクションを表示する。
 @Composable
 fun SettingsSection(
     title: String,
@@ -68,9 +67,9 @@ fun SettingsSection(
     }
 }
 
-// 設定画面
+// 設定画面を表示し、カレンダーモード・通知・カスタム・バックアップなどの設定操作を扱う。
 @Composable
-fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
+fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     val context = LocalContext.current
     val themeMode by viewModel.themeMode.collectAsState()
     val weekStartDay by viewModel.weekStartDay.collectAsState()
@@ -84,16 +83,14 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
     val notify10MinBefore by viewModel.notify10MinBefore.collectAsState()
 
     val statusMessage by viewModel.statusMessage.collectAsState()
-    val colors = getAppColors(themeMode)
+    val colors = getAppColors(themeMode, calendarBgColor)
 
-    // システムのダークモード設定（背景色ピッカーのプレビュー用）
     val isSystemDark = isSystemInDarkTheme()
 
     var colorPickerDay by remember { mutableStateOf<DayOfWeek?>(null) }
     var showBgColorPicker by remember { mutableStateOf(false) }
     var showRestartModal by remember { mutableStateOf(false) }
 
-    // カレンダー権限リクエスト用ランチャー（許可後は再起動モーダルを表示）
     val calendarPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -107,12 +104,10 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
         }
     }
 
-    // 通知権限の状態
     var notificationPermissionGranted by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
     }
 
-    // 正確なアラーム権限の状態（Android S+）
     var exactAlarmPermissionGranted by remember {
         mutableStateOf(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -126,14 +121,12 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
         mutableStateOf(powerManager.isIgnoringBatteryOptimizations(context.packageName))
     }
 
-    // 通知権限リクエスト用ランチャー
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         notificationPermissionGranted = isGranted
     }
 
-    // バックアップ・復元用ランチャー
     val backupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         uri?.let { viewModel.exportBackup(it) }
     }
@@ -146,7 +139,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
         uri?.let { viewModel.importBackup(it, isAppend = false) }
     }
 
-    // 権限状態を最新に更新
     fun refreshPermissions() {
         notificationPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -157,7 +149,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
 
     LaunchedEffect(Unit) { refreshPermissions() }
 
-    // ステータスメッセージをトーストで表示
     LaunchedEffect(statusMessage) {
         statusMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
@@ -171,14 +162,12 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
         contentColor = colors.text
     ) {
         Column(
-            // statusBarsPaddingはAppNavigation側で付与済みのため、
-            // ここではnavigationBarsPaddingのみを適用する
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .navigationBarsPadding()
                 .verticalScroll(rememberScrollState())
         ) {
-            // 戻るヘッダー
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -187,19 +176,15 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                     text = "‹ 戻る",
                     fontSize = 18.sp,
                     color = colors.primaryAccent,
-                    modifier = Modifier.clickable {
-                        navController.popBackStack(Routes.MONTHLY, inclusive = false)
-                    }
+                    modifier = Modifier.clickable { onBack() }
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(text = "設定", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text(text = "設定", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text)
             }
             HorizontalDivider(color = colors.divider, modifier = Modifier.padding(bottom = 8.dp))
 
-            // カレンダーモード設定
             SettingsSection("カレンダーモード", colors) {
                 Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(colors.surface).padding(4.dp)) {
-                    // Golendarモード
                     Box(
                         modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp))
                             .background(if (calendarMode == CalendarMode.GOLENDAR) colors.primaryAccent else Color.Transparent)
@@ -210,7 +195,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                         Text("Golendar", color = if (calendarMode == CalendarMode.GOLENDAR) Color.White else colors.text, fontWeight = FontWeight.Bold)
                     }
 
-                    // Googleモード（権限チェック付き、許可後は再起動モーダル）
                     Box(
                         modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp))
                             .background(if (calendarMode == CalendarMode.GOOGLE) colors.primaryAccent else Color.Transparent)
@@ -241,7 +225,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                     fontSize = 13.sp, color = colors.textGray, modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
                 )
 
-                // Googleモード時はアカウント選択を表示
                 if (calendarMode == CalendarMode.GOOGLE && availableAccounts.isNotEmpty()) {
                     Text("表示するカレンダー", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
                     availableAccounts.forEach { account ->
@@ -251,13 +234,12 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                                 onClick = { viewModel.setSelectedAccount(account) },
                                 colors = RadioButtonDefaults.colors(selectedColor = colors.primaryAccent, unselectedColor = colors.textGray)
                             )
-                            Text(account, fontSize = 15.sp)
+                            Text(account, fontSize = 15.sp, color = colors.text)
                         }
                     }
                 }
             }
 
-            // 通知設定
             SettingsSection("通知設定", colors) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
                     Switch(
@@ -283,7 +265,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
 
                 Text("バックグラウンド通知の確実化", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(bottom = 8.dp))
 
-                // バッテリー最適化無効化
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                     Text("バッテリー最適化の無効化\n（スリープ中の通知遅延を防ぎます）", fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
                     if (isIgnoringBatteryOptimizations) {
@@ -298,7 +279,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                     }
                 }
 
-                // 通知許可
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                     Text("通知の許可", fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
                     if (notificationPermissionGranted) {
@@ -310,7 +290,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                     }
                 }
 
-                // 正確なアラーム（Android S+）
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Text("正確なアラーム機能の許可", fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
@@ -335,16 +314,14 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                 }
             }
 
-            // カスタム設定
             SettingsSection("カスタム設定", colors) {
-                // 背景色
-                Text("カレンダー背景色", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray)
+                Text("アプリ背景色", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray)
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable { showBgColorPicker = true }.padding(vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("背景色を選択", fontSize = 16.sp, color = colors.text)
+                    Text("アプリ背景色を選択", fontSize = 16.sp, color = colors.text)
                     Box(
                         modifier = Modifier.size(24.dp).clip(CircleShape)
                             .background(if (calendarBgColor == Color.Unspecified) Color.Transparent else calendarBgColor)
@@ -357,7 +334,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
 
                 HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
 
-                // 曜日色
                 Text("曜日の色", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray)
                 val days = listOf(DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY)
                 days.forEach { day ->
@@ -381,7 +357,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
 
                 HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
 
-                // テーマ
                 Text("表示テーマ", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(bottom = 4.dp))
                 ThemeMode.entries.forEach { mode ->
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { viewModel.setThemeMode(mode) }.padding(vertical = 4.dp)) {
@@ -396,14 +371,13 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                                 ThemeMode.LIGHT -> "ライトモード"
                                 ThemeMode.DARK -> "ダークモード"
                             },
-                            fontSize = 15.sp
+                            fontSize = 15.sp, color = colors.text
                         )
                     }
                 }
 
                 HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
 
-                // 週の始まり
                 Text("週の始まり", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(bottom = 4.dp))
                 listOf(DayOfWeek.SUNDAY to "日曜日から始める", DayOfWeek.MONDAY to "月曜日から始める").forEach { (day, label) ->
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { viewModel.setWeekStartDay(day) }.padding(vertical = 4.dp)) {
@@ -412,12 +386,11 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                             onClick = { viewModel.setWeekStartDay(day) },
                             colors = RadioButtonDefaults.colors(selectedColor = colors.primaryAccent, unselectedColor = colors.textGray)
                         )
-                        Text(label, fontSize = 15.sp)
+                        Text(label, fontSize = 15.sp, color = colors.text)
                     }
                 }
             }
 
-            // バックアップと復元
             SettingsSection("バックアップと復元", colors) {
                 Text(
                     "現在選択されているカレンダーの予定と設定をJSONで保存します。保存したファイルから別アカウントやGolendarモードへの「追記」が可能です。\n※Googleモードでの「復元（上書き）」はデータ保護のため実行できません。",
@@ -457,7 +430,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
                 }
             }
 
-            // アプリ情報
             SettingsSection("このアプリについて", colors) {
                 AboutAppContent(colors)
             }
@@ -466,7 +438,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
         }
     }
 
-    // 背景色ピッカー（ダークテーマ時のプレビュー用に themeMode / isSystemDark を渡す）
     if (showBgColorPicker) {
         BackgroundColorPickerDialog(
             colors = colors,
@@ -477,7 +448,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
         )
     }
 
-    // 曜日色ピッカー
     colorPickerDay?.let { day ->
         DayColorPickerDialog(
             day = day,
@@ -487,7 +457,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, navController: NavController) {
         )
     }
 
-    // Googleモード切り替え時の再起動モーダル
     if (showRestartModal) {
         AlertDialog(
             onDismissRequest = { showRestartModal = false },
