@@ -20,7 +20,7 @@ import com.monsivamon.golender.data.util.localEndDate
 import com.monsivamon.golender.data.util.localStartDate
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.slideVertical
-import com.monsivamon.golender.ui.common.swipeToNavigate
+import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
@@ -30,6 +30,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 // 週間カレンダー画面を表示し、週の日付ごとの予定一覧と追加・編集・詳細を扱う。
+// 上下スワイプ（2回連続）で前週/翌週へ移動、切替時は上下スライドアニメーション。
 @Composable
 fun WeeklyCalendarScreen(
     viewModel: CalendarViewModel,
@@ -58,12 +59,10 @@ fun WeeklyCalendarScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .swipeToNavigate(
+            // 上下スワイプ（2回連続）で前後の週へ移動
+            .swipeToNavigateCalendar(
                 onSwipeUp = { viewModel.selectDate(selectedDate.plusWeeks(1)) },
                 onSwipeDown = { viewModel.selectDate(selectedDate.minusWeeks(1)) },
-                requiredSwipes = 2,
-                ignoreConsumption = true,
-                resetTimeoutMillis = 1000L,
             )
     ) {
         AnimatedContent(

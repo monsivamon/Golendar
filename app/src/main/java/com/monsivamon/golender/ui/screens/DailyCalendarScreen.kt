@@ -19,7 +19,7 @@ import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.util.getJpDayOfWeek
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.slideVertical
-import com.monsivamon.golender.ui.common.swipeToNavigate
+import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
@@ -29,6 +29,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 // 日間カレンダー画面を表示し、選択日の予定一覧と追加・編集・詳細を扱う。
+// 上下スワイプ（2回連続）で前日/翌日へ移動、切替時は上下スライドアニメーション。
 @Composable
 fun DailyCalendarScreen(
     viewModel: CalendarViewModel,
@@ -52,7 +53,8 @@ fun DailyCalendarScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .swipeToNavigate(
+            // 上下スワイプ（2回連続）で前後の日へ移動
+            .swipeToNavigateCalendar(
                 onSwipeUp = { viewModel.selectDate(selectedDate.plusDays(1)) },
                 onSwipeDown = { viewModel.selectDate(selectedDate.minusDays(1)) },
             )

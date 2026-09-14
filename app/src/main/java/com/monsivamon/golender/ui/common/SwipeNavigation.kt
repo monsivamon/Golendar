@@ -23,6 +23,37 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 
+// ── カレンダー共通スワイプ設定 ──
+
+// 月・週・日すべてで同じ操作感にするためのプリセット。
+// ここを変更すれば全カレンダー画面に一括反映される。
+object CalendarSwipeDefaults {
+    const val REQUIRED_SWIPES = 2
+    const val RESET_TIMEOUT_MILLIS = 1000L
+    const val IGNORE_CONSUMPTION = true
+    const val THRESHOLD_DP = 60f
+    const val VELOCITY_THRESHOLD = 1500f
+    const val FLING_MAX_DURATION_MILLIS = 250L
+}
+
+// カレンダー用スワイプの共通エントリポイント。
+// 月・週・日すべてがこれを使うことで、操作感が完全に統一される。
+fun Modifier.swipeToNavigateCalendar(
+    onSwipeUp: () -> Unit,
+    onSwipeDown: () -> Unit,
+): Modifier = swipeToNavigate(
+    onSwipeUp = onSwipeUp,
+    onSwipeDown = onSwipeDown,
+    threshold = CalendarSwipeDefaults.THRESHOLD_DP,
+    velocityThreshold = CalendarSwipeDefaults.VELOCITY_THRESHOLD,
+    flingMaxDurationMillis = CalendarSwipeDefaults.FLING_MAX_DURATION_MILLIS,
+    requiredSwipes = CalendarSwipeDefaults.REQUIRED_SWIPES,
+    resetTimeoutMillis = CalendarSwipeDefaults.RESET_TIMEOUT_MILLIS,
+    ignoreConsumption = CalendarSwipeDefaults.IGNORE_CONSUMPTION,
+)
+
+// ── 汎用スワイプModifier ──
+
 // 縦スワイプで前後の期間へ移動するModifier。
 fun Modifier.swipeToNavigate(
     onSwipeUp: () -> Unit,
@@ -50,10 +81,12 @@ fun Modifier.swipeToNavigate(
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
             val velocityTracker = VelocityTracker()
-            velocityTracker.addPosition(down.uptimeMillis, down.position)
 
             var accumulated = 0f
             var lastUptime = down.uptimeMillis
+            // 子（LazyColumn等）が消費していないドラッグだけを速度追跡の対象とする。
+            // 消費されたドラッグは「スクロール」とみなし、フリック判定から除外する。
+            var trackingStarted = false
             val pointerId = down.id
 
             while (true) {
@@ -62,14 +95,18 @@ fun Modifier.swipeToNavigate(
                 if (!change.pressed) break
 
                 lastUptime = change.uptimeMillis
-                velocityTracker.addPosition(change.uptimeMillis, change.position)
 
                 if (ignoreConsumption || !change.isConsumed) {
+                    if (!trackingStarted) {
+                        trackingStarted = true
+                        velocityTracker.addPosition(down.uptimeMillis, down.position)
+                    }
+                    velocityTracker.addPosition(change.uptimeMillis, change.position)
                     accumulated += change.position.y - change.previousPosition.y
                 }
             }
 
-            val velocityY = velocityTracker.calculateVelocity().y
+            val velocityY = if (trackingStarted) velocityTracker.calculateVelocity().y else 0f
             val duration = lastUptime - down.uptimeMillis
 
             val distanceDirection = when {
@@ -78,7 +115,8 @@ fun Modifier.swipeToNavigate(
                 else -> 0
             }
 
-            val isFling = duration in 1..flingMaxDurationMillis &&
+            val isFling = trackingStarted &&
+                    duration in 1..flingMaxDurationMillis &&
                     abs(velocityY) >= velocityThreshold
             val flingDirection = if (isFling) {
                 if (velocityY < 0) 1 else -1
@@ -105,7 +143,8 @@ fun Modifier.swipeToNavigate(
     }
 }
 
-// 横スワイプで前後のタブへ切り替えるModifier。
+// ── 横スワイプ（タブ切替） ──
+
 fun Modifier.swipeToNavigateHorizontal(
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit,
@@ -135,7 +174,8 @@ fun Modifier.swipeToNavigateHorizontal(
     }
 }
 
-// 期間切替時に縦スライドとフェードを行うトランジション。
+// ── 期間切替トランジション ──
+
 fun <T> AnimatedContentTransitionScope<T>.slideVertical(
     isForward: Boolean,
     durationMillis: Int = 250,

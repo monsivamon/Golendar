@@ -25,7 +25,7 @@ import com.monsivamon.golender.data.util.localStartDate
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.slideVertical
-import com.monsivamon.golender.ui.common.swipeToNavigate
+import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.components.CalendarCell
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
 import com.monsivamon.golender.ui.theme.AppColors
@@ -39,6 +39,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 // 月間カレンダー画面を表示し、月グリッドと選択日の予定一覧・検索・追加編集を扱う。
+// 上下スワイプ（2回連続）で前月/翌月へ移動、切替時はグリッドが上下スライドアニメーション。
 @Composable
 fun MonthlyCalendarScreen(
     viewModel: CalendarViewModel,
@@ -85,7 +86,8 @@ fun MonthlyCalendarScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .swipeToNavigate(
+                    // 上下スワイプ（2回連続）で前後の月へ移動（日は維持、月末を超える場合はクランプ）
+                    .swipeToNavigateCalendar(
                         onSwipeUp = {
                             val next = currentMonth.plusMonths(1)
                             val day = minOf(selectedDate.dayOfMonth, next.lengthOfMonth())
@@ -98,22 +100,26 @@ fun MonthlyCalendarScreen(
                         },
                     )
             ) {
-                AnimatedContent(
-                    targetState = currentMonth,
-                    transitionSpec = { slideVertical(isForward = targetState > initialState) },
-                    modifier = Modifier.weight(1.2f),
-                    label = "monthGridTransition",
-                ) { month ->
-                    MonthGridView(
-                        month = month,
-                        events = events,
-                        selectedDate = selectedDate,
-                        today = today,
-                        weekStartDay = weekStartDay,
-                        dayColors = dayColors,
-                        colors = colors,
-                        onSelectDate = { viewModel.selectDate(it) },
-                    )
+                // AnimatedContent に weight を直接付けると測定競合を起こすため、
+                // 外側の Box に weight を付け、AnimatedContent は fillMaxSize にする。
+                Box(modifier = Modifier.weight(1.2f).fillMaxWidth()) {
+                    AnimatedContent(
+                        targetState = currentMonth,
+                        transitionSpec = { slideVertical(isForward = targetState > initialState) },
+                        modifier = Modifier.fillMaxSize(),
+                        label = "monthGridTransition",
+                    ) { month ->
+                        MonthGridView(
+                            month = month,
+                            events = events,
+                            selectedDate = selectedDate,
+                            today = today,
+                            weekStartDay = weekStartDay,
+                            dayColors = dayColors,
+                            colors = colors,
+                            onSelectDate = { viewModel.selectDate(it) },
+                        )
+                    }
                 }
 
                 HorizontalDivider(thickness = 1.dp, color = colors.divider)
@@ -256,7 +262,9 @@ private fun MonthGridView(
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.fillMaxSize(),
-            userScrollEnabled = false,
+            // 第6週（月末）が画面に収まらない月はスクロールで見られるようにする。
+            // 2回スワイプ運用なので、1回のスクロールでは期間移動が発火しない。
+            userScrollEnabled = true,
         ) {
             items(count = totalCells) { index: Int ->
                 val dayOffset = index - offset
