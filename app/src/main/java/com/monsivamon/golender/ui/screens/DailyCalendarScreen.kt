@@ -21,6 +21,7 @@ import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.slideVertical
 import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
+import com.monsivamon.golender.ui.dialogs.EventDialog
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 import java.time.Instant
@@ -29,7 +30,6 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 // 日間カレンダー画面を表示し、選択日の予定一覧と追加・編集・詳細を扱う。
-// 上下スワイプ（2回連続）で前日/翌日へ移動、切替時は上下スライドアニメーション。
 @Composable
 fun DailyCalendarScreen(
     viewModel: CalendarViewModel,
@@ -49,11 +49,11 @@ fun DailyCalendarScreen(
     var showEventDetailDialog by remember { mutableStateOf(false) }
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
+    var fromCalendar by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // 上下スワイプ（2回連続）で前後の日へ移動
             .swipeToNavigateCalendar(
                 onSwipeUp = { viewModel.selectDate(selectedDate.plusDays(1)) },
                 onSwipeDown = { viewModel.selectDate(selectedDate.minusDays(1)) },
@@ -90,7 +90,11 @@ fun DailyCalendarScreen(
                         item {
                             Box(
                                 modifier = Modifier.fillMaxWidth()
-                                    .clickable { editingEvent = null; showEventDialog = true }
+                                    .clickable {
+                                        editingEvent = null
+                                        fromCalendar = true
+                                        showEventDialog = true
+                                    }
                                     .padding(vertical = 16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -115,7 +119,11 @@ fun DailyCalendarScreen(
 
                     item {
                         Button(
-                            onClick = { editingEvent = null; showEventDialog = true },
+                            onClick = {
+                                editingEvent = null
+                                fromCalendar = true
+                                showEventDialog = true
+                            },
                             modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colors.primaryAccent.copy(alpha = 0.15f),
@@ -133,7 +141,12 @@ fun DailyCalendarScreen(
         EventDetailDialog(
             event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
             onDismiss = { showEventDetailDialog = false; viewingEvent = null; viewingDate = null },
-            onEdit = { showEventDetailDialog = false; editingEvent = viewingEvent; showEventDialog = true },
+            onEdit = {
+                showEventDetailDialog = false
+                editingEvent = viewingEvent
+                fromCalendar = false
+                showEventDialog = true
+            },
             onSplitDelete = {
                 viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!)
                 showEventDetailDialog = false; viewingEvent = null; viewingDate = null
@@ -146,7 +159,10 @@ fun DailyCalendarScreen(
         val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(zone).toLocalDate() } ?: selectedDate
 
         EventDialog(
-            event = editingEvent, selectedDate = dialogDate, colors = colors,
+            event = editingEvent,
+            selectedDate = dialogDate,
+            colors = colors,
+            fromCalendar = fromCalendar,
             onDismiss = { showEventDialog = false },
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule ->
                 if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)

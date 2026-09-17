@@ -22,6 +22,7 @@ import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.slideVertical
 import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
+import com.monsivamon.golender.ui.dialogs.EventDialog
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 import java.time.Instant
@@ -30,7 +31,6 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 // 週間カレンダー画面を表示し、週の日付ごとの予定一覧と追加・編集・詳細を扱う。
-// 上下スワイプ（2回連続）で前週/翌週へ移動、切替時は上下スライドアニメーション。
 @Composable
 fun WeeklyCalendarScreen(
     viewModel: CalendarViewModel,
@@ -52,6 +52,7 @@ fun WeeklyCalendarScreen(
     var showEventDetailDialog by remember { mutableStateOf(false) }
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
+    var fromCalendar by remember { mutableStateOf(false) }
 
     val offset = (selectedDate.dayOfWeek.value - weekStartDay.value + 7) % 7
     val startOfWeek = selectedDate.minusDays(offset.toLong())
@@ -59,7 +60,6 @@ fun WeeklyCalendarScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            // 上下スワイプ（2回連続）で前後の週へ移動
             .swipeToNavigateCalendar(
                 onSwipeUp = { viewModel.selectDate(selectedDate.plusWeeks(1)) },
                 onSwipeDown = { viewModel.selectDate(selectedDate.minusWeeks(1)) },
@@ -98,7 +98,12 @@ fun WeeklyCalendarScreen(
                         if (dayEvents.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxWidth()
-                                    .clickable { editingEvent = null; dialogDateForNewEvent = date; showEventDialog = true }
+                                    .clickable {
+                                        editingEvent = null
+                                        dialogDateForNewEvent = date
+                                        fromCalendar = true
+                                        showEventDialog = true
+                                    }
                                     .padding(vertical = 8.dp)
                             ) {
                                 Text(
@@ -115,7 +120,12 @@ fun WeeklyCalendarScreen(
                         }
 
                         Button(
-                            onClick = { editingEvent = null; dialogDateForNewEvent = date; showEventDialog = true },
+                            onClick = {
+                                editingEvent = null
+                                dialogDateForNewEvent = date
+                                fromCalendar = true
+                                showEventDialog = true
+                            },
                             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colors.primaryAccent.copy(alpha = 0.15f),
@@ -130,7 +140,12 @@ fun WeeklyCalendarScreen(
                     item {
                         Box(
                             modifier = Modifier.fillMaxWidth()
-                                .clickable { editingEvent = null; dialogDateForNewEvent = selectedDate; showEventDialog = true }
+                                .clickable {
+                                    editingEvent = null
+                                    dialogDateForNewEvent = selectedDate
+                                    fromCalendar = true
+                                    showEventDialog = true
+                                }
                                 .padding(vertical = 16.dp),
                             contentAlignment = Alignment.Center,
                         ) {
@@ -150,7 +165,12 @@ fun WeeklyCalendarScreen(
         EventDetailDialog(
             event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
             onDismiss = { showEventDetailDialog = false; viewingEvent = null; viewingDate = null },
-            onEdit = { showEventDetailDialog = false; editingEvent = viewingEvent; showEventDialog = true },
+            onEdit = {
+                showEventDetailDialog = false
+                editingEvent = viewingEvent
+                fromCalendar = false
+                showEventDialog = true
+            },
             onSplitDelete = {
                 viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!)
                 showEventDetailDialog = false; viewingEvent = null; viewingDate = null
@@ -165,7 +185,10 @@ fun WeeklyCalendarScreen(
             ?: selectedDate
 
         EventDialog(
-            event = editingEvent, selectedDate = dialogDate, colors = colors,
+            event = editingEvent,
+            selectedDate = dialogDate,
+            colors = colors,
+            fromCalendar = fromCalendar,
             onDismiss = { showEventDialog = false },
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule ->
                 if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)

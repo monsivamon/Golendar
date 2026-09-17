@@ -15,6 +15,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -228,10 +229,16 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 if (calendarMode == CalendarMode.GOOGLE && availableAccounts.isNotEmpty()) {
                     Text("表示するカレンダー", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
                     availableAccounts.forEach { account ->
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { viewModel.setSelectedAccount(account) }.padding(vertical = 4.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { viewModel.setSelectedAccount(account) }
+                                .padding(vertical = 4.dp)
+                        ) {
                             RadioButton(
                                 selected = selectedAccount == account,
-                                onClick = { viewModel.setSelectedAccount(account) },
+                                onClick = null,
                                 colors = RadioButtonDefaults.colors(selectedColor = colors.primaryAccent, unselectedColor = colors.textGray)
                             )
                             Text(account, fontSize = 15.sp, color = colors.text)
@@ -317,7 +324,14 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             SettingsSection("カスタム設定", colors) {
                 Text("アプリ背景色", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray)
                 Row(
-                    modifier = Modifier.fillMaxWidth().clickable { showBgColorPicker = true }.padding(vertical = 12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { showBgColorPicker = true },
+                        )
+                        .padding(vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -325,7 +339,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     Box(
                         modifier = Modifier.size(24.dp).clip(CircleShape)
                             .background(if (calendarBgColor == Color.Unspecified) Color.Transparent else calendarBgColor)
-                            .border(1.dp, if (calendarBgColor == Color.Unspecified) colors.textGray else Color.Transparent, CircleShape),
+                            .border(1.dp, colors.textGray, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         if (calendarBgColor == Color.Unspecified) Text("/", color = colors.textGray, fontSize = 14.sp)
@@ -339,7 +353,14 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 days.forEach { day ->
                     val color = dayColors[day] ?: Color.Unspecified
                     Row(
-                        modifier = Modifier.fillMaxWidth().clickable { colorPickerDay = day }.padding(vertical = 12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = { colorPickerDay = day },
+                            )
+                            .padding(vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -347,7 +368,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         Box(
                             modifier = Modifier.size(24.dp).clip(CircleShape)
                                 .background(if (color == Color.Unspecified) Color.Transparent else color)
-                                .border(1.dp, if (color == Color.Unspecified) colors.textGray else Color.Transparent, CircleShape),
+                                .border(1.dp, colors.textGray, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             if (color == Color.Unspecified) Text("/", color = colors.textGray, fontSize = 14.sp)
@@ -359,10 +380,16 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
 
                 Text("表示テーマ", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(bottom = 4.dp))
                 ThemeMode.entries.forEach { mode ->
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { viewModel.setThemeMode(mode) }.padding(vertical = 4.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.setThemeMode(mode) }
+                            .padding(vertical = 4.dp)
+                    ) {
                         RadioButton(
                             selected = themeMode == mode,
-                            onClick = { viewModel.setThemeMode(mode) },
+                            onClick = null,
                             colors = RadioButtonDefaults.colors(selectedColor = colors.primaryAccent, unselectedColor = colors.textGray)
                         )
                         Text(
@@ -380,10 +407,16 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
 
                 Text("週の始まり", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(bottom = 4.dp))
                 listOf(DayOfWeek.SUNDAY to "日曜日から始める", DayOfWeek.MONDAY to "月曜日から始める").forEach { (day, label) ->
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { viewModel.setWeekStartDay(day) }.padding(vertical = 4.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.setWeekStartDay(day) }
+                            .padding(vertical = 4.dp)
+                    ) {
                         RadioButton(
                             selected = weekStartDay == day,
-                            onClick = { viewModel.setWeekStartDay(day) },
+                            onClick = null,
                             colors = RadioButtonDefaults.colors(selectedColor = colors.primaryAccent, unselectedColor = colors.textGray)
                         )
                         Text(label, fontSize = 15.sp, color = colors.text)
@@ -443,6 +476,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             colors = colors,
             themeMode = themeMode,
             isSystemDark = isSystemDark,
+            currentColor = calendarBgColor,
             onDismiss = { showBgColorPicker = false },
             onColorSelected = { viewModel.setCalendarBgColor(it) },
         )
@@ -452,6 +486,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
         DayColorPickerDialog(
             day = day,
             colors = colors,
+            currentColor = dayColors[day] ?: Color.Unspecified,
             onDismiss = { colorPickerDay = null },
             onColorSelected = { viewModel.setDayColor(day, it) },
         )

@@ -14,21 +14,18 @@ import com.monsivamon.golender.notification.NotificationConfig
 import com.monsivamon.golender.ui.AppNavigation
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 
-// アプリのエントリーポイント（通知チャンネル作成とCompose UIの起動）
+// アプリのエントリーポイント（通知チャンネル作成とCompose UIの起動）。
 class MainActivity : ComponentActivity() {
 
-    // Activityスコープで共有されるViewModel
     private val viewModel: CalendarViewModel by viewModels()
 
+    // 通知チャンネル作成・Intent処理・Compose UI起動を行う。
     override fun onCreate(savedInstanceState: Bundle?) {
-        // エッジツーエッジ表示を有効化
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // 予定通知用のチャンネルを初期化
         createNotificationChannel()
 
-        // 新規起動時のみIntentを処理（回転時はスキップ）
         if (savedInstanceState == null) {
             handleIntent(intent)
         }
@@ -38,21 +35,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // アプリ起動中にウィジェットをタップした場合の処理（launchMode="singleTop"）
+    // 新しいIntentを受け取り処理する。
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
         handleIntent(intent)
     }
 
-    // Intentに含まれる遷移先ルートをViewModelに伝える
+    // Intentに含まれるルートやショートカットアクションをViewModelに伝える。
     private fun handleIntent(intent: Intent?) {
-        val route = intent?.getStringExtra(EXTRA_ROUTE) ?: return
+        intent ?: return
+
+        val shortcutAction = intent.getStringExtra(EXTRA_SHORTCUT_ACTION)
+        if (shortcutAction != null) {
+            intent.removeExtra(EXTRA_SHORTCUT_ACTION)
+            viewModel.requestShortcut(shortcutAction)
+        }
+
+        val route = intent.getStringExtra(EXTRA_ROUTE) ?: return
         intent.removeExtra(EXTRA_ROUTE)
         viewModel.requestNavigation(route)
     }
 
-    // 通知チャンネルを作成（Android 8.0以上必須）
+    // 通知チャンネルを作成する。
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -68,8 +73,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // Intent extras で使うキー定数を保持する。
     companion object {
-        // ウィジェットタップ時に渡す遷移先ルート用のExtraキー
         const val EXTRA_ROUTE = "com.monsivamon.golender.EXTRA_ROUTE"
+        const val EXTRA_SHORTCUT_ACTION = "com.monsivamon.golender.EXTRA_SHORTCUT_ACTION"
     }
 }

@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Golendar</string>
+
+    <string name="shortcut_add_event_short">予定追加</string>
+    <string name="shortcut_add_event_long">新しい予定を追加</string>
+    <string name="shortcut_today_short">今日</string>
+    <string name="shortcut_today_long">今日の予定を表示</string>
+    <string name="shortcut_search_short">検索</string>
+    <string name="shortcut_search_long">予定を検索</string>
 </resources>

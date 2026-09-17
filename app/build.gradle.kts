@@ -1,25 +1,28 @@
+// プラグインの適用（Android、Kotlin、Compose、KSP）
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp) // RoomのKSPプロセッサ用
+    alias(libs.plugins.ksp)
 }
 
+// Androidアプリのビルド設定
 android {
     namespace = "com.monsivamon.golender"
     compileSdk = 35
 
+    // アプリの基本設定（ID、SDKバージョン、バージョン情報）
     defaultConfig {
         applicationId = "com.monsivamon.golender"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0.6" // 現在のバージョン（更新時はインクリメント）
+        versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // リリースビルド用の署名設定（パスワードはダミー）
+    // リリースビルド用の署名設定
     signingConfigs {
         create("release") {
             storeFile = file("../ks_pkcs12.keystore")
@@ -29,25 +32,27 @@ android {
         }
     }
 
+    // ビルドタイプの設定（リリースビルド）
     buildTypes {
         release {
-            isMinifyEnabled = false // 現在はコード圧縮・難読化なし
+            isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
         }
     }
 
-    // Lintチェックを緩和（リリースビルド時のエラーを無視）
+    // Lintチェックの設定（リリースビルド時のエラーを無視）
     lint {
         checkReleaseBuilds = false
         abortOnError = false
     }
 
-    // Java/Kotlinの互換性バージョン
+    // Java/Kotlinの互換性バージョン設定
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    // ビルド機能の有効化（Compose）
     buildFeatures {
         compose = true
     }
@@ -65,6 +70,7 @@ kotlin {
     }
 }
 
+// 依存ライブラリの定義
 dependencies {
     // Compose BOMでバージョンを一括管理
     val composeBom = platform(libs.androidx.compose.bom)
@@ -89,7 +95,7 @@ dependencies {
     // Room（データベース）
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler) // KSPでコード生成
+    ksp(libs.androidx.room.compiler)
 
     // Glance（ウィジェット）とWorkManager（バックグラウンド更新）
     implementation(libs.androidx.glance.appwidget)

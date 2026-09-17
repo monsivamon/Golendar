@@ -142,6 +142,7 @@ fun AppNavigation(viewModel: CalendarViewModel) {
 
     var isSearchMode by remember { mutableStateOf(false) }
     var backNavFlag by remember { mutableStateOf(false) }
+    var pendingSearchAfterNav by remember { mutableStateOf(false) }
 
     var showSyncDialog by remember { mutableStateOf(false) }
     var showExitDialog by remember { mutableStateOf(false) }
@@ -153,7 +154,12 @@ fun AppNavigation(viewModel: CalendarViewModel) {
 
     LaunchedEffect(currentRoute) {
         if (currentRoute == null) return@LaunchedEffect
-        isSearchMode = false
+        if (pendingSearchAfterNav && currentRoute == Routes.MONTHLY) {
+            isSearchMode = true
+            pendingSearchAfterNav = false
+        } else {
+            isSearchMode = false
+        }
         backNavFlag = false
         viewModel.updateSearchQuery("")
     }
@@ -168,6 +174,43 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                 if (route != currentRoute) {
                     navigateToTab(navController, route)
                 }
+            }
+        }
+    }
+
+    val pendingShortcut by viewModel.pendingShortcut.collectAsState()
+    LaunchedEffect(pendingShortcut) {
+        val action = pendingShortcut ?: return@LaunchedEffect
+        viewModel.consumeShortcut()
+        when (action) {
+            "today" -> {
+                viewModel.resetToToday()
+                if (currentRoute != Routes.MONTHLY) {
+                    navController.navigate(Routes.MONTHLY) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+            "search" -> {
+                if (currentRoute == Routes.MONTHLY) {
+                    isSearchMode = true
+                } else {
+                    pendingSearchAfterNav = true
+                    navController.navigate(Routes.MONTHLY) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+            }
+            "add_event" -> {
+                if (currentRoute != Routes.MONTHLY) {
+                    navController.navigate(Routes.MONTHLY) {
+                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                }
+                viewModel.requestAddEvent()
             }
         }
     }

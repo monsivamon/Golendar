@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,6 +32,7 @@ fun BackgroundColorPickerDialog(
     colors: AppColors,
     themeMode: ThemeMode,
     isSystemDark: Boolean,
+    currentColor: Color,
     onDismiss: () -> Unit,
     onColorSelected: (Color) -> Unit,
 ) {
@@ -57,7 +59,10 @@ fun BackgroundColorPickerDialog(
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
 
-                StandardRow(colors) {
+                StandardRow(
+                    colors = colors,
+                    isSelected = currentColor == Color.Unspecified,
+                ) {
                     onColorSelected(Color.Unspecified)
                     onDismiss()
                 }
@@ -66,7 +71,9 @@ fun BackgroundColorPickerDialog(
 
                 ColorSwatchGrid(
                     palette = PastelColorPalette,
+                    colors = colors,
                     isDarkTheme = isDarkTheme,
+                    currentColor = currentColor,
                 ) { baseColor ->
                     onColorSelected(baseColor)
                     onDismiss()
@@ -84,6 +91,7 @@ fun BackgroundColorPickerDialog(
 fun DayColorPickerDialog(
     day: DayOfWeek,
     colors: AppColors,
+    currentColor: Color,
     onDismiss: () -> Unit,
     onColorSelected: (Color) -> Unit,
 ) {
@@ -93,14 +101,19 @@ fun DayColorPickerDialog(
         title = { Text("${day.jpShort()}曜日の色", color = colors.text, fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                StandardRow(colors) {
+                StandardRow(
+                    colors = colors,
+                    isSelected = currentColor == Color.Unspecified,
+                ) {
                     onColorSelected(Color.Unspecified)
                     onDismiss()
                 }
                 Spacer(Modifier.height(12.dp))
                 ColorSwatchGrid(
                     palette = DayColorPalette,
+                    colors = colors,
                     isDarkTheme = false,
+                    currentColor = currentColor,
                 ) { c ->
                     onColorSelected(c)
                     onDismiss()
@@ -115,17 +128,32 @@ fun DayColorPickerDialog(
 
 // カスタム色を解除する「標準（カスタムなし）」行を表示する。
 @Composable
-private fun StandardRow(colors: AppColors, onClick: () -> Unit) {
+private fun StandardRow(
+    colors: AppColors,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
+            .then(
+                if (isSelected) {
+                    Modifier.border(2.dp, colors.primaryAccent, RoundedCornerShape(8.dp))
+                } else Modifier
+            )
             .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("標準（カスタムなし）", color = colors.text, fontSize = 15.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("標準（カスタムなし）", color = colors.text, fontSize = 15.sp)
+            if (isSelected) {
+                Spacer(Modifier.width(8.dp))
+                Text("✓ 選択中", color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
         Box(
             modifier = Modifier
                 .size(24.dp)
@@ -142,21 +170,44 @@ private fun StandardRow(colors: AppColors, onClick: () -> Unit) {
 @Composable
 private fun ColorSwatchGrid(
     palette: List<Color>,
+    colors: AppColors,
     isDarkTheme: Boolean,
+    currentColor: Color,
     onColorSelected: (Color) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         palette.chunked(4).forEach { rowColors ->
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 rowColors.forEach { baseColor ->
+                    val previewed = previewColor(baseColor, isDarkTheme)
+                    val isSelected = currentColor == baseColor
+
+                    val checkColor = if (previewed.luminance() > 0.5f) Color.Black else Color.White
+
                     Box(
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(1f)
                             .clip(CircleShape)
-                            .background(previewColor(baseColor, isDarkTheme))
+                            .background(previewed)
+                            .border(
+                                width = if (isSelected) 3.dp else 1.dp,
+                                color = if (isSelected) colors.primaryAccent
+                                else colors.textGray.copy(alpha = 0.4f),
+                                shape = CircleShape,
+                            )
                             .clickable { onColorSelected(baseColor) },
-                    )
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (isSelected) {
+                            Text(
+                                text = "✓",
+                                color = checkColor,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
                 }
                 repeat(4 - rowColors.size) {
                     Spacer(Modifier.weight(1f))

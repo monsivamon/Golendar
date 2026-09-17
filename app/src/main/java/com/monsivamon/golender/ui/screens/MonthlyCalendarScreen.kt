@@ -28,6 +28,7 @@ import com.monsivamon.golender.ui.common.slideVertical
 import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.components.CalendarCell
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
+import com.monsivamon.golender.ui.dialogs.EventDialog
 import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
@@ -39,7 +40,6 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 
 // 月間カレンダー画面を表示し、月グリッドと選択日の予定一覧・検索・追加編集を扱う。
-// 上下スワイプ（2回連続）で前月/翌月へ移動、切替時はグリッドが上下スライドアニメーション。
 @Composable
 fun MonthlyCalendarScreen(
     viewModel: CalendarViewModel,
@@ -63,8 +63,20 @@ fun MonthlyCalendarScreen(
     var showEventDetailDialog by remember { mutableStateOf(false) }
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
+    var fromCalendar by remember { mutableStateOf(false) }
 
     val today = remember { LocalDate.now() }
+
+    val requestAddEvent by viewModel.requestAddEvent.collectAsState()
+    LaunchedEffect(requestAddEvent) {
+        if (requestAddEvent) {
+            viewModel.consumeAddEventRequest()
+            editingEvent = null
+            fromCalendar = false
+            showDatePickerForFAB = false
+            showEventDialog = true
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (isSearchMode && searchQuery.isNotBlank()) {
@@ -86,7 +98,6 @@ fun MonthlyCalendarScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    // 上下スワイプ（2回連続）で前後の月へ移動（日は維持、月末を超える場合はクランプ）
                     .swipeToNavigateCalendar(
                         onSwipeUp = {
                             val next = currentMonth.plusMonths(1)
@@ -100,8 +111,6 @@ fun MonthlyCalendarScreen(
                         },
                     )
             ) {
-                // AnimatedContent に weight を直接付けると測定競合を起こすため、
-                // 外側の Box に weight を付け、AnimatedContent は fillMaxSize にする。
                 Box(modifier = Modifier.weight(1.2f).fillMaxWidth()) {
                     AnimatedContent(
                         targetState = currentMonth,
@@ -153,7 +162,11 @@ fun MonthlyCalendarScreen(
                         }
                         item {
                             Button(
-                                onClick = { editingEvent = null; showEventDialog = true },
+                                onClick = {
+                                    editingEvent = null
+                                    fromCalendar = true
+                                    showEventDialog = true
+                                },
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = colors.primaryAccent.copy(alpha = 0.15f),
@@ -168,7 +181,11 @@ fun MonthlyCalendarScreen(
         }
 
         FloatingActionButton(
-            onClick = { editingEvent = null; showDatePickerForFAB = true },
+            onClick = {
+                editingEvent = null
+                fromCalendar = false
+                showDatePickerForFAB = true
+            },
             containerColor = colors.primaryAccent,
             contentColor = Color.White,
             modifier = Modifier.align(Alignment.BottomEnd).padding(end = 28.dp, bottom = 72.dp),
@@ -191,7 +208,12 @@ fun MonthlyCalendarScreen(
         EventDetailDialog(
             event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
             onDismiss = { showEventDetailDialog = false; viewingEvent = null; viewingDate = null },
-            onEdit = { showEventDetailDialog = false; editingEvent = viewingEvent; showEventDialog = true },
+            onEdit = {
+                showEventDetailDialog = false
+                editingEvent = viewingEvent
+                fromCalendar = false
+                showEventDialog = true
+            },
             onSplitDelete = {
                 viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!)
                 showEventDetailDialog = false; viewingEvent = null; viewingDate = null
@@ -206,7 +228,10 @@ fun MonthlyCalendarScreen(
             ?: selectedDate
 
         EventDialog(
-            event = editingEvent, selectedDate = dialogDate, colors = colors,
+            event = editingEvent,
+            selectedDate = dialogDate,
+            colors = colors,
+            fromCalendar = fromCalendar,
             onDismiss = { showEventDialog = false; tempFABDate = null },
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule ->
                 if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)
@@ -262,8 +287,6 @@ private fun MonthGridView(
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.fillMaxSize(),
-            // 第6週（月末）が画面に収まらない月はスクロールで見られるようにする。
-            // 2回スワイプ運用なので、1回のスクロールでは期間移動が発火しない。
             userScrollEnabled = true,
         ) {
             items(count = totalCells) { index: Int ->

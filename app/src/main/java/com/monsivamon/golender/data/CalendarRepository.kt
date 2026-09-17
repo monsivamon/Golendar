@@ -4,27 +4,45 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.provider.CalendarContract
+import java.time.DayOfWeek
+import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.TimeZone
 import java.net.URL
 import java.net.HttpURLConnection
 import org.json.JSONObject
-import java.time.LocalDate
-import java.time.ZoneOffset
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 
-// カレンダー情報（アクセス権限・祝日カレンダーか・誕生日カレンダーか）
+// カレンダーごとのアクセス権限・祝日・誕生日情報を保持するデータクラス。
 data class CalendarInfo(val accessLevel: Int, val isHoliday: Boolean, val isBirthday: Boolean)
 
+// システムカレンダーとローカルDBの予定を扱うリポジトリ。
 class CalendarRepository(private val context: Context) {
 
     private val database = AppDatabase.getInstance(context)
     private val localEventDao = database.localEventDao()
 
-    // カレンダーIDごとのアクセス権限・祝日カレンダー・誕生日カレンダー情報を取得
+    // UNTIL=yyyyMMdd... から日付を抽出する（無ければ null）。
+    private fun parseUntilDate(rule: String): LocalDate? {
+        val match = Regex("UNTIL=(\\d{8})").find(rule) ?: return null
+        return try {
+            LocalDate.parse(match.groupValues[1], DateTimeFormatter.ofPattern("yyyyMMdd"))
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    // rule から UNTIL 部分を除去して基本ルールだけを返す。
+    private fun baseRuleOf(rule: String): String =
+        rule.split(";").filter { !it.startsWith("UNTIL=") }.joinToString(";")
+
+    // カレンダーIDごとのアクセス権限・祝日・誕生日情報を取得する。
     private fun getCalendarInfo(): Map<Long, CalendarInfo> {
         val map = mutableMapOf<Long, CalendarInfo>()
         val projection = arrayOf(
@@ -62,7 +80,7 @@ class CalendarRepository(private val context: Context) {
         return map
     }
 
-    // 月表示用にシステムカレンダーの予定を取得（読み取り専用・祝日・誕生日フラグ付き）
+    // 月表示用にシステムカレンダーの予定を取得する（読み取り専用・祝日・誕生日フラグ付き）。
     fun getEventsForMonth(startMillis: Long, endMillis: Long, calendarIds: List<Long>? = null): List<Event> {
         val events = mutableListOf<Event>()
         val calInfo = getCalendarInfo()
@@ -135,7 +153,7 @@ class CalendarRepository(private val context: Context) {
         return events
     }
 
-    // バックアップ用に指定アカウントの全イベントを取得（祝日・誕生日フラグ付き）
+    // バックアップ用に指定アカウントの全イベントを取得する（祝日・誕生日フラグ付き）。
     fun getAllGoogleEvents(accountName: String?): List<Event> {
         val events = mutableListOf<Event>()
         val calInfo = getCalendarInfo()
@@ -217,7 +235,7 @@ class CalendarRepository(private val context: Context) {
         return events
     }
 
-    // 利用可能なGoogleアカウント一覧を取得（「@」を含む実アカウントのみ）
+    // 利用可能なGoogleアカウント一覧を取得する（「@」を含む実アカウントのみ）。
     fun getAccountNames(): List<String> {
         val cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars.ACCOUNT_NAME), null, null, null)
         val accounts = mutableSetOf<String>()
@@ -233,7 +251,7 @@ class CalendarRepository(private val context: Context) {
         return accounts.toList().sorted()
     }
 
-    // アカウント名からカレンダーIDリストを取得
+    // アカウント名に紐づくカレンダーIDリストを取得する。
     fun getCalendarIdsForAccount(accountName: String): List<Long> {
         val cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars._ID), "${CalendarContract.Calendars.ACCOUNT_NAME} = ?", arrayOf(accountName), null)
         val ids = mutableListOf<Long>()
@@ -241,12 +259,12 @@ class CalendarRepository(private val context: Context) {
         return ids
     }
 
-    // 祝日・誕生日カレンダーのIDのみを取得（特殊カレンダーの識別用）
+    // 祝日・誕生日カレンダーのIDのみを取得する（特殊カレンダーの識別用）。
     fun getSpecialCalendarIds(): List<Long> {
         return getCalendarInfo().filter { it.value.isHoliday || it.value.isBirthday }.map { it.key }
     }
 
-    // 優先カレンダーIDを解決（プライマリ→最初のID→デフォルト1）
+    // 予定作成に使う優先カレンダーIDを解決する（プライマリ→最初のID→デフォルト1）。
     private fun getTargetCalendarId(accountName: String?): Long {
         if (accountName != null) {
             context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars._ID), "${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND ${CalendarContract.Calendars.IS_PRIMARY} = 1", arrayOf(accountName), null)?.use { if (it.moveToFirst()) return it.getLong(0) }
@@ -257,7 +275,7 @@ class CalendarRepository(private val context: Context) {
         return 1L
     }
 
-    // システムカレンダーに予定を新規作成（終日予定はタイムゾーンをUTCに設定）
+    // システムカレンダーに予定を新規作成する（終日予定はタイムゾーンをUTCに設定）。
     fun insertEvent(title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?, accountName: String? = null): Long? {
         val values = ContentValues().apply {
             put(CalendarContract.Events.DTSTART, startMillis)
@@ -273,7 +291,7 @@ class CalendarRepository(private val context: Context) {
         return context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)?.lastPathSegment?.toLongOrNull()
     }
 
-    // システムカレンダーの予定を更新（終日予定はタイムゾーンをUTCに設定）
+    // システムカレンダーの予定を更新する（終日予定はタイムゾーンをUTCに設定）。
     fun updateEvent(eventId: Long, title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?): Boolean {
         val values = ContentValues().apply {
             put(CalendarContract.Events.DTSTART, startMillis)
@@ -288,86 +306,139 @@ class CalendarRepository(private val context: Context) {
         return context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), values, null, null) > 0
     }
 
-    // システムカレンダーの予定を削除
+    // システムカレンダーの予定を削除する。
     fun deleteEvent(eventId: Long): Boolean = context.contentResolver.delete(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), null, null) > 0
 
-    // ── ローカルDB処理 ──
-
-    // ローカル予定を取得し、繰り返しルールを展開して期間内のインスタンスを生成
+    // ローカル予定を取得し、繰り返しルールを展開して期間内のインスタンスを生成する。
     suspend fun getLocalEventsForMonth(startMillis: Long, endMillis: Long): List<Event> {
         val allLocalEvents = localEventDao.getEventsInRange(startMillis, endMillis)
         val expandedEvents = mutableListOf<Event>()
 
-        val queryStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(startMillis), ZoneId.systemDefault())
-        val queryEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(endMillis), ZoneId.systemDefault())
+        val zone = ZoneId.systemDefault()
+        val queryStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(startMillis), zone)
+        val queryEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(endMillis), zone)
 
         for (local in allLocalEvents) {
-            if (local.rrule.isNullOrEmpty()) {
-                if (local.startTime <= endMillis && local.endTime >= startMillis) {
-                    expandedEvents.add(Event(local.id, local.title, local.startTime, local.endTime, local.isAllDay, -1L, local.location, local.description, null, isReadOnly = false))
-                }
-            } else {
-                var currentStart = LocalDateTime.ofInstant(Instant.ofEpochMilli(local.startTime), ZoneId.systemDefault())
-                var currentEnd = LocalDateTime.ofInstant(Instant.ofEpochMilli(local.endTime), ZoneId.systemDefault())
-                val limit = minOf(queryEnd, currentStart.plusYears(5))
+            // rrule を正規化（余分な空白・大文字小文字の揺れを吸収）
+            val rawRule = local.rrule?.trim()?.uppercase()
 
-                while (!currentStart.isAfter(limit)) {
-                    if (!currentEnd.isBefore(queryStart) && !currentStart.isAfter(queryEnd)) {
-                        expandedEvents.add(Event(
-                            local.id, local.title,
-                            currentStart.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                            currentEnd.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
-                            local.isAllDay, -1L, local.location, local.description, local.rrule, isReadOnly = false
-                        ))
-                    }
-                    // 繰り返し種類に応じて次の日付へ進める
-                    val nextStep = when (local.rrule) {
-                        "FREQ=DAILY" -> 1L to java.time.temporal.ChronoUnit.DAYS
-                        "FREQ=WEEKLY" -> 1L to java.time.temporal.ChronoUnit.WEEKS
-                        "FREQ=MONTHLY" -> 1L to java.time.temporal.ChronoUnit.MONTHS
-                        "FREQ=YEARLY" -> 1L to java.time.temporal.ChronoUnit.YEARS
-                        else -> break
-                    }
-                    currentStart = currentStart.plus(nextStep.first, nextStep.second)
-                    currentEnd = currentEnd.plus(nextStep.first, nextStep.second)
+            // ── 繰り返しなし ──
+            if (rawRule.isNullOrEmpty()) {
+                if (local.startTime <= endMillis && local.endTime >= startMillis) {
+                    expandedEvents.add(
+                        Event(
+                            local.id, local.title, local.startTime, local.endTime,
+                            local.isAllDay, -1L, local.location, local.description,
+                            null, isReadOnly = false
+                        )
+                    )
                 }
+                continue
+            }
+
+            // UNTIL を抽出して、基本ルールと分離
+            val untilDate = parseUntilDate(rawRule)
+            val baseRule = baseRuleOf(rawRule)
+            val isWeekdayOnly = baseRule == "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"
+
+            // 元イベントの duration を保持（毎回のインスタンス生成に使う）
+            val eventStartLdt = LocalDateTime.ofInstant(Instant.ofEpochMilli(local.startTime), zone)
+            val eventEndLdt = LocalDateTime.ofInstant(Instant.ofEpochMilli(local.endTime), zone)
+            val eventDuration = Duration.between(eventStartLdt, eventEndLdt)
+
+            var currentStart = eventStartLdt
+
+            // 平日のみ：開始日が土日なら次の月曜までスキップ
+            if (isWeekdayOnly) {
+                while (currentStart.dayOfWeek == DayOfWeek.SATURDAY ||
+                    currentStart.dayOfWeek == DayOfWeek.SUNDAY) {
+                    currentStart = currentStart.plusDays(1)
+                }
+            }
+
+            val limit = minOf(queryEnd, currentStart.plusYears(5))
+
+            while (!currentStart.isAfter(limit)) {
+                // UNTIL を超えていたら打ち切り
+                if (untilDate != null && currentStart.toLocalDate().isAfter(untilDate)) break
+
+                val dow = currentStart.dayOfWeek
+                val isWeekend = dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY
+                val shouldSkip = isWeekdayOnly && isWeekend
+
+                if (!shouldSkip && !currentStart.isAfter(queryEnd)) {
+                    val currentEnd = currentStart.plus(eventDuration)
+                    if (!currentEnd.isBefore(queryStart)) {
+                        expandedEvents.add(
+                            Event(
+                                local.id, local.title,
+                                currentStart.atZone(zone).toInstant().toEpochMilli(),
+                                currentEnd.atZone(zone).toInstant().toEpochMilli(),
+                                local.isAllDay, -1L, local.location, local.description,
+                                local.rrule, isReadOnly = false
+                            )
+                        )
+                    }
+                }
+
+                // 次の発生日へ進める（基本ルールのみで計算）
+                currentStart = nextOccurrence(currentStart, baseRule) ?: break
             }
         }
         return expandedEvents
     }
 
-    // ローカルDBに予定を新規作成
+    // 基本ルールに基づき次の発生日時を返す（該当なしなら null）。
+    private fun nextOccurrence(from: LocalDateTime, rule: String): LocalDateTime? {
+        return when (rule) {
+            "FREQ=DAILY" -> from.plusDays(1)
+            "FREQ=WEEKLY" -> from.plusWeeks(1)
+            "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR" -> {
+                var next = from.plusDays(1)
+                while (next.dayOfWeek == DayOfWeek.SATURDAY ||
+                    next.dayOfWeek == DayOfWeek.SUNDAY) {
+                    next = next.plusDays(1)
+                }
+                next
+            }
+            "FREQ=MONTHLY" -> from.plusMonths(1)
+            "FREQ=YEARLY" -> from.plusYears(1)
+            else -> null
+        }
+    }
+
+    // ローカルDBに予定を新規作成する。
     suspend fun insertLocalEvent(title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?): Long {
         return localEventDao.insert(LocalEvent(0, title, startMillis, endMillis, isAllDay, location, description, rrule))
     }
 
-    // ローカルDBの予定を更新
+    // ローカルDBの予定を更新する。
     suspend fun updateLocalEvent(eventId: Long, title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?) {
         localEventDao.update(LocalEvent(eventId, title, startMillis, endMillis, isAllDay, location, description, rrule))
     }
 
-    // ローカルDBの予定を削除
+    // ローカルDBの予定を削除する。
     suspend fun deleteLocalEvent(eventId: Long) {
         localEventDao.deleteById(eventId)
     }
 
-    // ローカルDBの全予定を取得（バックアップ用）
+    // ローカルDBの全予定を取得する（バックアップ用）。
     suspend fun getAllLocalEvents(): List<LocalEvent> {
         return localEventDao.getAllEvents()
     }
 
-    // ローカルDBを全削除してリストで復元
+    // ローカルDBを全削除してリストで復元する。
     suspend fun restoreLocalEvents(events: List<LocalEvent>) {
         localEventDao.deleteAll()
         localEventDao.insertAll(events)
     }
 
-    // ローカルDBにリストを追記（重複は置き換え）
+    // ローカルDBにリストを追記する（重複は置き換え）。
     suspend fun appendLocalEvents(events: List<LocalEvent>) {
         localEventDao.insertAll(events)
     }
 
-    // 外部APIから日本の祝日データを取得してローカルDBに保存（既存祝日は@Transactionで原子的に置換）
+    // 外部APIから日本の祝日データを取得しローカルDBに保存する（既存祝日は原子的に置換）。
     suspend fun fetchAndSaveHolidays() = withContext(Dispatchers.IO) {
         try {
             val url = URL("https://holidays-jp.github.io/api/v1/date.json")
