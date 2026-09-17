@@ -72,9 +72,7 @@ fun MonthlyCalendarScreen(
         if (requestAddEvent) {
             viewModel.consumeAddEventRequest()
             editingEvent = null
-            fromCalendar = false
-            showDatePickerForFAB = false
-            showEventDialog = true
+            showDatePickerForFAB = true
         }
     }
 
@@ -183,7 +181,6 @@ fun MonthlyCalendarScreen(
         FloatingActionButton(
             onClick = {
                 editingEvent = null
-                fromCalendar = false
                 showDatePickerForFAB = true
             },
             containerColor = colors.primaryAccent,
@@ -198,6 +195,7 @@ fun MonthlyCalendarScreen(
             onDismiss = { showDatePickerForFAB = false },
             onDateSelected = { date ->
                 tempFABDate = date
+                fromCalendar = true
                 showDatePickerForFAB = false
                 showEventDialog = true
             },

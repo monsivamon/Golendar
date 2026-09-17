@@ -115,9 +115,11 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         if (initial != null) viewModel.consumeNavigation()
         initial
     }
+    val initialShortcut: String? = remember { viewModel.pendingShortcut.value }
     val startDestination: String = remember {
         when {
             initialRoute != null && initialRoute in tabOrder -> initialRoute
+            initialShortcut == "today" -> Routes.DAILY
             else -> Routes.MONTHLY
         }
     }
@@ -185,11 +187,8 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         when (action) {
             "today" -> {
                 viewModel.resetToToday()
-                if (currentRoute != Routes.MONTHLY) {
-                    navController.navigate(Routes.MONTHLY) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                if (currentRoute != null && currentRoute != Routes.DAILY) {
+                    navigateToTab(navController, Routes.DAILY)
                 }
             }
             "search" -> {
@@ -197,18 +196,14 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                     isSearchMode = true
                 } else {
                     pendingSearchAfterNav = true
-                    navController.navigate(Routes.MONTHLY) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                        launchSingleTop = true
+                    if (currentRoute != null) {
+                        navigateToTab(navController, Routes.MONTHLY)
                     }
                 }
             }
             "add_event" -> {
-                if (currentRoute != Routes.MONTHLY) {
-                    navController.navigate(Routes.MONTHLY) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                if (currentRoute != null && currentRoute != Routes.MONTHLY) {
+                    navigateToTab(navController, Routes.MONTHLY)
                 }
                 viewModel.requestAddEvent()
             }

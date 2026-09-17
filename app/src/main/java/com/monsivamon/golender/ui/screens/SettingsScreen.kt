@@ -42,6 +42,11 @@ import com.monsivamon.golender.viewmodel.CalendarViewModel
 import com.monsivamon.golender.viewmodel.ThemeMode
 import java.time.DayOfWeek
 
+private val LIST_ROW_VERTICAL = 10.dp
+private val SECTION_LABEL_BOTTOM = 8.dp
+private val SECTION_DIVIDER_VERTICAL = 12.dp
+private val RADIO_LABEL_SPACING = 8.dp
+
 // タイトルをタップで開閉できる折りたたみ式の設定セクションを表示する。
 @Composable
 fun SettingsSection(
@@ -65,6 +70,34 @@ fun SettingsSection(
                 content()
             }
         }
+    }
+}
+
+// ラジオボタン付きの選択行を統一レイアウトで表示する。
+@Composable
+private fun RadioOptionRow(
+    selected: Boolean,
+    label: String,
+    colors: com.monsivamon.golender.ui.theme.AppColors,
+    onClick: () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = LIST_ROW_VERTICAL),
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = null,
+            colors = RadioButtonDefaults.colors(
+                selectedColor = colors.primaryAccent,
+                unselectedColor = colors.textGray,
+            ),
+        )
+        Spacer(modifier = Modifier.width(RADIO_LABEL_SPACING))
+        Text(label, fontSize = 15.sp, color = colors.text)
     }
 }
 
@@ -227,22 +260,20 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 )
 
                 if (calendarMode == CalendarMode.GOOGLE && availableAccounts.isNotEmpty()) {
-                    Text("表示するカレンダー", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
+                    Text(
+                        "表示するカレンダー",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.textGray,
+                        modifier = Modifier.padding(bottom = SECTION_LABEL_BOTTOM),
+                    )
                     availableAccounts.forEach { account ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { viewModel.setSelectedAccount(account) }
-                                .padding(vertical = 4.dp)
-                        ) {
-                            RadioButton(
-                                selected = selectedAccount == account,
-                                onClick = null,
-                                colors = RadioButtonDefaults.colors(selectedColor = colors.primaryAccent, unselectedColor = colors.textGray)
-                            )
-                            Text(account, fontSize = 15.sp, color = colors.text)
-                        }
+                        RadioOptionRow(
+                            selected = selectedAccount == account,
+                            label = account,
+                            colors = colors,
+                            onClick = { viewModel.setSelectedAccount(account) },
+                        )
                     }
                 }
             }
@@ -268,11 +299,21 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     Text("10分前に通知", fontSize = 16.sp, color = colors.text)
                 }
 
-                HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
 
-                Text("バックグラウンド通知の確実化", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(bottom = 8.dp))
+                Text(
+                    "バックグラウンド通知の確実化",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textGray,
+                    modifier = Modifier.padding(bottom = SECTION_LABEL_BOTTOM),
+                )
 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = LIST_ROW_VERTICAL),
+                ) {
                     Text("バッテリー最適化の無効化\n（スリープ中の通知遅延を防ぎます）", fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
                     if (isIgnoringBatteryOptimizations) {
                         Text("無効化済み", fontSize = 14.sp, color = colors.primaryAccent)
@@ -286,7 +327,11 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     }
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = LIST_ROW_VERTICAL),
+                ) {
                     Text("通知の許可", fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
                     if (notificationPermissionGranted) {
                         Text("許可済み", fontSize = 14.sp, color = colors.primaryAccent)
@@ -298,7 +343,11 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = LIST_ROW_VERTICAL),
+                    ) {
                         Text("正確なアラーム機能の許可", fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
                         if (exactAlarmPermissionGranted) {
                             Text("許可済み", fontSize = 14.sp, color = colors.primaryAccent)
@@ -315,14 +364,20 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 Button(
                     onClick = { refreshPermissions() },
                     colors = ButtonDefaults.buttonColors(containerColor = colors.surface, contentColor = colors.textGray),
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp).border(1.dp, colors.divider, RoundedCornerShape(12.dp))
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp).border(1.dp, colors.divider, RoundedCornerShape(12.dp))
                 ) {
                     Text("設定状況を再チェックする", fontSize = 12.sp)
                 }
             }
 
             SettingsSection("カスタム設定", colors) {
-                Text("アプリ背景色", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray)
+                Text(
+                    "アプリ背景色",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textGray,
+                    modifier = Modifier.padding(bottom = SECTION_LABEL_BOTTOM),
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -331,7 +386,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                             indication = null,
                             onClick = { showBgColorPicker = true },
                         )
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = LIST_ROW_VERTICAL),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -346,9 +401,15 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     }
                 }
 
-                HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
 
-                Text("曜日の色", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray)
+                Text(
+                    "曜日の色",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textGray,
+                    modifier = Modifier.padding(bottom = SECTION_LABEL_BOTTOM),
+                )
                 val days = listOf(DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY)
                 days.forEach { day ->
                     val color = dayColors[day] ?: Color.Unspecified
@@ -360,7 +421,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                                 indication = null,
                                 onClick = { colorPickerDay = day },
                             )
-                            .padding(vertical = 12.dp),
+                            .padding(vertical = LIST_ROW_VERTICAL),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -376,51 +437,47 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     }
                 }
 
-                HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
 
-                Text("表示テーマ", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(bottom = 4.dp))
+                Text(
+                    "表示テーマ",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textGray,
+                    modifier = Modifier.padding(bottom = SECTION_LABEL_BOTTOM),
+                )
                 ThemeMode.entries.forEach { mode ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { viewModel.setThemeMode(mode) }
-                            .padding(vertical = 4.dp)
-                    ) {
-                        RadioButton(
-                            selected = themeMode == mode,
-                            onClick = null,
-                            colors = RadioButtonDefaults.colors(selectedColor = colors.primaryAccent, unselectedColor = colors.textGray)
-                        )
-                        Text(
-                            when (mode) {
-                                ThemeMode.SYSTEM -> "端末の設定に合わせる"
-                                ThemeMode.LIGHT -> "ライトモード"
-                                ThemeMode.DARK -> "ダークモード"
-                            },
-                            fontSize = 15.sp, color = colors.text
-                        )
-                    }
+                    RadioOptionRow(
+                        selected = themeMode == mode,
+                        label = when (mode) {
+                            ThemeMode.SYSTEM -> "端末の設定に合わせる"
+                            ThemeMode.LIGHT -> "ライトモード"
+                            ThemeMode.DARK -> "ダークモード"
+                        },
+                        colors = colors,
+                        onClick = { viewModel.setThemeMode(mode) },
+                    )
                 }
 
-                HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
 
-                Text("週の始まり", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray, modifier = Modifier.padding(bottom = 4.dp))
-                listOf(DayOfWeek.SUNDAY to "日曜日から始める", DayOfWeek.MONDAY to "月曜日から始める").forEach { (day, label) ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { viewModel.setWeekStartDay(day) }
-                            .padding(vertical = 4.dp)
-                    ) {
-                        RadioButton(
-                            selected = weekStartDay == day,
-                            onClick = null,
-                            colors = RadioButtonDefaults.colors(selectedColor = colors.primaryAccent, unselectedColor = colors.textGray)
-                        )
-                        Text(label, fontSize = 15.sp, color = colors.text)
-                    }
+                Text(
+                    "週の始まり",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.textGray,
+                    modifier = Modifier.padding(bottom = SECTION_LABEL_BOTTOM),
+                )
+                listOf(
+                    DayOfWeek.SUNDAY to "日曜日から始める",
+                    DayOfWeek.MONDAY to "月曜日から始める",
+                ).forEach { (day, label) ->
+                    RadioOptionRow(
+                        selected = weekStartDay == day,
+                        label = label,
+                        colors = colors,
+                        onClick = { viewModel.setWeekStartDay(day) },
+                    )
                 }
             }
 

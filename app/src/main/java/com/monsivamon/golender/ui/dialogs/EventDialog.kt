@@ -117,10 +117,10 @@ fun EventDialog(
         LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEnd), initialZone)
     } ?: selectedDate.atTime(11, 0)
 
-    var startDate by remember { mutableStateOf(initialStart.toLocalDate()) }
-    var startTime by remember { mutableStateOf(initialStart.toLocalTime()) }
-    var endDate by remember { mutableStateOf(initialEnd.toLocalDate()) }
-    var endTime by remember { mutableStateOf(initialEnd.toLocalTime()) }
+    var startDate by remember(eventKey, selectedDate) { mutableStateOf(initialStart.toLocalDate()) }
+    var startTime by remember(eventKey, selectedDate) { mutableStateOf(initialStart.toLocalTime()) }
+    var endDate by remember(eventKey, selectedDate) { mutableStateOf(initialEnd.toLocalDate()) }
+    var endTime by remember(eventKey, selectedDate) { mutableStateOf(initialEnd.toLocalTime()) }
 
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
