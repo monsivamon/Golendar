@@ -10,7 +10,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 
-// ウィジェット用の色セット（アプリUI側AppColorsと同じロジックで生成）
+// ウィジェット用の色セットを保持するデータクラス。
 data class WidgetColorSet(
     val bg: ColorProvider,
     val surface: ColorProvider,
@@ -21,17 +21,12 @@ data class WidgetColorSet(
     val satBlue: ColorProvider,
 )
 
-// テーマモードと背景色からウィジェット用の全色を導出
-// ・カスタム背景色未設定 → テーマに応じた既定色
-// ・ダークテーマ + 明るい色 → 黒を65%混ぜて自動暗色化
-// ・SYSTEM時はday/nightに2色を渡し、Android側が自動切替
+// テーマモードと背景色からウィジェット用の全色を導出する。
 fun computeWidgetColors(themeMode: ThemeMode, customBgArgb: Int?): WidgetColorSet {
     val customBg = customBgArgb?.let { Color(it) }
 
-    // ライト側の背景色
     val lightBg = customBg ?: Color(0xFFF0F2F5)
 
-    // ダーク側の背景色（カスタム色が明るければ黒を混ぜて暗色化）
     val darkBg = when {
         customBg == null -> Color(0xFF121212)
         customBg.luminance() > 0.5f -> lerp(customBg, Color.Black, 0.65f)
@@ -47,14 +42,13 @@ fun computeWidgetColors(themeMode: ThemeMode, customBgArgb: Int?): WidgetColorSe
         ),
         text = provider(themeMode, Color(0xFF1A1A1A), Color(0xFFF1F3F4)),
         textGray = provider(themeMode, Color(0xFF666666), Color(0xFFAAAAAA)),
-        // ダーク時のアクセントは彩度を落とした紫（アプリUIと統一）
         primaryAccent = provider(themeMode, Color(0xFF6A1B9A), Color(0xFFB39DDB)),
         sunRed = provider(themeMode, Color(0xFFE53935), Color(0xFFEF9A9A)),
         satBlue = provider(themeMode, Color(0xFF1E88E5), Color(0xFF81D4FA)),
     )
 }
 
-// テーマモードに応じてday/nightを同一色にするか分岐させるヘルパー
+// テーマモードに応じてday/nightの色を出し分けるColorProviderを生成する。
 private fun provider(themeMode: ThemeMode, lightColor: Color, darkColor: Color): ColorProvider {
     return when (themeMode) {
         ThemeMode.LIGHT -> DayNightColorProvider(day = lightColor, night = lightColor)
@@ -63,7 +57,7 @@ private fun provider(themeMode: ThemeMode, lightColor: Color, darkColor: Color):
     }
 }
 
-// ウィジェット表示用の予定データ（軽量版）
+// ウィジェット表示用の予定データ（軽量版）。
 data class WidgetEvent(
     val id: Long,
     val title: String,
@@ -72,7 +66,7 @@ data class WidgetEvent(
     val isAllDay: Boolean,
 )
 
-// 日次ウィジェットの表示データ
+// 日次ウィジェットの表示データ。
 data class DayWidgetData(
     val date: LocalDate,
     val events: List<WidgetEvent>,
@@ -80,7 +74,7 @@ data class DayWidgetData(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
 )
 
-// 週次ウィジェットの表示データ
+// 週次ウィジェットの表示データ。
 data class WeekWidgetData(
     val weekStart: LocalDate,
     val weekEnd: LocalDate,
@@ -90,7 +84,7 @@ data class WeekWidgetData(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
 )
 
-// 月次ウィジェットの表示データ
+// 月次ウィジェットの表示データ。
 data class MonthWidgetData(
     val yearMonth: YearMonth,
     val events: Map<LocalDate, List<WidgetEvent>>,

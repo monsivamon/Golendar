@@ -14,8 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-// 標準IconButtonより小さい44dpサイズのコンパクトアイコンボタン
-// タッチターゲットとリップルを維持しつつ省スペースを実現する
+// 44dpサイズのコンパクトなアイコンボタンを描画する。
 @Composable
 fun CompactIconButton(
     onClick: () -> Unit,

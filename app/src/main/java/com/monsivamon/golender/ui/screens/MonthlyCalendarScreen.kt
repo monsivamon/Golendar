@@ -5,8 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -27,6 +25,7 @@ import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.slideVertical
 import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.components.CalendarCell
+import com.monsivamon.golender.ui.dialogs.DayEventsDialog
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
 import com.monsivamon.golender.ui.dialogs.EventDialog
 import com.monsivamon.golender.ui.theme.AppColors
@@ -54,6 +53,7 @@ fun MonthlyCalendarScreen(
     val weekStartDay by viewModel.weekStartDay.collectAsState()
     val dayColors by viewModel.dayColors.collectAsState()
     val customBg by viewModel.calendarBgColor.collectAsState()
+    val showBottomList by viewModel.showBottomList.collectAsState()
     val colors = getAppColors(themeMode, customBg)
 
     var showEventDialog by remember { mutableStateOf(false) }
@@ -64,6 +64,9 @@ fun MonthlyCalendarScreen(
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
     var fromCalendar by remember { mutableStateOf(false) }
+
+    var showDayEventsDialog by remember { mutableStateOf(false) }
+    var dayEventsDialogDate by remember { mutableStateOf<LocalDate?>(null) }
 
     val today = remember { LocalDate.now() }
 
@@ -109,7 +112,8 @@ fun MonthlyCalendarScreen(
                         },
                     )
             ) {
-                Box(modifier = Modifier.weight(1.2f).fillMaxWidth()) {
+                val gridWeight = if (showBottomList) 1.2f else 1f
+                Box(modifier = Modifier.weight(gridWeight).fillMaxWidth()) {
                     AnimatedContent(
                         targetState = currentMonth,
                         transitionSpec = { slideVertical(isForward = targetState > initialState) },
@@ -124,54 +128,62 @@ fun MonthlyCalendarScreen(
                             weekStartDay = weekStartDay,
                             dayColors = dayColors,
                             colors = colors,
-                            onSelectDate = { viewModel.selectDate(it) },
+                            onSelectDate = { date ->
+                                viewModel.selectDate(date)
+                                if (!showBottomList) {
+                                    dayEventsDialogDate = date
+                                    showDayEventsDialog = true
+                                }
+                            },
                         )
                     }
                 }
 
-                HorizontalDivider(thickness = 1.dp, color = colors.divider)
+                if (showBottomList) {
+                    HorizontalDivider(thickness = 1.dp, color = colors.divider)
 
-                Column(modifier = Modifier.weight(0.8f).fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    val jpDayOfWeek = getJpDayOfWeek(selectedDate.dayOfWeek)
-                    val dailyEvents = events.filter { it.occursOn(selectedDate) }
+                    Column(modifier = Modifier.weight(0.8f).fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        val jpDayOfWeek = getJpDayOfWeek(selectedDate.dayOfWeek)
+                        val dailyEvents = events.filter { it.occursOn(selectedDate) }
 
-                    Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(bottom = 12.dp, top = 8.dp)) {
-                        val c = dayColors[selectedDate.dayOfWeek] ?: Color.Unspecified
-                        val finalBottomColor = if (c == Color.Unspecified) colors.text else c
-                        Text(
-                            "${selectedDate.monthValue}月${selectedDate.dayOfMonth}日 ($jpDayOfWeek)",
-                            fontSize = 18.sp, fontWeight = FontWeight.Bold, color = finalBottomColor,
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("${dailyEvents.size}件", fontSize = 14.sp, color = colors.textGray)
-                    }
-
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
-                        if (dailyEvents.isEmpty()) {
-                            item { Text("予定なし", color = colors.textGray, modifier = Modifier.padding(top = 8.dp)) }
-                        } else {
-                            items(dailyEvents) { event: Event ->
-                                EventCard(event = event, colors = colors, onClick = { ev ->
-                                    viewingEvent = ev
-                                    viewingDate = selectedDate
-                                    showEventDetailDialog = true
-                                })
-                            }
+                        Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(bottom = 12.dp, top = 8.dp)) {
+                            val c = dayColors[selectedDate.dayOfWeek] ?: Color.Unspecified
+                            val finalBottomColor = if (c == Color.Unspecified) colors.text else c
+                            Text(
+                                "${selectedDate.monthValue}月${selectedDate.dayOfMonth}日 ($jpDayOfWeek)",
+                                fontSize = 18.sp, fontWeight = FontWeight.Bold, color = finalBottomColor,
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("${dailyEvents.size}件", fontSize = 14.sp, color = colors.textGray)
                         }
-                        item {
-                            Button(
-                                onClick = {
-                                    editingEvent = null
-                                    fromCalendar = true
-                                    showEventDialog = true
-                                },
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = colors.primaryAccent.copy(alpha = 0.15f),
-                                    contentColor = colors.primaryAccent,
-                                ),
-                                shape = RoundedCornerShape(12.dp),
-                            ) { Text("+ 予定を追加", fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            if (dailyEvents.isEmpty()) {
+                                item { Text("予定なし", color = colors.textGray, modifier = Modifier.padding(top = 8.dp)) }
+                            } else {
+                                items(dailyEvents) { event: Event ->
+                                    EventCard(event = event, colors = colors, onClick = { ev ->
+                                        viewingEvent = ev
+                                        viewingDate = selectedDate
+                                        showEventDetailDialog = true
+                                    })
+                                }
+                            }
+                            item {
+                                Button(
+                                    onClick = {
+                                        editingEvent = null
+                                        fromCalendar = true
+                                        showEventDialog = true
+                                    },
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = colors.primaryAccent.copy(alpha = 0.15f),
+                                        contentColor = colors.primaryAccent,
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                ) { Text("+ 予定を追加", fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+                            }
                         }
                     }
                 }
@@ -191,12 +203,40 @@ fun MonthlyCalendarScreen(
 
     if (showDatePickerForFAB) {
         GolendarDatePickerDialog(
+            initialDate = selectedDate,
             colors = colors,
             onDismiss = { showDatePickerForFAB = false },
             onDateSelected = { date ->
                 tempFABDate = date
                 fromCalendar = true
                 showDatePickerForFAB = false
+                showEventDialog = true
+            },
+        )
+    }
+
+    if (showDayEventsDialog && dayEventsDialogDate != null) {
+        val dialogDate = dayEventsDialogDate!!
+        val dialogEvents = events.filter { it.occursOn(dialogDate) }
+        DayEventsDialog(
+            date = dialogDate,
+            events = dialogEvents,
+            colors = colors,
+            onDismiss = {
+                showDayEventsDialog = false
+                dayEventsDialogDate = null
+            },
+            onEventClick = { ev ->
+                showDayEventsDialog = false
+                viewingEvent = ev
+                viewingDate = dialogDate
+                showEventDetailDialog = true
+            },
+            onAddEvent = {
+                showDayEventsDialog = false
+                editingEvent = null
+                tempFABDate = dialogDate
+                fromCalendar = true
                 showEventDialog = true
             },
         )
@@ -281,34 +321,40 @@ private fun MonthGridView(
         val offset = (firstDayOfMonth.dayOfWeek.value - weekStartDay.value + 7) % 7
         val daysInMonth = month.lengthOfMonth()
         val totalCells = ((daysInMonth + offset + 6) / 7) * 7
+        val numRows = totalCells / 7
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(7),
-            modifier = Modifier.fillMaxSize(),
-            userScrollEnabled = true,
-        ) {
-            items(count = totalCells) { index: Int ->
-                val dayOffset = index - offset
-                val date = when {
-                    dayOffset < 0 -> month.minusMonths(1).atEndOfMonth().plusDays((dayOffset + 1).toLong())
-                    dayOffset < daysInMonth -> month.atDay(dayOffset + 1)
-                    else -> month.plusMonths(1).atDay(dayOffset - daysInMonth + 1)
+        Column(modifier = Modifier.fillMaxSize()) {
+            repeat(numRows) { rowIndex ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    repeat(7) { colIndex ->
+                        val index = rowIndex * 7 + colIndex
+                        val dayOffset = index - offset
+                        val date = when {
+                            dayOffset < 0 -> month.minusMonths(1).atEndOfMonth().plusDays((dayOffset + 1).toLong())
+                            dayOffset < daysInMonth -> month.atDay(dayOffset + 1)
+                            else -> month.plusMonths(1).atDay(dayOffset - daysInMonth + 1)
+                        }
+                        val isCurrentMonth = date.month == month.month
+                        val isToday = date == today
+                        val dailyEvents = events.filter { it.occursOn(date) }
+                        val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
+
+                        CalendarCell(
+                            date = date,
+                            events = dailyEvents,
+                            isSelected = selectedDate == date,
+                            isCurrentMonth = isCurrentMonth,
+                            isToday = isToday,
+                            dayColor = c,
+                            colors = colors,
+                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                            onClick = { onSelectDate(date) },
+                        )
+                    }
                 }
-                val isCurrentMonth = date.month == month.month
-                val isToday = date == today
-                val dailyEvents = events.filter { it.occursOn(date) }
-                val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
-
-                CalendarCell(
-                    date = date,
-                    events = dailyEvents,
-                    isSelected = selectedDate == date,
-                    isCurrentMonth = isCurrentMonth,
-                    isToday = isToday,
-                    dayColor = c,
-                    colors = colors,
-                    onClick = { onSelectDate(date) },
-                )
             }
         }
     }

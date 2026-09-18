@@ -90,6 +90,9 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     private val _notify10MinBefore = MutableStateFlow(true)
     val notify10MinBefore: StateFlow<Boolean> = _notify10MinBefore.asStateFlow()
 
+    private val _showBottomList = MutableStateFlow(true)
+    val showBottomList: StateFlow<Boolean> = _showBottomList.asStateFlow()
+
     private val _pendingRoute = MutableStateFlow<String?>(null)
     val pendingRoute: StateFlow<String?> = _pendingRoute.asStateFlow()
 
@@ -98,6 +101,12 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
     private val _requestAddEvent = MutableStateFlow(false)
     val requestAddEvent: StateFlow<Boolean> = _requestAddEvent.asStateFlow()
+
+    private val _showNotificationSetup = MutableStateFlow(false)
+    val showNotificationSetup: StateFlow<Boolean> = _showNotificationSetup.asStateFlow()
+
+    private val _showCalendarSetup = MutableStateFlow(false)
+    val showCalendarSetup: StateFlow<Boolean> = _showCalendarSetup.asStateFlow()
 
     // ウィジェット等からの画面遷移要求を設定する。
     fun requestNavigation(route: String) { _pendingRoute.value = route }
@@ -161,6 +170,13 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
                 preferences[SettingsKeys.NOTIFY_AT_START]?.let { _notifyAtStart.value = it }
                 preferences[SettingsKeys.NOTIFY_10MIN]?.let { _notify10MinBefore.value = it }
+                preferences[SettingsKeys.SHOW_BOTTOM_LIST]?.let { _showBottomList.value = it }
+
+                val notifDone = preferences[SettingsKeys.NOTIFICATION_SETUP_DONE] ?: false
+                val calDone = preferences[SettingsKeys.CALENDAR_SETUP_DONE] ?: false
+
+                _showNotificationSetup.value = !notifDone
+                _showCalendarSetup.value = notifDone && !calDone
 
                 preferences[SettingsKeys.BG_COLOR]?.let { colorStr ->
                     _calendarBgColor.value = if (colorStr == SettingsKeys.COLOR_UNSPECIFIED) Color.Unspecified
@@ -197,6 +213,46 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 else prefs.remove(SettingsKeys.ACCOUNT)
             }
         } catch (_: Exception) { }
+    }
+
+    // 月表示の下部予定リストの表示ON/OFFを切替え、DataStoreに保存する。
+    fun setShowBottomList(show: Boolean) {
+        _showBottomList.value = show
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataStore.edit { prefs ->
+                    prefs[SettingsKeys.SHOW_BOTTOM_LIST] = show
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+    // 通知セットアップ完了としてマークし、必要ならカレンダーセットアップへ進む。
+    fun markNotificationSetupDone() {
+        _showNotificationSetup.value = false
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataStore.edit { prefs ->
+                    prefs[SettingsKeys.NOTIFICATION_SETUP_DONE] = true
+                }
+                val calDone = dataStore.data.first()[SettingsKeys.CALENDAR_SETUP_DONE] ?: false
+                if (!calDone) {
+                    _showCalendarSetup.value = true
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+    // カレンダーセットアップ完了としてマークし、ダイアログを閉じる。
+    fun markCalendarSetupDone() {
+        _showCalendarSetup.value = false
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataStore.edit { prefs ->
+                    prefs[SettingsKeys.CALENDAR_SETUP_DONE] = true
+                }
+            } catch (_: Exception) { }
+        }
     }
 
     // 通知設定を更新しアラームを再スケジュールする。

@@ -32,7 +32,9 @@ import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.YearMonthPickerDialog
 import com.monsivamon.golender.ui.common.findActivity
 import com.monsivamon.golender.ui.common.swipeToNavigateHorizontal
+import com.monsivamon.golender.ui.dialogs.CalendarPermissionDialog
 import com.monsivamon.golender.ui.dialogs.ExitConfirmDialog
+import com.monsivamon.golender.ui.dialogs.NotificationSetupDialog
 import com.monsivamon.golender.ui.dialogs.SyncConfirmDialog
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
@@ -77,9 +79,7 @@ fun getSlideDirection(initialRoute: String?, targetRoute: String?): Int {
 // 選択日を今日にリセットし月表示へ遷移する。
 fun navigateToTodayMonth(viewModel: CalendarViewModel, navController: NavController) {
     viewModel.resetToToday()
-    navController.navigate(Routes.MONTHLY) {
-        popUpTo(Routes.MONTHLY) { inclusive = true }
-    }
+    navigateToTab(navController, Routes.MONTHLY)
 }
 
 // 背景輝度に応じてステータスバー・ナビゲーションバーのアイコン色を切り替える。
@@ -116,13 +116,8 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         initial
     }
     val initialShortcut: String? = remember { viewModel.pendingShortcut.value }
-    val startDestination: String = remember {
-        when {
-            initialRoute != null && initialRoute in tabOrder -> initialRoute
-            initialShortcut == "today" -> Routes.DAILY
-            else -> Routes.MONTHLY
-        }
-    }
+
+    val startDestination: String = Routes.MONTHLY
 
     var isSettingsOpen by remember { mutableStateOf(initialRoute == Routes.SETTINGS) }
 
@@ -134,6 +129,9 @@ fun AppNavigation(viewModel: CalendarViewModel) {
     val selectedDate by viewModel.selectedDate.collectAsState()
     val weekStartDay by viewModel.weekStartDay.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val showBottomList by viewModel.showBottomList.collectAsState()
+    val showNotificationSetup by viewModel.showNotificationSetup.collectAsState()
+    val showCalendarSetup by viewModel.showCalendarSetup.collectAsState()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -153,6 +151,17 @@ fun AppNavigation(viewModel: CalendarViewModel) {
 
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
+
+    LaunchedEffect(Unit) {
+        val target = when {
+            initialRoute != null && initialRoute in tabOrder && initialRoute != Routes.MONTHLY -> initialRoute
+            initialShortcut == "today" -> Routes.DAILY
+            else -> null
+        }
+        if (target != null) {
+            navigateToTab(navController, target)
+        }
+    }
 
     LaunchedEffect(currentRoute) {
         if (currentRoute == null) return@LaunchedEffect
@@ -219,14 +228,8 @@ fun AppNavigation(viewModel: CalendarViewModel) {
             isSettingsOpen -> isSettingsOpen = false
             currentRoute == Routes.MONTHLY -> showExitDialog = true
             else -> {
-                val popped = navController.popBackStack(Routes.MONTHLY, inclusive = false)
-                if (!popped) {
-                    backNavFlag = true
-                    navController.navigate(Routes.MONTHLY) {
-                        popUpTo(navController.graph.startDestinationId) { inclusive = true }
-                        launchSingleTop = true
-                    }
-                }
+                backNavFlag = true
+                navigateToTab(navController, Routes.MONTHLY)
             }
         }
     }
@@ -253,6 +256,8 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                     colors = colors,
                     isSearchMode = isSearchMode,
                     searchQuery = searchQuery,
+                    showBottomListToggle = currentRoute == Routes.MONTHLY,
+                    showBottomList = showBottomList,
                     onTitleClick = {
                         when (currentRoute) {
                             Routes.MONTHLY -> showMonthPickerDialog = true
@@ -260,6 +265,7 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                         }
                     },
                     onTodayClick = { navigateToTodayMonth(viewModel, navController) },
+                    onToggleBottomList = { viewModel.setShowBottomList(!showBottomList) },
                     onSearchStart = { isSearchMode = true },
                     onSearchClose = { isSearchMode = false; viewModel.updateSearchQuery("") },
                     onSearchQueryChange = { viewModel.updateSearchQuery(it) },
@@ -379,6 +385,24 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                 viewModel.selectDate(it)
                 showDatePickerDialog = false
             },
+        )
+    }
+
+    if (showNotificationSetup) {
+        NotificationSetupDialog(
+            colors = colors,
+            onComplete = { viewModel.markNotificationSetupDone() },
+        )
+    }
+
+    if (showCalendarSetup) {
+        CalendarPermissionDialog(
+            colors = colors,
+            title = "Googleカレンダーへのアクセス",
+            message = "Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\n\n" +
+                    "Golendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。",
+            onResult = { _ -> viewModel.markCalendarSetupDone() },
+            onDismiss = { viewModel.markCalendarSetupDone() },
         )
     }
 }

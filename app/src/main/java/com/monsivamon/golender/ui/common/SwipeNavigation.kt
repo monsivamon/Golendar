@@ -23,10 +23,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 
-// ── カレンダー共通スワイプ設定 ──
-
-// 月・週・日すべてで同じ操作感にするためのプリセット。
-// ここを変更すれば全カレンダー画面に一括反映される。
+// 月・週・日で共通のスワイプ設定値を保持する。
 object CalendarSwipeDefaults {
     const val REQUIRED_SWIPES = 2
     const val RESET_TIMEOUT_MILLIS = 1000L
@@ -37,7 +34,6 @@ object CalendarSwipeDefaults {
 }
 
 // カレンダー用スワイプの共通エントリポイント。
-// 月・週・日すべてがこれを使うことで、操作感が完全に統一される。
 fun Modifier.swipeToNavigateCalendar(
     onSwipeUp: () -> Unit,
     onSwipeDown: () -> Unit,
@@ -51,8 +47,6 @@ fun Modifier.swipeToNavigateCalendar(
     resetTimeoutMillis = CalendarSwipeDefaults.RESET_TIMEOUT_MILLIS,
     ignoreConsumption = CalendarSwipeDefaults.IGNORE_CONSUMPTION,
 )
-
-// ── 汎用スワイプModifier ──
 
 // 縦スワイプで前後の期間へ移動するModifier。
 fun Modifier.swipeToNavigate(
@@ -84,8 +78,6 @@ fun Modifier.swipeToNavigate(
 
             var accumulated = 0f
             var lastUptime = down.uptimeMillis
-            // 子（LazyColumn等）が消費していないドラッグだけを速度追跡の対象とする。
-            // 消費されたドラッグは「スクロール」とみなし、フリック判定から除外する。
             var trackingStarted = false
             val pointerId = down.id
 
@@ -143,8 +135,7 @@ fun Modifier.swipeToNavigate(
     }
 }
 
-// ── 横スワイプ（タブ切替） ──
-
+// 横スワイプでタブを切り替えるModifier。
 fun Modifier.swipeToNavigateHorizontal(
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit,
@@ -174,8 +165,7 @@ fun Modifier.swipeToNavigateHorizontal(
     }
 }
 
-// ── 期間切替トランジション ──
-
+// 期間切替時に縦スライドとフェードを行うトランジション。
 fun <T> AnimatedContentTransitionScope<T>.slideVertical(
     isForward: Boolean,
     durationMillis: Int = 250,

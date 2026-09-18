@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.monsivamon.golender.data.util.getJpDayOfWeek
 import com.monsivamon.golender.ui.dialogs.BackgroundColorPickerDialog
+import com.monsivamon.golender.ui.dialogs.CalendarPermissionDialog
 import com.monsivamon.golender.ui.dialogs.DayColorPickerDialog
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarMode
@@ -124,19 +125,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     var colorPickerDay by remember { mutableStateOf<DayOfWeek?>(null) }
     var showBgColorPicker by remember { mutableStateOf(false) }
     var showRestartModal by remember { mutableStateOf(false) }
-
-    val calendarPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val readGranted = permissions[Manifest.permission.READ_CALENDAR] ?: false
-        val writeGranted = permissions[Manifest.permission.WRITE_CALENDAR] ?: false
-        if (readGranted && writeGranted) {
-            showRestartModal = true
-        } else {
-            viewModel.setCalendarMode(CalendarMode.GOLENDAR)
-            Toast.makeText(context, "カレンダーへのアクセスが許可されなかったため、Golendarモードに切り替えました", Toast.LENGTH_LONG).show()
-        }
-    }
+    var showCalendarPermissionDialog by remember { mutableStateOf(false) }
 
     var notificationPermissionGranted by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
@@ -233,18 +222,15 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp))
                             .background(if (calendarMode == CalendarMode.GOOGLE) colors.primaryAccent else Color.Transparent)
                             .clickable {
-                                if (calendarMode != CalendarMode.GOOGLE) {
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED &&
-                                        ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED) {
+                                val hasRead = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
+                                val hasWrite = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
+
+                                if (hasRead && hasWrite) {
+                                    if (calendarMode != CalendarMode.GOOGLE) {
                                         showRestartModal = true
-                                    } else {
-                                        calendarPermissionLauncher.launch(arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
                                     }
                                 } else {
-                                    if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED ||
-                                        ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-                                        calendarPermissionLauncher.launch(arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
-                                    }
+                                    showCalendarPermissionDialog = true
                                 }
                             }
                             .padding(vertical = 12.dp),
@@ -546,6 +532,29 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             currentColor = dayColors[day] ?: Color.Unspecified,
             onDismiss = { colorPickerDay = null },
             onColorSelected = { viewModel.setDayColor(day, it) },
+        )
+    }
+
+    if (showCalendarPermissionDialog) {
+        CalendarPermissionDialog(
+            colors = colors,
+            title = "Googleカレンダーへのアクセス",
+            message = "Googleカレンダーと同期するには、カレンダーへのアクセス許可が必要です。\n\n" +
+                    "次の画面で「許可」を選んでください。",
+            onResult = { granted ->
+                showCalendarPermissionDialog = false
+                if (granted) {
+                    showRestartModal = true
+                } else {
+                    viewModel.setCalendarMode(CalendarMode.GOLENDAR)
+                    Toast.makeText(
+                        context,
+                        "カレンダーへのアクセスが許可されなかったため、Golendarモードに切り替えました",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            },
+            onDismiss = { showCalendarPermissionDialog = false },
         )
     }
 

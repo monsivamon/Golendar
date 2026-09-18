@@ -16,9 +16,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.data.Event
+import com.monsivamon.golender.data.util.RruleExpander
 import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.GolendarTimePickerDialog
 import com.monsivamon.golender.ui.theme.AppColors
@@ -28,35 +30,9 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-@Suppress("SpellCheckingInspection")
-private const val RRULE_WEEKDAYS = "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"
-
 private const val TAG = "Golendar"
-
-private val UNTIL_REGEX = Regex("UNTIL=(\\d{8})")
-private val UNTIL_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd")
-
-// 繰り返しルール文字列から UNTIL の日付を抽出する（無ければ null）。
-private fun parseUntilDate(rrule: String?): LocalDate? {
-    if (rrule == null) return null
-    val match = UNTIL_REGEX.find(rrule) ?: return null
-    return try {
-        LocalDate.parse(match.groupValues[1], UNTIL_DATE_FORMAT)
-    } catch (_: Exception) {
-        null
-    }
-}
-
-// 繰り返しルールから UNTIL 部分を除いた基本ルールを返す。
-private fun baseRuleOf(rrule: String): String =
-    rrule.split(";").filter { !it.startsWith("UNTIL=") }.joinToString(";")
-
-// 指定日を RRULE の UNTIL 形式文字列に整形する。
-private fun formatUntil(date: LocalDate): String =
-    date.format(UNTIL_DATE_FORMAT) + "T235959Z"
 
 private val LABEL_WIDTH = 60.dp
 
@@ -82,9 +58,9 @@ fun EventDialog(
     var isRecurring by remember(eventKey) { mutableStateOf(event?.rrule != null) }
     var recurringType by remember(eventKey) {
         mutableStateOf(
-            when (event?.rrule?.let { baseRuleOf(it) }) {
+            when (event?.rrule?.let { RruleExpander.baseRuleOf(it) }) {
                 "FREQ=DAILY" -> "DAILY"
-                RRULE_WEEKDAYS -> "WEEKDAYS"
+                RruleExpander.RRULE_WEEKDAYS -> "WEEKDAYS"
                 "FREQ=MONTHLY" -> "MONTHLY"
                 "FREQ=YEARLY" -> "YEARLY"
                 "FREQ=WEEKLY" -> "WEEKLY"
@@ -93,9 +69,9 @@ fun EventDialog(
         )
     }
 
-    var hasRecurrenceEnd by remember(eventKey) { mutableStateOf(parseUntilDate(event?.rrule) != null) }
+    var hasRecurrenceEnd by remember(eventKey) { mutableStateOf(RruleExpander.parseUntilDate(event?.rrule) != null) }
     var recurrenceEndDate by remember(eventKey) {
-        val parsed = parseUntilDate(event?.rrule)
+        val parsed = RruleExpander.parseUntilDate(event?.rrule)
         mutableStateOf(parsed ?: LocalDate.now().plusMonths(1))
     }
 
@@ -233,25 +209,36 @@ fun EventDialog(
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
                             "開始",
                             color = colors.textGray.copy(alpha = if (startDateLocked) 0.4f else 1f),
                             modifier = Modifier.width(LABEL_WIDTH),
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Box(
                                 modifier = Modifier
+                                    .weight(1f, fill = false)
                                     .clip(RoundedCornerShape(8.dp))
                                     .border(1.dp, startDateBorder, RoundedCornerShape(8.dp))
                                     .then(
                                         if (!startDateLocked) Modifier.clickable { showStartDatePicker = true }
                                         else Modifier
                                     )
-                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                                    .padding(horizontal = 10.dp, vertical = 10.dp),
+                                contentAlignment = Alignment.CenterStart,
                             ) {
-                                Text("${startDate.year}年${startDate.monthValue}月${startDate.dayOfMonth}日", color = startDateText)
+                                Text(
+                                    "${startDate.year}年${startDate.monthValue}月${startDate.dayOfMonth}日",
+                                    color = startDateText,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
                             if (!isAllDay) {
                                 Box(
@@ -259,9 +246,15 @@ fun EventDialog(
                                         .clip(RoundedCornerShape(8.dp))
                                         .border(1.dp, colors.textGray, RoundedCornerShape(8.dp))
                                         .clickable { showStartTimePicker = true }
-                                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                                        .padding(horizontal = 10.dp, vertical = 10.dp),
+                                    contentAlignment = Alignment.Center,
                                 ) {
-                                    Text(String.format(Locale.ROOT, "%02d:%02d", startTime.hour, startTime.minute), color = colors.text)
+                                    Text(
+                                        String.format(Locale.ROOT, "%02d:%02d", startTime.hour, startTime.minute),
+                                        color = colors.text,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                    )
                                 }
                             }
                         }
@@ -273,25 +266,36 @@ fun EventDialog(
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
                             "終了",
                             color = colors.textGray.copy(alpha = if (endDateLocked) 0.4f else 1f),
                             modifier = Modifier.width(LABEL_WIDTH),
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Box(
                                 modifier = Modifier
+                                    .weight(1f, fill = false)
                                     .clip(RoundedCornerShape(8.dp))
                                     .border(1.dp, endDateBorder, RoundedCornerShape(8.dp))
                                     .then(
                                         if (!endDateLocked) Modifier.clickable { showEndDatePicker = true }
                                         else Modifier
                                     )
-                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                                    .padding(horizontal = 10.dp, vertical = 10.dp),
+                                contentAlignment = Alignment.CenterStart,
                             ) {
-                                Text("${endDate.year}年${endDate.monthValue}月${endDate.dayOfMonth}日", color = endDateText)
+                                Text(
+                                    "${endDate.year}年${endDate.monthValue}月${endDate.dayOfMonth}日",
+                                    color = endDateText,
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
                             }
                             if (!isAllDay) {
                                 Box(
@@ -299,9 +303,15 @@ fun EventDialog(
                                         .clip(RoundedCornerShape(8.dp))
                                         .border(1.dp, colors.textGray, RoundedCornerShape(8.dp))
                                         .clickable { showEndTimePicker = true }
-                                        .padding(horizontal = 12.dp, vertical = 10.dp)
+                                        .padding(horizontal = 10.dp, vertical = 10.dp),
+                                    contentAlignment = Alignment.Center,
                                 ) {
-                                    Text(String.format(Locale.ROOT, "%02d:%02d", endTime.hour, endTime.minute), color = colors.text)
+                                    Text(
+                                        String.format(Locale.ROOT, "%02d:%02d", endTime.hour, endTime.minute),
+                                        color = colors.text,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                    )
                                 }
                             }
                         }
@@ -396,8 +406,8 @@ fun EventDialog(
                 val finalRrule = when {
                     !isRecurring -> null
                     else -> {
-                        val base = if (recurringType == "WEEKDAYS") RRULE_WEEKDAYS else "FREQ=$recurringType"
-                        if (hasRecurrenceEnd) "$base;UNTIL=${formatUntil(recurrenceEndDate)}" else base
+                        val base = if (recurringType == "WEEKDAYS") RruleExpander.RRULE_WEEKDAYS else "FREQ=$recurringType"
+                        if (hasRecurrenceEnd) "$base;UNTIL=${RruleExpander.formatUntil(recurrenceEndDate)}" else base
                     }
                 }
 

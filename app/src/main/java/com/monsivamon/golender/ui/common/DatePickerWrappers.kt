@@ -25,7 +25,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneOffset
 
-// 初期日付付きの日付選択ダイアログ
+// 初期日付付きの日付選択ダイアログを表示する。
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GolendarDatePickerDialog(
@@ -39,7 +39,7 @@ fun GolendarDatePickerDialog(
     onDateSelected = onDateSelected,
 )
 
-// 初期日付なしの日付選択ダイアログ（今日が初期値）
+// 初期日付なしの日付選択ダイアログを表示する（今日が初期値）。
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GolendarDatePickerDialog(
@@ -48,7 +48,7 @@ fun GolendarDatePickerDialog(
     onDateSelected: (LocalDate) -> Unit,
 ) = GolendarDatePickerDialogImpl(colors, onDismiss, initialMillis = null, onDateSelected = onDateSelected)
 
-// 日付選択ダイアログの共通実装
+// 日付選択ダイアログの共通実装。
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GolendarDatePickerDialogImpl(
@@ -70,20 +70,32 @@ private fun GolendarDatePickerDialogImpl(
         dismissButton = { TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) } },
         colors = DatePickerDefaults.colors(containerColor = colors.surface),
     ) {
-        DatePicker(state = state, colors = DatePickerDefaults.colors(
-            containerColor = Color.Transparent, titleContentColor = colors.text,
-            headlineContentColor = colors.text, weekdayContentColor = colors.textGray,
-            subheadContentColor = colors.text, navigationContentColor = colors.text,
-            yearContentColor = colors.text, dayContentColor = colors.text,
-            selectedDayContainerColor = colors.primaryAccent, selectedDayContentColor = Color.White,
-            currentYearContentColor = colors.primaryAccent, selectedYearContainerColor = colors.primaryAccent,
-            selectedYearContentColor = Color.White, todayContentColor = colors.primaryAccent,
-            todayDateBorderColor = colors.primaryAccent,
-        ))
+        DatePicker(
+            state = state,
+            colors = DatePickerDefaults.colors(
+                containerColor = colors.surface,
+                titleContentColor = colors.text,
+                headlineContentColor = colors.text,
+                weekdayContentColor = colors.textGray,
+                subheadContentColor = colors.text,
+                navigationContentColor = colors.text,
+                yearContentColor = colors.text,
+                dayContentColor = colors.text,
+                selectedDayContainerColor = colors.primaryAccent,
+                selectedDayContentColor = Color.White,
+                currentYearContentColor = colors.primaryAccent,
+                selectedYearContainerColor = colors.primaryAccent,
+                selectedYearContentColor = Color.White,
+                todayContentColor = colors.primaryAccent,
+                todayDateBorderColor = colors.primaryAccent,
+                disabledDayContentColor = colors.textGray,
+                disabledYearContentColor = colors.textGray,
+            ),
+        )
     }
 }
 
-// 時刻選択ダイアログ（24時間表示）
+// 時刻選択ダイアログ（24時間表示）を表示する。
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GolendarTimePickerDialog(
@@ -116,7 +128,7 @@ fun GolendarTimePickerDialog(
     )
 }
 
-// 年月選択ダイアログ（年送りボタンと12ヶ月グリッド）
+// 年月選択ダイアログ（年送りボタンと12ヶ月グリッド）を表示する。
 @Composable
 fun YearMonthPickerDialog(
     currentYear: Int, currentMonth: Int,
