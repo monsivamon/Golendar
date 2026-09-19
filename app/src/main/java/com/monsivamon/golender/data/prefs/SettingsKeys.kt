@@ -29,6 +29,10 @@ object SettingsKeys {
     val NOTIFICATION_SETUP_DONE = booleanPreferencesKey("notification_setup_done")
     // 初回起動時のカレンダーセットアップ完了フラグ。
     val CALENDAR_SETUP_DONE = booleanPreferencesKey("calendar_setup_done")
+    // 地図の位置情報セットアップ完了フラグ。
+    val LOCATION_SETUP_DONE = booleanPreferencesKey("location_setup_done")
+    // 初回起動時のジェスチャー案内完了フラグ。
+    val GESTURE_SETUP_DONE = booleanPreferencesKey("gesture_setup_done")
 
     // 曜日ごとの色キーを動的に生成する。
     fun dayColor(day: DayOfWeek) = stringPreferencesKey("day_color_${day.name}")

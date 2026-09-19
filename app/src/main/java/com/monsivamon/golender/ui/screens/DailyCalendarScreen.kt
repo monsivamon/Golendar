@@ -17,9 +17,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.util.getJpDayOfWeek
+import com.monsivamon.golender.data.util.localStartDate
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.slideVertical
 import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
+import com.monsivamon.golender.ui.components.SearchResultsList
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
 import com.monsivamon.golender.ui.dialogs.EventDialog
 import com.monsivamon.golender.ui.theme.getAppColors
@@ -35,10 +37,13 @@ fun DailyCalendarScreen(
     viewModel: CalendarViewModel,
     navController: NavController,
     isSearchMode: Boolean,
+    onSearchResultSelected: (LocalDate) -> Unit = {},
 ) {
     val selectedDate by viewModel.selectedDate.collectAsState()
     val events by viewModel.events.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+    val isSearchLoading by viewModel.isSearchLoading.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val dayColors by viewModel.dayColors.collectAsState()
     val customBg by viewModel.calendarBgColor.collectAsState()
@@ -50,6 +55,19 @@ fun DailyCalendarScreen(
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
     var fromCalendar by remember { mutableStateOf(false) }
+
+    if (isSearchMode) {
+        SearchResultsList(
+            query = searchQuery,
+            results = searchResults,
+            isLoading = isSearchLoading,
+            colors = colors,
+            onResultSelected = { event ->
+                onSearchResultSelected(event.localStartDate())
+            },
+        )
+        return
+    }
 
     Box(
         modifier = Modifier
@@ -67,9 +85,6 @@ fun DailyCalendarScreen(
         ) { date ->
             Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                 val dailyEvents = events.filter { it.occursOn(date) }
-                val filteredEvents = if (searchQuery.isNotBlank()) {
-                    dailyEvents.filter { it.title.contains(searchQuery, ignoreCase = true) }
-                } else dailyEvents
 
                 Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(bottom = 12.dp)) {
                     val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
@@ -79,14 +94,11 @@ fun DailyCalendarScreen(
                         fontSize = 18.sp, fontWeight = FontWeight.Bold, color = dayColor
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    if (isSearchMode && searchQuery.isNotBlank())
-                        Text("検索結果: ${filteredEvents.size}件", fontSize = 14.sp, color = colors.primaryAccent)
-                    else
-                        Text("${filteredEvents.size}件", fontSize = 14.sp, color = colors.textGray)
+                    Text("${dailyEvents.size}件", fontSize = 14.sp, color = colors.textGray)
                 }
 
                 LazyColumn {
-                    if (filteredEvents.isEmpty()) {
+                    if (dailyEvents.isEmpty()) {
                         item {
                             Box(
                                 modifier = Modifier.fillMaxWidth()
@@ -98,22 +110,14 @@ fun DailyCalendarScreen(
                                     .padding(vertical = 16.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(
-                                    if (isSearchMode && searchQuery.isNotBlank()) "該当する予定はありません" else "予定なし",
-                                    color = colors.textGray, fontSize = 16.sp
-                                )
+                                Text("予定なし", color = colors.textGray, fontSize = 16.sp)
                             }
                         }
                     } else {
-                        items(filteredEvents) { event: Event ->
-                            if (isSearchMode && searchQuery.isNotBlank())
-                                SearchResultCard(event = event, colors = colors, onClick = { ev ->
-                                    viewingEvent = ev; viewingDate = date; showEventDetailDialog = true
-                                })
-                            else
-                                EventCard(event = event, colors = colors, onClick = { ev ->
-                                    viewingEvent = ev; viewingDate = date; showEventDetailDialog = true
-                                })
+                        items(dailyEvents) { event: Event ->
+                            EventCard(event = event, colors = colors, onClick = { ev ->
+                                viewingEvent = ev; viewingDate = date; showEventDetailDialog = true
+                            })
                         }
                     }
 

@@ -23,7 +23,7 @@ import com.monsivamon.golender.ui.navigateTab
 import com.monsivamon.golender.ui.navigateToTab
 import com.monsivamon.golender.ui.theme.AppColors
 
-// 日・週・月の表示切り替えタブと前後移動ボタン
+// 日・週・月の表示切り替えタブと前後移動ボタンを描画する。
 @Composable
 fun CalendarTabRow(currentRoute: String, colors: AppColors, navController: NavController) {
     Row(
@@ -43,7 +43,7 @@ fun CalendarTabRow(currentRoute: String, colors: AppColors, navController: NavCo
     }
 }
 
-// タブのラベル（選択中はアクセントカラーの背景で強調）
+// タブのラベル（選択中はアクセントカラーの背景で強調）を描画する。
 @Composable
 private fun TabLabel(
     label: String, route: String, currentRoute: String,
@@ -59,7 +59,9 @@ private fun TabLabel(
     } else {
         Text(
             text = label, fontSize = 16.sp, color = colors.text,
-            modifier = Modifier.clickable { navigateToTab(navController, route) }.padding(8.dp),
+            modifier = Modifier
+                .clickable { navigateToTab(navController, route) }
+                .padding(8.dp),
         )
     }
 }

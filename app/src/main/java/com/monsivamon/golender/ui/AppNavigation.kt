@@ -7,6 +7,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,8 +35,10 @@ import com.monsivamon.golender.ui.common.findActivity
 import com.monsivamon.golender.ui.common.swipeToNavigateHorizontal
 import com.monsivamon.golender.ui.dialogs.CalendarPermissionDialog
 import com.monsivamon.golender.ui.dialogs.ExitConfirmDialog
+import com.monsivamon.golender.ui.dialogs.GestureSetupDialog
 import com.monsivamon.golender.ui.dialogs.NotificationSetupDialog
 import com.monsivamon.golender.ui.dialogs.SyncConfirmDialog
+import com.monsivamon.golender.ui.theme.PressScaleIndication
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 import java.time.LocalDate
@@ -104,9 +107,17 @@ private fun SystemBarsAppearanceSync(bgColor: Color) {
     }
 }
 
-// ヘッダー・タブ行・NavHost・設定オーバーレイ・各種ダイアログを統括するメイン画面。
+// アプリ全体に押下時の縮小フィードバックを適用する。
 @Composable
 fun AppNavigation(viewModel: CalendarViewModel) {
+    CompositionLocalProvider(LocalIndication provides PressScaleIndication) {
+        AppNavigationContent(viewModel)
+    }
+}
+
+// ヘッダー・タブ行・NavHost・設定オーバーレイ・各種ダイアログを統括するメイン画面。
+@Composable
+private fun AppNavigationContent(viewModel: CalendarViewModel) {
     val navController = rememberNavController()
     val animSpec = tween<IntOffset>(durationMillis = 220, easing = FastOutSlowInEasing)
 
@@ -132,6 +143,7 @@ fun AppNavigation(viewModel: CalendarViewModel) {
     val showBottomList by viewModel.showBottomList.collectAsState()
     val showNotificationSetup by viewModel.showNotificationSetup.collectAsState()
     val showCalendarSetup by viewModel.showCalendarSetup.collectAsState()
+    val showGestureSetup by viewModel.showGestureSetup.collectAsState()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -152,6 +164,14 @@ fun AppNavigation(viewModel: CalendarViewModel) {
     val context = LocalContext.current
     val activity = remember(context) { context.findActivity() }
 
+    // 検索結果を選択したときの共通処理（検索終了と該当日への遷移）。
+    val onSearchResultSelected: (LocalDate) -> Unit = { date ->
+        isSearchMode = false
+        viewModel.updateSearchQuery("")
+        viewModel.exitSearchMode()
+        viewModel.selectDate(date)
+    }
+
     LaunchedEffect(Unit) {
         val target = when {
             initialRoute != null && initialRoute in tabOrder && initialRoute != Routes.MONTHLY -> initialRoute
@@ -167,6 +187,7 @@ fun AppNavigation(viewModel: CalendarViewModel) {
         if (currentRoute == null) return@LaunchedEffect
         if (pendingSearchAfterNav && currentRoute == Routes.MONTHLY) {
             isSearchMode = true
+            viewModel.enterSearchMode()
             pendingSearchAfterNav = false
         } else {
             isSearchMode = false
@@ -203,6 +224,7 @@ fun AppNavigation(viewModel: CalendarViewModel) {
             "search" -> {
                 if (currentRoute == Routes.MONTHLY) {
                     isSearchMode = true
+                    viewModel.enterSearchMode()
                 } else {
                     pendingSearchAfterNav = true
                     if (currentRoute != null) {
@@ -224,6 +246,7 @@ fun AppNavigation(viewModel: CalendarViewModel) {
             isSearchMode -> {
                 isSearchMode = false
                 viewModel.updateSearchQuery("")
+                viewModel.exitSearchMode()
             }
             isSettingsOpen -> isSettingsOpen = false
             currentRoute == Routes.MONTHLY -> showExitDialog = true
@@ -266,8 +289,15 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                     },
                     onTodayClick = { navigateToTodayMonth(viewModel, navController) },
                     onToggleBottomList = { viewModel.setShowBottomList(!showBottomList) },
-                    onSearchStart = { isSearchMode = true },
-                    onSearchClose = { isSearchMode = false; viewModel.updateSearchQuery("") },
+                    onSearchStart = {
+                        isSearchMode = true
+                        viewModel.enterSearchMode()
+                    },
+                    onSearchClose = {
+                        isSearchMode = false
+                        viewModel.updateSearchQuery("")
+                        viewModel.exitSearchMode()
+                    },
                     onSearchQueryChange = { viewModel.updateSearchQuery(it) },
                     onSyncClick = { showSyncDialog = true },
                     onSettingsClick = { isSettingsOpen = true },
@@ -324,9 +354,30 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                             }
                         }
                     ) {
-                        composable(Routes.MONTHLY) { MonthlyCalendarScreen(viewModel, navController, isSearchMode) }
-                        composable(Routes.DAILY) { DailyCalendarScreen(viewModel, navController, isSearchMode) }
-                        composable(Routes.WEEKLY) { WeeklyCalendarScreen(viewModel, navController, isSearchMode) }
+                        composable(Routes.MONTHLY) {
+                            MonthlyCalendarScreen(
+                                viewModel = viewModel,
+                                navController = navController,
+                                isSearchMode = isSearchMode,
+                                onSearchResultSelected = onSearchResultSelected,
+                            )
+                        }
+                        composable(Routes.DAILY) {
+                            DailyCalendarScreen(
+                                viewModel = viewModel,
+                                navController = navController,
+                                isSearchMode = isSearchMode,
+                                onSearchResultSelected = onSearchResultSelected,
+                            )
+                        }
+                        composable(Routes.WEEKLY) {
+                            WeeklyCalendarScreen(
+                                viewModel = viewModel,
+                                navController = navController,
+                                isSearchMode = isSearchMode,
+                                onSearchResultSelected = onSearchResultSelected,
+                            )
+                        }
                     }
                 }
             }
@@ -403,6 +454,13 @@ fun AppNavigation(viewModel: CalendarViewModel) {
                     "Golendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。",
             onResult = { _ -> viewModel.markCalendarSetupDone() },
             onDismiss = { viewModel.markCalendarSetupDone() },
+        )
+    }
+
+    if (showGestureSetup) {
+        GestureSetupDialog(
+            colors = colors,
+            onComplete = { viewModel.markGestureSetupDone() },
         )
     }
 }

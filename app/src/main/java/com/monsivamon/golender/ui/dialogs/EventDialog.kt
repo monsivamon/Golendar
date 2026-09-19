@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -103,6 +105,7 @@ fun EventDialog(
     var showStartTimePicker by remember { mutableStateOf(false) }
     var showEndTimePicker by remember { mutableStateOf(false) }
     var showRecurrenceEndPicker by remember { mutableStateOf(false) }
+    var showPlacePicker by remember { mutableStateOf(false) }
 
     val isLightBackground = colors.bg.luminance() > 0.5f
 
@@ -366,6 +369,15 @@ fun EventDialog(
                     onValueChange = { location = it },
                     label = { Text("場所", color = colors.textGray) },
                     modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(onClick = { showPlacePicker = true }) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = "地図から選択",
+                                tint = colors.primaryAccent,
+                            )
+                        }
+                    },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = colors.text,
                         unfocusedTextColor = colors.text,
@@ -475,6 +487,18 @@ fun EventDialog(
             onDateSelected = { newDate ->
                 recurrenceEndDate = newDate
                 showRecurrenceEndPicker = false
+            },
+        )
+    }
+    if (showPlacePicker) {
+        PlacePickerDialog(
+            initialLatitude = null,
+            initialLongitude = null,
+            colors = colors,
+            onDismiss = { showPlacePicker = false },
+            onPlaceSelected = { picked ->
+                location = picked
+                showPlacePicker = false
             },
         )
     }

@@ -21,6 +21,7 @@ import com.monsivamon.golender.data.util.localStartDate
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.slideVertical
 import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
+import com.monsivamon.golender.ui.components.SearchResultsList
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
 import com.monsivamon.golender.ui.dialogs.EventDialog
 import com.monsivamon.golender.ui.theme.getAppColors
@@ -36,10 +37,13 @@ fun WeeklyCalendarScreen(
     viewModel: CalendarViewModel,
     navController: NavController,
     isSearchMode: Boolean,
+    onSearchResultSelected: (LocalDate) -> Unit = {},
 ) {
     val selectedDate by viewModel.selectedDate.collectAsState()
     val events by viewModel.events.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+    val isSearchLoading by viewModel.isSearchLoading.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val weekStartDay by viewModel.weekStartDay.collectAsState()
     val dayColors by viewModel.dayColors.collectAsState()
@@ -53,6 +57,19 @@ fun WeeklyCalendarScreen(
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
     var fromCalendar by remember { mutableStateOf(false) }
+
+    if (isSearchMode) {
+        SearchResultsList(
+            query = searchQuery,
+            results = searchResults,
+            isLoading = isSearchLoading,
+            colors = colors,
+            onResultSelected = { event ->
+                onSearchResultSelected(event.localStartDate())
+            },
+        )
+        return
+    }
 
     val offset = (selectedDate.dayOfWeek.value - weekStartDay.value + 7) % 7
     val startOfWeek = selectedDate.minusDays(offset.toLong())
@@ -76,15 +93,12 @@ fun WeeklyCalendarScreen(
             val weekEvents = events.filter {
                 it.localStartDate() <= weekEnd && it.localEndDate() >= weekStart
             }
-            val filteredEvents = if (searchQuery.isNotBlank()) {
-                weekEvents.filter { it.title.contains(searchQuery, ignoreCase = true) }
-            } else weekEvents
 
             LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                 val weekDates = (0..6).map { weekStart.plusDays(it.toLong()) }
                 weekDates.forEach { date ->
                     item {
-                        val dayEvents = filteredEvents.filter { it.occursOn(date) }
+                        val dayEvents = weekEvents.filter { it.occursOn(date) }
 
                         val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
                         val dayColor = if (c == Color.Unspecified) colors.text else c
@@ -107,7 +121,7 @@ fun WeeklyCalendarScreen(
                                     .padding(vertical = 8.dp)
                             ) {
                                 Text(
-                                    if (isSearchMode && searchQuery.isNotBlank()) "該当する予定はありません" else "予定なし",
+                                    "予定なし",
                                     color = colors.textGray, modifier = Modifier.padding(vertical = 4.dp),
                                 )
                             }
@@ -133,28 +147,6 @@ fun WeeklyCalendarScreen(
                             ),
                             shape = RoundedCornerShape(12.dp),
                         ) { Text("+ 予定を追加", fontSize = 14.sp, fontWeight = FontWeight.Medium) }
-                    }
-                }
-
-                if (isSearchMode && searchQuery.isNotBlank() && filteredEvents.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                                .clickable {
-                                    editingEvent = null
-                                    dialogDateForNewEvent = selectedDate
-                                    fromCalendar = true
-                                    showEventDialog = true
-                                }
-                                .padding(vertical = 16.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                "該当する予定はありません\nタップして予定を追加",
-                                color = colors.textGray,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                            )
-                        }
                     }
                 }
             }

@@ -15,18 +15,18 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.time.DayOfWeek
 
-// 予定と設定のJSONバックアップ／復元を担当するマネージャ
+// 予定と設定のJSONバックアップ／復元を担当するマネージャ。
 class BackupManager(
     private val context: Context,
     private val repository: CalendarRepository,
 ) {
-    // バックアップ／復元の結果を表す密封クラス
+    // バックアップ／復元の結果を表す密封クラス。
     sealed class Result {
         data class Success(val message: String) : Result()
         data class Failure(val message: String) : Result()
     }
 
-    // 設定と予定をJSON形式でエクスポートする
+    // 設定と予定をJSON形式でエクスポートする（祝日データは除外）。
     suspend fun export(
         uri: Uri, calendarMode: CalendarMode, selectedAccount: String?,
     ): Result = withContext(Dispatchers.IO) {
@@ -35,16 +35,18 @@ class BackupManager(
             val root = JSONObject()
             root.put("settings", buildSettingsJson(prefs))
 
-            // モードに応じてGoogleまたはローカルの予定を取得
             val events = if (calendarMode == CalendarMode.GOOGLE) {
                 repository.getAllGoogleEvents(selectedAccount)
+                    .filter { !it.isHolidayCalendar }
             } else {
-                repository.getAllLocalEvents().map {
-                    Event(
-                        it.id, it.title, it.startTime, it.endTime, it.isAllDay,
-                        LocalEvent.LOCAL_CALENDAR_ID, it.location, it.description, it.rrule,
-                    )
-                }
+                repository.getAllLocalEvents()
+                    .filter { it.description != LocalEvent.DESCRIPTION_HOLIDAY }
+                    .map {
+                        Event(
+                            it.id, it.title, it.startTime, it.endTime, it.isAllDay,
+                            LocalEvent.LOCAL_CALENDAR_ID, it.location, it.description, it.rrule,
+                        )
+                    }
             }
             root.put("events", eventsToJson(events))
             context.contentResolver.openOutputStream(uri)?.use {
@@ -56,13 +58,12 @@ class BackupManager(
         }
     }
 
-    // JSONファイルから設定と予定をインポートする（追記または上書き）
+    // JSONファイルから設定と予定をインポートする（追記または上書き）。
     suspend fun import(
         uri: Uri, isAppend: Boolean,
         calendarMode: CalendarMode, selectedAccount: String?,
     ): Result = withContext(Dispatchers.IO) {
         try {
-            // Googleモードでは誤削除防止のため追記のみ許可
             if (calendarMode == CalendarMode.GOOGLE && !isAppend) {
                 return@withContext Result.Failure("Googleモードでは誤削除防止のため、追記のみ可能です")
             }
@@ -74,8 +75,9 @@ class BackupManager(
             if (root.has("settings")) applySettingsJson(root.getJSONObject("settings"))
             if (root.has("events")) {
                 val imported = jsonToLocalEvents(root.getJSONArray("events"))
+                    .filter { it.description != LocalEvent.DESCRIPTION_HOLIDAY }
+
                 if (calendarMode == CalendarMode.GOOGLE) {
-                    // Googleモードは1件ずつinsertEventで追加
                     for (ev in imported) {
                         repository.insertEvent(
                             ev.title, ev.startTime, ev.endTime, ev.isAllDay,
@@ -91,7 +93,7 @@ class BackupManager(
         }
     }
 
-    // DataStoreの設定をJSONオブジェクトに変換
+    // DataStoreの設定をJSONオブジェクトに変換する。
     private fun buildSettingsJson(
         prefs: androidx.datastore.preferences.core.Preferences,
     ): JSONObject {
@@ -108,7 +110,7 @@ class BackupManager(
         return s
     }
 
-    // JSONの設定をDataStoreに反映
+    // JSONの設定をDataStoreに反映する。
     private suspend fun applySettingsJson(s: JSONObject) {
         context.dataStore.edit { prefs ->
             if (s.has("theme_mode")) prefs[SettingsKeys.THEME] = s.getString("theme_mode")
@@ -126,7 +128,7 @@ class BackupManager(
         }
     }
 
-    // 予定リストをJSON配列に変換
+    // 予定リストをJSON配列に変換する。
     private fun eventsToJson(events: List<Event>): JSONArray {
         val arr = JSONArray()
         for (e in events) {
@@ -143,7 +145,7 @@ class BackupManager(
         return arr
     }
 
-    // JSON配列をLocalEventリストに変換（IDは0で自動採番）
+    // JSON配列をLocalEventリストに変換する（IDは0で自動採番）。
     private fun jsonToLocalEvents(arr: JSONArray): List<LocalEvent> {
         val list = mutableListOf<LocalEvent>()
         for (i in 0 until arr.length()) {

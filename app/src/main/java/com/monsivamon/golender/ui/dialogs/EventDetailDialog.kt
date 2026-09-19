@@ -17,7 +17,7 @@ import com.monsivamon.golender.data.util.*
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
 
-// 予定詳細ダイアログを表示する（編集・複数日予定の一部削除・テキスト共有に対応）。
+// 予定詳細ダイアログを表示する（編集・複数日予定の一部削除・テキスト共有・地図表示に対応）。
 @Composable
 fun EventDetailDialog(
     event: Event, currentDate: LocalDate, colors: AppColors,
@@ -53,7 +53,15 @@ fun EventDetailDialog(
                 if (event.location.isNotBlank()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("📍", fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
-                        Text(event.location, color = colors.text, fontSize = 14.sp)
+                        Text(
+                            event.location,
+                            color = colors.text,
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f),
+                        )
+                        TextButton(onClick = { MapUtils.openInMapApp(context, event.location) }) {
+                            Text("地図で見る", color = colors.primaryAccent, fontSize = 13.sp)
+                        }
                     }
                 }
                 if (event.description.isNotBlank()) {

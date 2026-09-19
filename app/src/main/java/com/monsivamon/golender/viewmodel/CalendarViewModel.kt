@@ -46,6 +46,11 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
     private val holidayFetchMutex = Mutex()
 
+    private val SEARCH_YEARS_PAST = 2L
+    private val SEARCH_YEARS_FUTURE = 2L
+
+    private var searchCache: List<Event>? = null
+
     private val _currentMonth = MutableStateFlow(YearMonth.now())
     val currentMonth: StateFlow<YearMonth> = _currentMonth.asStateFlow()
 
@@ -57,6 +62,12 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    private val _searchResults = MutableStateFlow<List<Event>>(emptyList())
+    val searchResults: StateFlow<List<Event>> = _searchResults.asStateFlow()
+
+    private val _isSearchLoading = MutableStateFlow(false)
+    val isSearchLoading: StateFlow<Boolean> = _isSearchLoading.asStateFlow()
 
     private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
     val themeMode: StateFlow<ThemeMode> = _themeMode.asStateFlow()
@@ -108,6 +119,9 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     private val _showCalendarSetup = MutableStateFlow(false)
     val showCalendarSetup: StateFlow<Boolean> = _showCalendarSetup.asStateFlow()
 
+    private val _showGestureSetup = MutableStateFlow(false)
+    val showGestureSetup: StateFlow<Boolean> = _showGestureSetup.asStateFlow()
+
     // ウィジェット等からの画面遷移要求を設定する。
     fun requestNavigation(route: String) { _pendingRoute.value = route }
 
@@ -134,6 +148,77 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         loadSettingsFromDataStore()
         loadAccounts()
         checkAndFetchHolidays(force = false)
+    }
+
+    // 検索モードに入るときに呼ぶ（検索対象を遅延ロード）。
+    fun enterSearchMode() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val cache = searchCache
+            if (cache != null) {
+                applySearchFilter(_searchQuery.value, cache)
+                return@launch
+            }
+            _isSearchLoading.value = true
+            try {
+                val loaded = loadEventsForSearch()
+                searchCache = loaded
+                applySearchFilter(_searchQuery.value, loaded)
+            } catch (_: Exception) {
+                searchCache = emptyList()
+                _searchResults.value = emptyList()
+            } finally {
+                _isSearchLoading.value = false
+            }
+        }
+    }
+
+    // 検索モードを抜けるときに呼ぶ（結果をクリア）。
+    fun exitSearchMode() {
+        _searchResults.value = emptyList()
+        _isSearchLoading.value = false
+    }
+
+    // 検索クエリを更新し、キャッシュからフィルタして結果を更新する。
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+        val cache = searchCache ?: return
+        applySearchFilter(query, cache)
+    }
+
+    // 検索キャッシュを無効化する。
+    private fun invalidateSearchCache() {
+        searchCache = null
+        _searchResults.value = emptyList()
+    }
+
+    // クエリでフィルタして検索結果を更新する。
+    private fun applySearchFilter(query: String, source: List<Event>) {
+        _searchResults.value = if (query.isBlank()) {
+            emptyList()
+        } else {
+            source.filter { it.title.contains(query, ignoreCase = true) }
+        }
+    }
+
+    // 検索対象（過去2年〜未来2年）の予定を取得する。
+    private suspend fun loadEventsForSearch(): List<Event> {
+        val now = LocalDate.now()
+        val startDate = now.minusYears(SEARCH_YEARS_PAST)
+        val endDate = now.plusYears(SEARCH_YEARS_FUTURE)
+        val start = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val end = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+        val events = if (_calendarMode.value == CalendarMode.GOOGLE) {
+            val calendarIds = _selectedAccount.value?.let {
+                (repository.getCalendarIdsForAccount(it) + repository.getSpecialCalendarIds()).distinct()
+            }
+            repository.getEventsForMonth(start, end, calendarIds)
+                .filter { !it.isHolidayCalendar && !it.isCulturalEvent && !it.isBirthdayCalendar }
+        } else {
+            repository.getLocalEventsForMonth(start, end)
+                .filter { it.description != LocalEvent.DESCRIPTION_HOLIDAY }
+        }
+        return events.sortedBy { it.startTime }
     }
 
     // 30日ごとに祝日データを取得する（並行実行をミューテックスで防止）。
@@ -174,9 +259,11 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
                 val notifDone = preferences[SettingsKeys.NOTIFICATION_SETUP_DONE] ?: false
                 val calDone = preferences[SettingsKeys.CALENDAR_SETUP_DONE] ?: false
+                val gestureDone = preferences[SettingsKeys.GESTURE_SETUP_DONE] ?: false
 
                 _showNotificationSetup.value = !notifDone
                 _showCalendarSetup.value = notifDone && !calDone
+                _showGestureSetup.value = notifDone && calDone && !gestureDone
 
                 preferences[SettingsKeys.BG_COLOR]?.let { colorStr ->
                     _calendarBgColor.value = if (colorStr == SettingsKeys.COLOR_UNSPECIFIED) Color.Unspecified
@@ -227,7 +314,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // 通知セットアップ完了としてマークし、必要ならカレンダーセットアップへ進む。
+    // 通知セットアップ完了としてマークし、必要なら次ステップへ進める。
     fun markNotificationSetupDone() {
         _showNotificationSetup.value = false
         viewModelScope.launch(Dispatchers.IO) {
@@ -235,21 +322,41 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 dataStore.edit { prefs ->
                     prefs[SettingsKeys.NOTIFICATION_SETUP_DONE] = true
                 }
-                val calDone = dataStore.data.first()[SettingsKeys.CALENDAR_SETUP_DONE] ?: false
+                val prefs = dataStore.data.first()
+                val calDone = prefs[SettingsKeys.CALENDAR_SETUP_DONE] ?: false
+                val gestureDone = prefs[SettingsKeys.GESTURE_SETUP_DONE] ?: false
                 if (!calDone) {
                     _showCalendarSetup.value = true
+                } else if (!gestureDone) {
+                    _showGestureSetup.value = true
                 }
             } catch (_: Exception) { }
         }
     }
 
-    // カレンダーセットアップ完了としてマークし、ダイアログを閉じる。
+    // カレンダーセットアップ完了としてマークし、必要ならジェスチャー案内へ進める。
     fun markCalendarSetupDone() {
         _showCalendarSetup.value = false
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 dataStore.edit { prefs ->
                     prefs[SettingsKeys.CALENDAR_SETUP_DONE] = true
+                }
+                val gestureDone = dataStore.data.first()[SettingsKeys.GESTURE_SETUP_DONE] ?: false
+                if (!gestureDone) {
+                    _showGestureSetup.value = true
+                }
+            } catch (_: Exception) { }
+        }
+    }
+
+    // ジェスチャー案内完了としてマークし、ダイアログを閉じる。
+    fun markGestureSetupDone() {
+        _showGestureSetup.value = false
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataStore.edit { prefs ->
+                    prefs[SettingsKeys.GESTURE_SETUP_DONE] = true
                 }
             } catch (_: Exception) { }
         }
@@ -316,7 +423,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // カレンダーモードに応じて予定を読み込む。
+    // カレンダーモードに応じて予定を読み込む（通常表示用：前後1ヶ月）。
     fun loadEvents() {
         viewModelScope.launch(Dispatchers.IO) {
             val yearMonth = _currentMonth.value
@@ -445,9 +552,6 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     // 選択日を今日にリセットする。
     fun resetToToday() { selectDate(LocalDate.now()) }
 
-    // 検索クエリを更新する。
-    fun updateSearchQuery(query: String) { _searchQuery.value = query }
-
     // テーマモードを設定して保存する。
     fun setThemeMode(mode: ThemeMode) {
         _themeMode.value = mode
@@ -463,6 +567,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     // カレンダーモードを設定し、必要に応じて祝日を再取得する。
     fun setCalendarMode(mode: CalendarMode) {
         _calendarMode.value = mode
+        invalidateSearchCache()
         viewModelScope.launch(Dispatchers.IO) {
             saveSettings(mode = mode)
             if (mode == CalendarMode.GOLENDAR) checkAndFetchHolidays(force = true)
@@ -473,6 +578,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     // 表示対象のGoogleアカウントを設定して予定を再読込する。
     fun setSelectedAccount(accountName: String?) {
         _selectedAccount.value = accountName
+        invalidateSearchCache()
         viewModelScope.launch(Dispatchers.IO) { saveSettings(account = accountName) }
         loadEvents()
     }
@@ -508,6 +614,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 repository.insertLocalEvent(title, finalStart, finalEnd, isAllDay,
                     location, description, rrule)
             }
+            invalidateSearchCache()
             loadEvents()
             updateWidgets()
         }
@@ -530,6 +637,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 repository.updateLocalEvent(eventId, title, finalStart, finalEnd, isAllDay,
                     location, description, rrule)
             }
+            invalidateSearchCache()
             loadEvents()
             updateWidgets()
         }
@@ -540,6 +648,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(Dispatchers.IO) {
             if (_calendarMode.value == CalendarMode.GOOGLE) repository.deleteEvent(eventId)
             else repository.deleteLocalEvent(eventId)
+            invalidateSearchCache()
             loadEvents()
             updateWidgets()
         }
@@ -581,6 +690,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                     repository.insertLocalEvent(event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null)
                 }
             }
+            invalidateSearchCache()
             loadEvents()
             updateWidgets()
         }
@@ -601,7 +711,10 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     fun importBackup(uri: Uri, isAppend: Boolean) {
         viewModelScope.launch {
             val result = backupManager.import(uri, isAppend, _calendarMode.value, _selectedAccount.value)
-            if (result is BackupManager.Result.Success) loadSettingsFromDataStore()
+            if (result is BackupManager.Result.Success) {
+                invalidateSearchCache()
+                loadSettingsFromDataStore()
+            }
             _statusMessage.value = when (result) {
                 is BackupManager.Result.Success -> result.message
                 is BackupManager.Result.Failure -> result.message

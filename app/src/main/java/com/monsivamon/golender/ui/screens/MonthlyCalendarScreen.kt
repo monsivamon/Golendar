@@ -25,6 +25,7 @@ import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.slideVertical
 import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.components.CalendarCell
+import com.monsivamon.golender.ui.components.SearchResultsList
 import com.monsivamon.golender.ui.dialogs.DayEventsDialog
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
 import com.monsivamon.golender.ui.dialogs.EventDialog
@@ -44,11 +45,14 @@ fun MonthlyCalendarScreen(
     viewModel: CalendarViewModel,
     navController: NavController,
     isSearchMode: Boolean,
+    onSearchResultSelected: (LocalDate) -> Unit = {},
 ) {
     val currentMonth by viewModel.currentMonth.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val events by viewModel.events.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
+    val isSearchLoading by viewModel.isSearchLoading.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val weekStartDay by viewModel.weekStartDay.collectAsState()
     val dayColors by viewModel.dayColors.collectAsState()
@@ -80,21 +84,16 @@ fun MonthlyCalendarScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (isSearchMode && searchQuery.isNotBlank()) {
-            val filteredEvents = events.filter { it.title.contains(searchQuery, ignoreCase = true) }
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                item {
-                    Text("検索結果: ${filteredEvents.size}件", color = colors.textGray,
-                        modifier = Modifier.padding(bottom = 8.dp))
-                }
-                items(filteredEvents) { event: Event ->
-                    SearchResultCard(event = event, colors = colors, onClick = { ev ->
-                        viewingEvent = ev
-                        viewingDate = ev.localStartDate()
-                        showEventDetailDialog = true
-                    })
-                }
-            }
+        if (isSearchMode) {
+            SearchResultsList(
+                query = searchQuery,
+                results = searchResults,
+                isLoading = isSearchLoading,
+                colors = colors,
+                onResultSelected = { event ->
+                    onSearchResultSelected(event.localStartDate())
+                },
+            )
         } else {
             Column(
                 modifier = Modifier
@@ -188,17 +187,17 @@ fun MonthlyCalendarScreen(
                     }
                 }
             }
-        }
 
-        FloatingActionButton(
-            onClick = {
-                editingEvent = null
-                showDatePickerForFAB = true
-            },
-            containerColor = colors.primaryAccent,
-            contentColor = Color.White,
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 28.dp, bottom = 72.dp),
-        ) { Text("+", fontSize = 24.sp) }
+            FloatingActionButton(
+                onClick = {
+                    editingEvent = null
+                    showDatePickerForFAB = true
+                },
+                containerColor = colors.primaryAccent,
+                contentColor = Color.White,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 28.dp, bottom = 72.dp),
+            ) { Text("+", fontSize = 24.sp) }
+        }
     }
 
     if (showDatePickerForFAB) {

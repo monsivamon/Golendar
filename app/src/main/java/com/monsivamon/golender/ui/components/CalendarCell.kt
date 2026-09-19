@@ -39,7 +39,8 @@ fun CalendarCell(
     val borderWidth = if (isToday) 1.5.dp else 0.5.dp
 
     Box(
-        modifier.padding(2.dp)
+        modifier
+            .padding(2.dp)
             .border(borderWidth, borderColor, RoundedCornerShape(4.dp))
             .clickable(onClick = onClick)
     ) {

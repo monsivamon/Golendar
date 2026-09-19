@@ -3,7 +3,6 @@ package com.monsivamon.golender.ui.common
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,9 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -112,7 +109,10 @@ private fun SearchBox(
 fun DateTitleWithPicker(title: String, colors: AppColors, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.clip(RoundedCornerShape(8.dp)).clickable(onClick = onClick).padding(4.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .padding(4.dp),
     ) {
         Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
         Icon(Icons.Default.ArrowDropDown, "選択", tint = colors.primaryAccent)
@@ -122,16 +122,11 @@ fun DateTitleWithPicker(title: String, colors: AppColors, onClick: () -> Unit) {
 // 「今日」ボタンを描画する。
 @Composable
 private fun TodayButton(onClick: () -> Unit, colors: AppColors) {
-    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .size(44.dp)
             .clip(CircleShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(bounded = false, radius = 22.dp),
-                onClick = onClick,
-            ),
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Box(
@@ -161,16 +156,11 @@ private fun BottomListToggleButton(
     colors: AppColors,
     onClick: () -> Unit,
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .size(44.dp)
             .clip(CircleShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = ripple(bounded = false, radius = 22.dp),
-                onClick = onClick,
-            ),
+            .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(

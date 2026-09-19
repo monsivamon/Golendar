@@ -47,7 +47,7 @@ jobs:
 
       # Create a new release or update the assets of the latest existing release
       - name: Create or Update GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.determine_tag.outputs.tag }}
           files: app/build/outputs/apk/release/app-release.apk

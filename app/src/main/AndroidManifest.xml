@@ -2,16 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- カレンダー読み書き・通知・アラーム・バッテリー最適化・起動完了・通信の各権限 -->
+    <!-- カレンダー読み書き権限 -->
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <!-- 通知権限 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 正確なアラーム権限 -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- バッテリー最適化除外要求権限 -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- 起動完了通知受信用権限 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 通信権限 -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 位置情報権限 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- アプリ全体の設定（バックアップ・アイコン・テーマなど） -->
+    <!-- アプリ全体の設定を定義する -->
     <application
         android:name=".GolenderApplication"
         android:allowBackup="true"
@@ -23,7 +31,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
-        <!-- メイン画面（ランチャー起動・ショートカット定義） -->
+        <!-- メイン画面を定義する -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -41,12 +49,12 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
-        <!-- 通知を表示するレシーバ -->
+        <!-- 通知を表示するレシーバを定義する -->
         <receiver
             android:name=".notification.NotificationReceiver"
             android:exported="false" />
 
-        <!-- 起動完了・アプリ更新時に通知を再登録するレシーバ -->
+        <!-- 起動完了・アプリ更新時に通知を再登録するレシーバを定義する -->
         <receiver
             android:name=".notification.BootReceiver"
             android:exported="true">
@@ -56,7 +64,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- 1日の予定ウィジェット -->
+        <!-- 1日の予定ウィジェットを定義する -->
         <receiver
             android:name=".widget.DayWidgetReceiver"
             android:label="1日の予定"
@@ -69,7 +77,7 @@
                 android:resource="@xml/day_widget_info" />
         </receiver>
 
-        <!-- 週間カレンダーウィジェット -->
+        <!-- 週間カレンダーウィジェットを定義する -->
         <receiver
             android:name=".widget.WeekWidgetReceiver"
             android:label="週間カレンダー"
@@ -82,7 +90,7 @@
                 android:resource="@xml/week_widget_info" />
         </receiver>
 
-        <!-- 月間カレンダーウィジェット -->
+        <!-- 月間カレンダーウィジェットを定義する -->
         <receiver
             android:name=".widget.MonthWidgetReceiver"
             android:label="月間カレンダー"
@@ -96,5 +104,13 @@
         </receiver>
 
     </application>
+
+    <!-- 住所文字列から地図アプリを開くための geo: Intent 用クエリを定義する -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="geo" />
+        </intent>
+    </queries>
 
 </manifest>
