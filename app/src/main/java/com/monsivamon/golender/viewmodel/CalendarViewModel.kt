@@ -2,6 +2,7 @@ package com.monsivamon.golender.viewmodel
 
 import android.app.Application
 import android.net.Uri
+import com.monsivamon.golender.data.EventPhoto
 import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.core.edit
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -95,6 +96,10 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     private val _statusMessage = MutableStateFlow<String?>(null)
     val statusMessage: StateFlow<String?> = _statusMessage.asStateFlow()
 
+    data class BackupProgress(val phase: String, val current: Int, val total: Int)
+    private val _backupProgress = MutableStateFlow<BackupProgress?>(null)
+    val backupProgress: StateFlow<BackupProgress?> = _backupProgress.asStateFlow()
+
     private val _notifyAtStart = MutableStateFlow(true)
     val notifyAtStart: StateFlow<Boolean> = _notifyAtStart.asStateFlow()
 
@@ -118,6 +123,9 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
     private val _showCalendarSetup = MutableStateFlow(false)
     val showCalendarSetup: StateFlow<Boolean> = _showCalendarSetup.asStateFlow()
+
+    private val _backupPhotos = MutableStateFlow(false)
+    val backupPhotos: StateFlow<Boolean> = _backupPhotos.asStateFlow()
 
     private val _showGestureSetup = MutableStateFlow(false)
     val showGestureSetup: StateFlow<Boolean> = _showGestureSetup.asStateFlow()
@@ -259,6 +267,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
                 val notifDone = preferences[SettingsKeys.NOTIFICATION_SETUP_DONE] ?: false
                 val calDone = preferences[SettingsKeys.CALENDAR_SETUP_DONE] ?: false
+                preferences[SettingsKeys.BACKUP_PHOTOS]?.let { _backupPhotos.value = it }
                 val gestureDone = preferences[SettingsKeys.GESTURE_SETUP_DONE] ?: false
 
                 _showNotificationSetup.value = !notifDone
@@ -597,22 +606,29 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // 予定を新規作成する（終日予定はミリ秒補正）。
+    // 予定を新規作成する（終日予定はミリ秒補正、写真添付対応）。
     fun addEvent(
         title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean,
         location: String, description: String, rrule: String?,
+        newPhotoUris: List<Uri> = emptyList(),
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val (finalStart, finalEnd) = if (isAllDay) {
                 val c = correctAllDayMillis(startMillis, endMillis); c.start to c.end
             } else startMillis to endMillis
 
-            if (_calendarMode.value == CalendarMode.GOOGLE) {
+            val isGoogle = _calendarMode.value == CalendarMode.GOOGLE
+            val newEventId: Long = if (isGoogle) {
                 repository.insertEvent(title, finalStart, finalEnd, isAllDay,
-                    location, description, rrule, _selectedAccount.value)
+                    location, description, rrule, _selectedAccount.value) ?: -1L
             } else {
                 repository.insertLocalEvent(title, finalStart, finalEnd, isAllDay,
                     location, description, rrule)
+            }
+            if (!isGoogle && newEventId > 0 && newPhotoUris.isNotEmpty()) {
+                newPhotoUris.take(EventPhoto.MAX_PHOTOS_PER_EVENT).forEach { uri ->
+                    repository.attachPhotoToEvent(newEventId, uri)
+                }
             }
             invalidateSearchCache()
             loadEvents()
@@ -620,22 +636,31 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // 予定を更新する（終日予定はミリ秒補正）。
+    // 予定を更新する（終日予定はミリ秒補正、写真の追加・削除を反映）。
     fun updateEvent(
         eventId: Long, title: String, startMillis: Long, endMillis: Long,
         isAllDay: Boolean, location: String, description: String, rrule: String?,
+        newPhotoUris: List<Uri> = emptyList(),
+        keptPhotoIds: List<Long> = emptyList(),
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val (finalStart, finalEnd) = if (isAllDay) {
                 val c = correctAllDayMillis(startMillis, endMillis); c.start to c.end
             } else startMillis to endMillis
 
-            if (_calendarMode.value == CalendarMode.GOOGLE) {
+            val isGoogle = _calendarMode.value == CalendarMode.GOOGLE
+            if (isGoogle) {
                 repository.updateEvent(eventId, title, finalStart, finalEnd, isAllDay,
                     location, description, rrule)
             } else {
                 repository.updateLocalEvent(eventId, title, finalStart, finalEnd, isAllDay,
                     location, description, rrule)
+                val existing = repository.getPhotosForEvent(eventId)
+                existing.filter { it.id !in keptPhotoIds }.forEach { repository.removePhoto(it) }
+                val room = (EventPhoto.MAX_PHOTOS_PER_EVENT - keptPhotoIds.size).coerceAtLeast(0)
+                newPhotoUris.take(room).forEach { uri ->
+                    repository.attachPhotoToEvent(eventId, uri)
+                }
             }
             invalidateSearchCache()
             loadEvents()
@@ -696,10 +721,33 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    // 写真もバックアップ設定を保存する。
+    fun setBackupPhotos(enabled: Boolean) {
+        _backupPhotos.value = enabled
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataStore.edit { prefs -> prefs[SettingsKeys.BACKUP_PHOTOS] = enabled }
+            } catch (_: Exception) { }
+        }
+    }
+
+    // 予定に添付された写真一覧を取得する（ダイアログ表示用）。
+    suspend fun getPhotosForEvent(eventId: Long): List<EventPhoto> =
+        repository.getPhotosForEvent(eventId)
     // 予定と設定をJSONファイルへエクスポートする。
     fun exportBackup(uri: Uri) {
         viewModelScope.launch {
-            val result = backupManager.export(uri, _calendarMode.value, _selectedAccount.value)
+            _backupProgress.value = BackupProgress("バックアップを準備中", 0, 0)
+            val result = backupManager.export(
+                uri,
+                _calendarMode.value,
+                _selectedAccount.value,
+                includePhotos = _backupPhotos.value,
+                onProgress = { phase, cur, tot ->
+                    _backupProgress.value = BackupProgress(phase, cur, tot)
+                },
+            )
+            _backupProgress.value = null
             _statusMessage.value = when (result) {
                 is BackupManager.Result.Success -> result.message
                 is BackupManager.Result.Failure -> result.message
@@ -710,9 +758,28 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     // JSONファイルから予定をインポートする（追記または上書き）。
     fun importBackup(uri: Uri, isAppend: Boolean) {
         viewModelScope.launch {
-            val result = backupManager.import(uri, isAppend, _calendarMode.value, _selectedAccount.value)
+            _backupProgress.value = BackupProgress("読み込みを準備中", 0, 0)
+            val result = backupManager.import(
+                uri, isAppend, _calendarMode.value, _selectedAccount.value,
+                onProgress = { phase, cur, tot ->
+                    _backupProgress.value = BackupProgress(phase, cur, tot)
+                },
+            )
+            _backupProgress.value = null
             if (result is BackupManager.Result.Success) {
                 invalidateSearchCache()
+                // 復元後は祝日データが消えているため、即座に再取得を試みる
+                _backupProgress.value = BackupProgress("祝日データを再取得中", 0, 0)
+                val holidayOk = try {
+                    repository.fetchAndSaveHolidays()
+                } catch (_: Exception) { false }
+                try {
+                    dataStore.edit {
+                        it[SettingsKeys.LAST_HOLIDAY_FETCH] =
+                            if (holidayOk) System.currentTimeMillis() else 0L
+                    }
+                } catch (_: Exception) { }
+                _backupProgress.value = null
                 loadSettingsFromDataStore()
             }
             _statusMessage.value = when (result) {

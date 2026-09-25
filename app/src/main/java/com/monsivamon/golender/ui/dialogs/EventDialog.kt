@@ -1,11 +1,18 @@
 package com.monsivamon.golender.ui.dialogs
 
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,11 +24,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.monsivamon.golender.data.Event
+import com.monsivamon.golender.data.EventPhoto
+import com.monsivamon.golender.data.util.PhotoStorage
 import com.monsivamon.golender.data.util.RruleExpander
 import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.GolendarTimePickerDialog
@@ -35,7 +47,6 @@ import java.time.ZoneOffset
 import java.util.Locale
 
 private const val TAG = "Golendar"
-
 private val LABEL_WIDTH = 60.dp
 
 // 予定の追加・編集ダイアログを表示する。
@@ -46,8 +57,14 @@ fun EventDialog(
     selectedDate: LocalDate,
     colors: AppColors,
     fromCalendar: Boolean = false,
+    initialPhotos: List<EventPhoto> = emptyList(),
+    photoAttachEnabled: Boolean = false,
     onDismiss: () -> Unit,
-    onSave: (title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?) -> Unit,
+    onSave: (
+        title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean,
+        location: String, description: String, rrule: String?,
+        newPhotoUris: List<Uri>, keptPhotoIds: List<Long>,
+    ) -> Unit,
     onDelete: (Event) -> Unit
 ) {
     var title by remember(event) { mutableStateOf(event?.title ?: "") }
@@ -107,6 +124,24 @@ fun EventDialog(
     var showRecurrenceEndPicker by remember { mutableStateOf(false) }
     var showPlacePicker by remember { mutableStateOf(false) }
 
+    var keptPhotoIds by remember(event?.id, initialPhotos) {
+        mutableStateOf(initialPhotos.map { it.id }.toSet())
+    }
+    var newPhotoUris by remember(event?.id) { mutableStateOf<List<Uri>>(emptyList()) }
+
+    val photoPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(
+            maxItems = EventPhoto.MAX_PHOTOS_PER_EVENT,
+        )
+    ) { uris: List<Uri> ->
+        if (uris.isNotEmpty()) {
+            val existingCount = initialPhotos.count { it.id in keptPhotoIds }
+            val room = (EventPhoto.MAX_PHOTOS_PER_EVENT - existingCount - newPhotoUris.size)
+                .coerceAtLeast(0)
+            newPhotoUris = newPhotoUris + uris.take(room)
+        }
+    }
+
     val isLightBackground = colors.bg.luminance() > 0.5f
 
     val startDateLocked = fromCalendar
@@ -148,9 +183,7 @@ fun EventDialog(
                             colors = checkboxColors,
                         )
                         Text("終日", color = colors.text)
-
                         Spacer(modifier = Modifier.width(16.dp))
-
                         Checkbox(
                             checked = isRecurring,
                             onCheckedChange = { checked ->
@@ -327,9 +360,7 @@ fun EventDialog(
                             fontSize = 11.sp,
                             modifier = Modifier.padding(start = (12 + 60 + 8).dp, top = 6.dp),
                         )
-
                         Spacer(Modifier.height(8.dp))
-
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
                                 checked = hasRecurrenceEnd,
@@ -338,18 +369,13 @@ fun EventDialog(
                             )
                             Text("繰り返しの終了日を指定", color = colors.text, fontSize = 14.sp)
                         }
-
                         if (hasRecurrenceEnd) {
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(
-                                    "終了日",
-                                    color = colors.textGray,
-                                    modifier = Modifier.width(LABEL_WIDTH),
-                                )
+                                Text("終了日", color = colors.textGray, modifier = Modifier.width(LABEL_WIDTH))
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
@@ -392,8 +418,8 @@ fun EventDialog(
                     onValueChange = { description = it },
                     label = { Text("メモ / 内容", color = colors.textGray) },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 3,
+                    minLines = 2,
+                    maxLines = 2,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = colors.text,
                         unfocusedTextColor = colors.text,
@@ -402,12 +428,26 @@ fun EventDialog(
                         cursorColor = colors.primaryAccent,
                     )
                 )
+
+                if (photoAttachEnabled) {
+                    PhotoAttachmentSection(
+                        colors = colors,
+                        existingPhotos = initialPhotos.filter { it.id in keptPhotoIds },
+                        newPhotoUris = newPhotoUris,
+                        onAddClick = {
+                            photoPicker.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        onRemoveExisting = { photo -> keptPhotoIds = keptPhotoIds - photo.id },
+                        onRemoveNew = { uri -> newPhotoUris = newPhotoUris - uri },
+                    )
+                }
             }
         },
         confirmButton = {
             TextButton(onClick = {
                 val effectiveEndDate = if (endDateLocked) startDate else endDate
-
                 val finalTitle = title.ifBlank { "名称未設定" }
                 val saveZone = if (isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
                 val startDateTime = startDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else startTime)
@@ -423,9 +463,10 @@ fun EventDialog(
                     }
                 }
 
-                Log.d(TAG, "保存: fromCalendar=$fromCalendar, startDateLocked=$startDateLocked, endDateLocked=$endDateLocked, finalRrule=$finalRrule")
-
-                onSave(finalTitle, startMillis, endMillis, isAllDay, location, description, finalRrule)
+                onSave(
+                    finalTitle, startMillis, endMillis, isAllDay, location, description, finalRrule,
+                    newPhotoUris, keptPhotoIds.toList(),
+                )
             }) {
                 Text("保存", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
             }
@@ -501,5 +542,109 @@ fun EventDialog(
                 showPlacePicker = false
             },
         )
+    }
+}
+
+// 予定に添付する写真の選択・プレビューセクションを描画する。
+@Composable
+private fun PhotoAttachmentSection(
+    colors: AppColors,
+    existingPhotos: List<EventPhoto>,
+    newPhotoUris: List<Uri>,
+    onAddClick: () -> Unit,
+    onRemoveExisting: (EventPhoto) -> Unit,
+    onRemoveNew: (Uri) -> Unit,
+) {
+    val context = LocalContext.current
+    val total = existingPhotos.size + newPhotoUris.size
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("写真", color = colors.textGray, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Spacer(Modifier.width(8.dp))
+            Text("$total / ${EventPhoto.MAX_PHOTOS_PER_EVENT}", color = colors.textGray, fontSize = 12.sp)
+        }
+        Spacer(Modifier.height(6.dp))
+
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(existingPhotos, key = { "existing_${it.id}" }) { photo ->
+                PhotoThumbnail(
+                    colors = colors,
+                    onRemove = { onRemoveExisting(photo) },
+                ) {
+                    val file = PhotoStorage.getFile(context, photo.fileName)
+                    AsyncImage(
+                        model = file,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+            items(newPhotoUris, key = { "new_${it}" }) { uri ->
+                PhotoThumbnail(
+                    colors = colors,
+                    onRemove = { onRemoveNew(uri) },
+                ) {
+                    AsyncImage(
+                        model = uri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+            if (total < EventPhoto.MAX_PHOTOS_PER_EVENT) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .border(1.dp, colors.textGray, RoundedCornerShape(8.dp))
+                            .clickable(onClick = onAddClick),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("+", color = colors.primaryAccent, fontSize = 28.sp)
+                    }
+                }
+            }
+        }
+        Text(
+            "写真はアプリ内に保存されます（長辺 ${PhotoStorage.MAX_LONG_EDGE}px に縮小）",
+            color = colors.textGray, fontSize = 11.sp,
+            modifier = Modifier.padding(top = 6.dp),
+        )
+    }
+}
+
+// 添付写真のサムネイル枠（削除ボタン付き）を描画する。
+@Composable
+private fun PhotoThumbnail(
+    colors: AppColors,
+    onRemove: () -> Unit,
+    onClick: () -> Unit = {},
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(80.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(colors.bg)
+            .border(1.dp, colors.divider, RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick),
+    ) {
+        content()
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(2.dp)
+                .size(20.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.6f))
+                .clickable(onClick = onRemove),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("×", color = Color.White, fontSize = 12.sp)
+        }
     }
 }

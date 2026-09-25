@@ -18,6 +18,7 @@ class WidgetUpdateWorker(
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
+    // バックグラウンド処理を実行する。
     override suspend fun doWork(): Result {
         return withContext(Dispatchers.IO) {
             try {

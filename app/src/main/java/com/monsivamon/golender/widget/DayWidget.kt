@@ -34,12 +34,14 @@ import java.util.Locale
 
 // 日次表示ウィジェット（今日の予定を表示）
 class DayWidget : GlanceAppWidget() {
+    // ウィジェットの表示内容を構築する。
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetDataManager.getDayWidgetData(context)
         provideContent { DayWidgetContent(data) }
     }
 }
 
+// 日次ウィジェットの内容を描画する。
 @Composable
 fun DayWidgetContent(data: DayWidgetData) {
     val context = LocalContext.current

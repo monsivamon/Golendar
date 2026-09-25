@@ -37,6 +37,8 @@ import com.monsivamon.golender.data.util.getJpDayOfWeek
 import com.monsivamon.golender.ui.dialogs.BackgroundColorPickerDialog
 import com.monsivamon.golender.ui.dialogs.CalendarPermissionDialog
 import com.monsivamon.golender.ui.dialogs.DayColorPickerDialog
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LinearProgressIndicator
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarMode
 import com.monsivamon.golender.viewmodel.CalendarViewModel
@@ -113,6 +115,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     val selectedAccount by viewModel.selectedAccount.collectAsState()
     val calendarBgColor by viewModel.calendarBgColor.collectAsState()
     val dayColors by viewModel.dayColors.collectAsState()
+    val backupPhotos by viewModel.backupPhotos.collectAsState()
 
     val notifyAtStart by viewModel.notifyAtStart.collectAsState()
     val notify10MinBefore by viewModel.notify10MinBefore.collectAsState()
@@ -150,7 +153,8 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
         notificationPermissionGranted = isGranted
     }
 
-    val backupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+    val backupMime = if (backupPhotos) "application/zip" else "application/json"
+    val backupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(backupMime)) { uri ->
         uri?.let { viewModel.exportBackup(it) }
     }
 
@@ -162,6 +166,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
         uri?.let { viewModel.importBackup(it, isAppend = false) }
     }
 
+    // 権限状態を再取得して UI に反映する。
     fun refreshPermissions() {
         notificationPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -177,6 +182,39 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             viewModel.clearStatusMessage()
         }
+    }
+
+    val backupProgress by viewModel.backupProgress.collectAsState()
+    backupProgress?.let { p ->
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(p.phase, color = colors.text, fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+            text = {
+                Column {
+                    if (p.total > 0) {
+                        LinearProgressIndicator(
+                            progress = { p.current.toFloat() / p.total.coerceAtLeast(1) },
+                            modifier = Modifier.fillMaxWidth(),
+                            color = colors.primaryAccent,
+                        )
+                        Text(
+                            "${p.current} / ${p.total}",
+                            color = colors.textGray,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(top = 6.dp),
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = colors.primaryAccent,
+                        )
+                    }
+                }
+            },
+            confirmButton = { },
+            containerColor = colors.surface,
+            textContentColor = colors.text,
+        )
     }
 
     Surface(
@@ -473,9 +511,47 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     fontSize = 13.sp, color = colors.textGray, modifier = Modifier.padding(bottom = 12.dp)
                 )
 
+                if (calendarMode == CalendarMode.GOLENDAR) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { viewModel.setBackupPhotos(!backupPhotos) }
+                            .padding(vertical = 8.dp),
+                    ) {
+                        Checkbox(
+                            checked = backupPhotos,
+                            onCheckedChange = { viewModel.setBackupPhotos(it) },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = colors.primaryAccent,
+                                uncheckedColor = colors.textGray,
+                            ),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                "写真もバックアップ",
+                                fontSize = 15.sp, color = colors.text, fontWeight = FontWeight.Medium,
+                            )
+                            Text(
+                                if (backupPhotos)
+                                    "予定に添付した写真も ZIP ファイルに含めます（Golendarモードのみ）"
+                                else
+                                    "OFF の場合は従来通り JSON で保存されます",
+                                fontSize = 12.sp, color = colors.textGray,
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
+                }
+
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
-                        onClick = { backupLauncher.launch("golendar_backup.json") },
+                        onClick = {
+                            val name = if (backupPhotos) "golendar_backup.zip" else "golendar_backup.json"
+                            backupLauncher.launch(name)
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = colors.surface, contentColor = colors.text),
                         modifier = Modifier.weight(1f).border(1.dp, colors.divider, RoundedCornerShape(24.dp)),
                         contentPadding = PaddingValues(0.dp)

@@ -32,6 +32,7 @@ fun NotificationSetupDialog(
 ) {
     val context = LocalContext.current
 
+    // 通知権限が許可されているかを返す。
     fun isNotificationGranted(): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
@@ -41,6 +42,7 @@ fun NotificationSetupDialog(
             true
         }
 
+    // 正確なアラーム権限が許可されているかを返す。
     fun isExactAlarmGranted(): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
@@ -49,6 +51,7 @@ fun NotificationSetupDialog(
             true
         }
 
+    // バッテリー最適化が無効化されているかを返す。
     fun isBatteryOptimizationIgnored(): Boolean {
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         return pm.isIgnoringBatteryOptimizations(context.packageName)

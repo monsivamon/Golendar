@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.monsivamon.golender.data.Event
+import com.monsivamon.golender.data.EventPhoto
+import com.monsivamon.golender.viewmodel.CalendarMode
 import com.monsivamon.golender.data.util.getJpDayOfWeek
 import com.monsivamon.golender.data.util.localEndDate
 import com.monsivamon.golender.data.util.localStartDate
@@ -57,6 +59,14 @@ fun WeeklyCalendarScreen(
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
     var viewingDate by remember { mutableStateOf<LocalDate?>(null) }
     var fromCalendar by remember { mutableStateOf(false) }
+    var editingPhotos by remember { mutableStateOf<List<EventPhoto>>(emptyList()) }
+    var detailPhotos by remember { mutableStateOf<List<EventPhoto>>(emptyList()) }
+    LaunchedEffect(viewingEvent) {
+        detailPhotos = viewingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList()
+    }
+    LaunchedEffect(editingEvent) {
+        editingPhotos = editingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList()
+    }
 
     if (isSearchMode) {
         SearchResultsList(
@@ -156,9 +166,11 @@ fun WeeklyCalendarScreen(
     if (showEventDetailDialog && viewingEvent != null && viewingDate != null) {
         EventDetailDialog(
             event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
+            photos = detailPhotos,
             onDismiss = { showEventDetailDialog = false; viewingEvent = null; viewingDate = null },
             onEdit = {
                 showEventDetailDialog = false
+                editingPhotos = emptyList()
                 editingEvent = viewingEvent
                 fromCalendar = false
                 showEventDialog = true
@@ -181,10 +193,13 @@ fun WeeklyCalendarScreen(
             selectedDate = dialogDate,
             colors = colors,
             fromCalendar = fromCalendar,
+            initialPhotos = editingPhotos,
+            photoAttachEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
             onDismiss = { showEventDialog = false },
-            onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule ->
-                if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule)
-                else viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule)
+            onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule,
+                       newPhotoUris, keptPhotoIds ->
+                if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris)
+                else viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris, keptPhotoIds = keptPhotoIds)
                 showEventDialog = false
             },
             onDelete = { ev -> viewModel.deleteEvent(ev.id); showEventDialog = false },

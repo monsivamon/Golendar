@@ -31,6 +31,8 @@ object SettingsKeys {
     val CALENDAR_SETUP_DONE = booleanPreferencesKey("calendar_setup_done")
     // 地図の位置情報セットアップ完了フラグ。
     val LOCATION_SETUP_DONE = booleanPreferencesKey("location_setup_done")
+    // バックアップに写真を含めるかどうか。
+    val BACKUP_PHOTOS = booleanPreferencesKey("backup_photos")
     // 初回起動時のジェスチャー案内完了フラグ。
     val GESTURE_SETUP_DONE = booleanPreferencesKey("gesture_setup_done")
 

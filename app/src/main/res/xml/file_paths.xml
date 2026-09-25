@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- filesDir/event_photos/ 配下のファイルのみ共有可能にする -->
+    <files-path name="event_photos" path="event_photos/" />
+</paths>

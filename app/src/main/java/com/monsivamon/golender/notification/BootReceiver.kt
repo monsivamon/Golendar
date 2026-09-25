@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 
 // システム起動時またはアプリ更新時にアラームを再登録する
 class BootReceiver : BroadcastReceiver() {
+    // 受信した Intent を処理する。
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
             val pendingResult = goAsync()

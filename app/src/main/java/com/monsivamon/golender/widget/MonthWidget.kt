@@ -33,12 +33,14 @@ import java.time.DayOfWeek
 
 // 月次表示ウィジェット（月間カレンダーグリッド）
 class MonthWidget : GlanceAppWidget() {
+    // ウィジェットの表示内容を構築する。
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetDataManager.getMonthWidgetData(context)
         provideContent { MonthWidgetContent(data) }
     }
 }
 
+// 月次ウィジェットの内容を描画する。
 @Composable
 fun MonthWidgetContent(data: MonthWidgetData) {
     val context = LocalContext.current

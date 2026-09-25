@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit
 // アプリケーションクラス（バックグラウンドでのウィジェット定期更新を設定）
 class GolenderApplication : Application() {
 
+    // 初期化処理を行う。
     override fun onCreate() {
         super.onCreate()
 

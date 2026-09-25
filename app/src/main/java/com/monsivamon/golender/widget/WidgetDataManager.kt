@@ -18,6 +18,7 @@ import java.time.ZoneId
 // 各ウィジェットに表示するデータを収集・加工するオブジェクト
 object WidgetDataManager {
 
+    // CalendarRepository のインスタンスを生成して返す。
     private fun getRepository(context: Context): CalendarRepository = CalendarRepository(context)
 
     // DataStoreからテーマモードを取得（デフォルトはSYSTEM）

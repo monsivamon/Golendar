@@ -34,12 +34,14 @@ import java.util.Locale
 
 // 週次表示ウィジェット（週間予定を表示）
 class WeekWidget : GlanceAppWidget() {
+    // ウィジェットの表示内容を構築する。
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetDataManager.getWeekWidgetData(context)
         provideContent { WeekWidgetContent(data) }
     }
 }
 
+// 週次ウィジェットの内容を描画する。
 @Composable
 fun WeekWidgetContent(data: WeekWidgetData) {
     val context = LocalContext.current

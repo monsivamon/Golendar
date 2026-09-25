@@ -78,6 +78,13 @@ APKを端末で開き、「不明なアプリのインストール」を許可�
 
 - 予定詳細ダイアログから、タイトル・日時・場所・メモをテキストとして他アプリへ共有。
 
+### メモに写真を添付
+
+- Golendarモードの予定には、メモ欄に最大5枚の写真を添付可能。
+- 長辺1920px（FHD相当）を超える写真は自動的に縮小して保存。
+- 詳細ダイアログから写真をタップすると拡大ビューアが開き、複数枚は左右スワイプで切替。
+- 写真は端末の「ピクチャ/Golendar」フォルダへ書き出し可能。
+
 ### アプリショートカット対応
 
 - ホーム画面のアイコン長押しから「予定追加」「今日」「検索」を起動可能。
@@ -105,8 +112,10 @@ APKを端末で開き、「不明なアプリのインストール」を許可�
 ### データバックアップ＆復元
 
 - 予定と設定（テーマ・曜日の色・週の始まりなど）を JSON ファイルとしてエクスポート可能。
+- 「写真もバックアップ」ON 時は、添付写真を含む ZIP ファイルとして保存されます（Golendarモードのみ）。
+- 復元完了後、祝日データを自動的に再取得します。
 - Googleカレンダーの予定を Golendar モードや別アカウントへ「追記」して移行・統合できます。
-- 祝日データはバックアップに含まれません（30日ごとの自動再取得で復元されます）。
+- 祝日データはバックアップに含まれません（復元時に自動再取得 / 30日ごとの自動更新）。
 
 ### 日本の祝日・文化イベントの自動識別
 
@@ -139,6 +148,7 @@ APKを端末で開き、「不明なアプリのインストール」を許可�
 | 地図 | MapLibre Native GL（ベクタータイル: OpenFreeMap） |
 | 逆ジオコーディング | Nominatim（OSM）, 国土地理院 |
 | 通信 | HttpURLConnection, org.json |
+| 画像読込 | Coil |
 | アーキテクチャ | MVVM (Model-View-ViewModel) |
 
 ---
@@ -166,6 +176,9 @@ APKを端末で開き、「不明なアプリのインストール」を許可�
 - **バックアップ**  
   祝日データは含まれません。Googleモードでは「復元（上書き）」がブロックされ、「追記」のみ可能です。
 
+- **写真の添付**  
+  Golendarモード専用機能です。Googleモード時は添付 UI が表示されません。写真ファイルはアプリ内部ストレージに保存され、端末のクラウド自動バックアップからは除外されています（独自の ZIP バックアップで移行可能）。
+
 ---
 
 ## 🙏 Credits
@@ -182,6 +195,7 @@ APKを端末で開き、「不明なアプリのインストール」を許可�
 - **MapLibre Native for Android**：[GitHub](https://github.com/maplibre/maplibre-native)（BSD-2-Clause）
 - **AndroidX / Jetpack**（Compose, Navigation, Room, DataStore, Glance, WorkManager）：Apache License 2.0
 - **Kotlin**：[kotlinlang.org](https://kotlinlang.org/)（Apache License 2.0）
+- **Coil**：[coil-kt.github.io](https://coil-kt.github.io/coil/)（Apache License 2.0）
 
 ### アセット
 
@@ -198,6 +212,7 @@ APKを端末で開き、「不明なアプリのインストール」を許可�
 | 名称 | ライセンス |
 |------|-----------|
 | Kotlin, AndroidX, Jetpack Compose, Room, DataStore, Glance, WorkManager | Apache License 2.0 |
+| Coil | Apache License 2.0 |
 | MapLibre Native for Android | BSD-2-Clause |
 | OpenStreetMap データ | ODbL 1.0 |
 | Nominatim | GPL v2（サービス利用、ソフトウェア同梱なし） |

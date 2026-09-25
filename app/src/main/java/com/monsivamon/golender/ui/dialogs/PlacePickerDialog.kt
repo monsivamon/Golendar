@@ -164,6 +164,7 @@ fun PlacePickerDialog(
     var trackingMode by remember { mutableIntStateOf(CameraMode.NONE) }
     var styleLoaded by remember { mutableStateOf(false) }
 
+    // 位置情報セットアップ完了フラグを保存する。
     fun markLocationSetupDone() {
         scope.launch {
             try {
@@ -195,6 +196,7 @@ fun PlacePickerDialog(
         }
     }
 
+    // 位置情報権限のリクエストを起動する。
     fun launchPermissionRequest() {
         locationPermissionLauncher.launch(
             arrayOf(

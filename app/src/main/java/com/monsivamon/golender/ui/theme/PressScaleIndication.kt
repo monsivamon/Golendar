@@ -67,6 +67,7 @@ private class PressScaleIndicationNode(
 
 // アプリ全体で押下時の縮小フィードバックを提供する Indication。
 object PressScaleIndication : IndicationNodeFactory {
+    // IndicationNodeFactory 用の Indication ノードを生成する。
     override fun create(interactionSource: InteractionSource): DelegatableNode =
         PressScaleIndicationNode(
             interactionSource = interactionSource,

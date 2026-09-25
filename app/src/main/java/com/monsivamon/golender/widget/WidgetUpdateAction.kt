@@ -8,6 +8,7 @@ import androidx.glance.appwidget.action.ActionCallback
 
 // ウィジェット上の「🔄」ボタン押下時に全ウィジェットを強制更新する
 class WidgetUpdateAction : ActionCallback {
+    // ウィジェット更新アクションを実行する。
     override suspend fun onAction(
         context: Context,
         glanceId: GlanceId,

@@ -20,7 +20,7 @@ android {
         minSdk = 29
         targetSdk = 35
         versionCode = 1
-        versionName = "1.1.0"
+        versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -148,6 +148,9 @@ dependencies {
 
     // 地図表示（MapLibre Native）
     implementation("org.maplibre.gl:android-sdk:11.13.1")
+
+    // 画像読込（写真添付機能）
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // テスト用
     testImplementation(libs.junit)

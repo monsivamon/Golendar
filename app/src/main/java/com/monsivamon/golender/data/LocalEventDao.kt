@@ -18,11 +18,11 @@ interface LocalEventDao {
     @Query("SELECT * FROM local_events")
     suspend fun getAllEvents(): List<LocalEvent>
 
-    // 新規登録
+    // ローカルDBに予定を新規登録する。
     @Insert
     suspend fun insert(event: LocalEvent): Long
 
-    // 更新
+    // ローカルDBの予定を更新する。
     @Update
     suspend fun update(event: LocalEvent)
 
