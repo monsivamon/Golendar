@@ -32,8 +32,10 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
+import com.monsivamon.golender.ui.dialogs.AiParseDialog
+import com.monsivamon.golender.data.LocalEvent
 
-// 週間カレンダー画面を表示し、週の日付ごとの予定一覧と追加・編集・詳細を扱う。
+// 週間カレンダー画面（週の日付ごとの予定一覧と追加・編集・詳細を扱う）
 @Composable
 fun WeeklyCalendarScreen(
     viewModel: CalendarViewModel,
@@ -41,6 +43,7 @@ fun WeeklyCalendarScreen(
     isSearchMode: Boolean,
     onSearchResultSelected: (LocalDate) -> Unit = {},
 ) {
+    // ViewModelから各種状態を購読する
     val selectedDate by viewModel.selectedDate.collectAsState()
     val events by viewModel.events.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -51,8 +54,9 @@ fun WeeklyCalendarScreen(
     val dayColors by viewModel.dayColors.collectAsState()
     val customBg by viewModel.calendarBgColor.collectAsState()
     val colors = getAppColors(themeMode, customBg)
-
+    // ダイアログ表示や選択中イベントのUI状態
     var showEventDialog by remember { mutableStateOf(false) }
+    var showAiParseDialog by remember { mutableStateOf(false) }
     var editingEvent by remember { mutableStateOf<Event?>(null) }
     var dialogDateForNewEvent by remember { mutableStateOf<LocalDate?>(null) }
     var showEventDetailDialog by remember { mutableStateOf(false) }
@@ -61,13 +65,17 @@ fun WeeklyCalendarScreen(
     var fromCalendar by remember { mutableStateOf(false) }
     var editingPhotos by remember { mutableStateOf<List<EventPhoto>>(emptyList()) }
     var detailPhotos by remember { mutableStateOf<List<EventPhoto>>(emptyList()) }
+    // AI解析の初回説明完了フラグを購読する
+    val aiSetupDone by viewModel.aiSetupDone.collectAsState()
+    // 閲覧対象が変わったら添付写真を読み込む
     LaunchedEffect(viewingEvent) {
         detailPhotos = viewingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList()
     }
+    // 編集対象が変わったら添付写真を読み込む
     LaunchedEffect(editingEvent) {
         editingPhotos = editingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList()
     }
-
+    // 検索モード中は結果リストを表示して終了する
     if (isSearchMode) {
         SearchResultsList(
             query = searchQuery,
@@ -80,10 +88,10 @@ fun WeeklyCalendarScreen(
         )
         return
     }
-
+    // 選択日が属する週の開始日を算出する
     val offset = (selectedDate.dayOfWeek.value - weekStartDay.value + 7) % 7
     val startOfWeek = selectedDate.minusDays(offset.toLong())
-
+    // 縦スワイプで前後の週へ移動する
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -92,6 +100,7 @@ fun WeeklyCalendarScreen(
                 onSwipeDown = { viewModel.selectDate(selectedDate.minusWeeks(1)) },
             )
     ) {
+        // 週が切り替わったらスライドアニメーションで切替える
         AnimatedContent(
             targetState = startOfWeek,
             transitionSpec = { slideVertical(isForward = targetState > initialState) },
@@ -99,26 +108,24 @@ fun WeeklyCalendarScreen(
             label = "weekTransition",
         ) { weekStart ->
             val weekEnd = weekStart.plusDays(6)
-
+            // 週の範囲に重なる予定を抽出する
             val weekEvents = events.filter {
                 it.localStartDate() <= weekEnd && it.localEndDate() >= weekStart
             }
-
             LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                 val weekDates = (0..6).map { weekStart.plusDays(it.toLong()) }
                 weekDates.forEach { date ->
                     item {
                         val dayEvents = weekEvents.filter { it.occursOn(date) }
-
                         val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
                         val dayColor = if (c == Color.Unspecified) colors.text else c
-
+                        // その日の日付ヘッダーと件数
                         Text(
                             "${date.monthValue}月${date.dayOfMonth}日 (${getJpDayOfWeek(date.dayOfWeek)})  ${dayEvents.size}件",
                             fontSize = 18.sp, fontWeight = FontWeight.Bold, color = dayColor,
                             modifier = Modifier.padding(bottom = 8.dp, top = 16.dp),
                         )
-
+                        // 予定なし or 予定カード一覧
                         if (dayEvents.isEmpty()) {
                             Box(
                                 modifier = Modifier.fillMaxWidth()
@@ -142,7 +149,7 @@ fun WeeklyCalendarScreen(
                                 })
                             }
                         }
-
+                        // 各日付の下に予定追加ボタンを配置する
                         Button(
                             onClick = {
                                 editingEvent = null
@@ -162,7 +169,7 @@ fun WeeklyCalendarScreen(
             }
         }
     }
-
+    // 予定詳細ダイアログ
     if (showEventDetailDialog && viewingEvent != null && viewingDate != null) {
         EventDetailDialog(
             event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
@@ -181,13 +188,12 @@ fun WeeklyCalendarScreen(
             },
         )
     }
-
+    // 予定の追加・編集ダイアログ
     if (showEventDialog) {
         val zone = editingEvent?.let { if (it.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault() } ?: ZoneId.systemDefault()
         val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(zone).toLocalDate() }
             ?: dialogDateForNewEvent
             ?: selectedDate
-
         EventDialog(
             event = editingEvent,
             selectedDate = dialogDate,
@@ -195,7 +201,11 @@ fun WeeklyCalendarScreen(
             fromCalendar = fromCalendar,
             initialPhotos = editingPhotos,
             photoAttachEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
+            // Golendarモード時のみAI解析ボタンを表示する
+            aiParseEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
+            onAiParse = { showAiParseDialog = true },
             onDismiss = { showEventDialog = false },
+            // 新規はaddEvent、既存はupdateEventで保存する
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule,
                        newPhotoUris, keptPhotoIds ->
                 if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris)
@@ -203,6 +213,20 @@ fun WeeklyCalendarScreen(
                 showEventDialog = false
             },
             onDelete = { ev -> viewModel.deleteEvent(ev.id); showEventDialog = false },
+        )
+    }
+    // AI解析ダイアログ（初回説明完了フラグを渡す）
+    if (showAiParseDialog) {
+        AiParseDialog(
+            colors = colors,
+            needsSetup = !aiSetupDone,
+            onSetupComplete = { viewModel.markAiSetupDone() },
+            onDismiss = { showAiParseDialog = false },
+            onConfirm = { events ->
+                viewModel.addEventsFromAi(events)
+                showAiParseDialog = false
+                showEventDialog = false
+            },
         )
     }
 }

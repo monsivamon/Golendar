@@ -40,8 +40,10 @@ import java.time.LocalDate
 import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZoneOffset
+import com.monsivamon.golender.ui.dialogs.AiParseDialog
+import com.monsivamon.golender.data.LocalEvent
 
-// 月間カレンダー画面を表示し、月グリッドと選択日の予定一覧・検索・追加編集を扱う。
+// 月間カレンダー画面（月グリッドと選択日の予定一覧・検索・追加編集を扱う）
 @Composable
 fun MonthlyCalendarScreen(
     viewModel: CalendarViewModel,
@@ -49,6 +51,7 @@ fun MonthlyCalendarScreen(
     isSearchMode: Boolean,
     onSearchResultSelected: (LocalDate) -> Unit = {},
 ) {
+    // ViewModelから各種状態を購読する
     val currentMonth by viewModel.currentMonth.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     val events by viewModel.events.collectAsState()
@@ -61,8 +64,9 @@ fun MonthlyCalendarScreen(
     val customBg by viewModel.calendarBgColor.collectAsState()
     val showBottomList by viewModel.showBottomList.collectAsState()
     val colors = getAppColors(themeMode, customBg)
-
+    // ダイアログ表示や選択中イベントのUI状態
     var showEventDialog by remember { mutableStateOf(false) }
+    var showAiParseDialog by remember { mutableStateOf(false) }
     var editingEvent by remember { mutableStateOf<Event?>(null) }
     var showDatePickerForFAB by remember { mutableStateOf(false) }
     var tempFABDate by remember { mutableStateOf<LocalDate?>(null) }
@@ -72,18 +76,22 @@ fun MonthlyCalendarScreen(
     var fromCalendar by remember { mutableStateOf(false) }
     var editingPhotos by remember { mutableStateOf<List<EventPhoto>>(emptyList()) }
     var detailPhotos by remember { mutableStateOf<List<EventPhoto>>(emptyList()) }
+    // AI解析の初回説明完了フラグを購読する
+    val aiSetupDone by viewModel.aiSetupDone.collectAsState()
+    // 閲覧対象が変わったら添付写真を読み込む
     LaunchedEffect(viewingEvent) {
         detailPhotos = viewingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList()
     }
+    // 編集対象が変わったら添付写真を読み込む
     LaunchedEffect(editingEvent) {
         editingPhotos = editingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList()
     }
-
+    // 下部リストOFF時の日別予定ポップアップ用の状態
     var showDayEventsDialog by remember { mutableStateOf(false) }
     var dayEventsDialogDate by remember { mutableStateOf<LocalDate?>(null) }
-
+    // 今日の日付を1度だけ取得しておく
     val today = remember { LocalDate.now() }
-
+    // ショートカットからの「予定追加」要求を監視する
     val requestAddEvent by viewModel.requestAddEvent.collectAsState()
     LaunchedEffect(requestAddEvent) {
         if (requestAddEvent) {
@@ -92,8 +100,8 @@ fun MonthlyCalendarScreen(
             showDatePickerForFAB = true
         }
     }
-
     Box(modifier = Modifier.fillMaxSize()) {
+        // 検索モード中は結果リストを表示する
         if (isSearchMode) {
             SearchResultsList(
                 query = searchQuery,
@@ -105,6 +113,7 @@ fun MonthlyCalendarScreen(
                 },
             )
         } else {
+            // 縦スワイプで前後の月へ移動する
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -121,8 +130,10 @@ fun MonthlyCalendarScreen(
                         },
                     )
             ) {
+                // 下部リスト表示時はグリッドをやや大きめにする
                 val gridWeight = if (showBottomList) 1.2f else 1f
                 Box(modifier = Modifier.weight(gridWeight).fillMaxWidth()) {
+                    // 月が切り替わったらスライドアニメーションで切替える
                     AnimatedContent(
                         targetState = currentMonth,
                         transitionSpec = { slideVertical(isForward = targetState > initialState) },
@@ -147,14 +158,13 @@ fun MonthlyCalendarScreen(
                         )
                     }
                 }
-
+                // 下部リストON時は選択日の予定一覧を表示する
                 if (showBottomList) {
                     HorizontalDivider(thickness = 1.dp, color = colors.divider)
-
                     Column(modifier = Modifier.weight(0.8f).fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                         val jpDayOfWeek = getJpDayOfWeek(selectedDate.dayOfWeek)
                         val dailyEvents = events.filter { it.occursOn(selectedDate) }
-
+                        // 選択日の日付ヘッダーと件数
                         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(bottom = 12.dp, top = 8.dp)) {
                             val c = dayColors[selectedDate.dayOfWeek] ?: Color.Unspecified
                             val finalBottomColor = if (c == Color.Unspecified) colors.text else c
@@ -165,8 +175,8 @@ fun MonthlyCalendarScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("${dailyEvents.size}件", fontSize = 14.sp, color = colors.textGray)
                         }
-
                         LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            // 予定なし or 予定カード一覧
                             if (dailyEvents.isEmpty()) {
                                 item { Text("予定なし", color = colors.textGray, modifier = Modifier.padding(top = 8.dp)) }
                             } else {
@@ -178,6 +188,7 @@ fun MonthlyCalendarScreen(
                                     })
                                 }
                             }
+                            // 下部リストから予定を追加するボタン
                             item {
                                 Button(
                                     onClick = {
@@ -197,7 +208,7 @@ fun MonthlyCalendarScreen(
                     }
                 }
             }
-
+            // 予定追加用FAB（日付選択ダイアログを開く）
             FloatingActionButton(
                 onClick = {
                     editingEvent = null
@@ -209,7 +220,7 @@ fun MonthlyCalendarScreen(
             ) { Text("+", fontSize = 24.sp) }
         }
     }
-
+    // FAB用の日付選択ダイアログ
     if (showDatePickerForFAB) {
         GolendarDatePickerDialog(
             initialDate = selectedDate,
@@ -223,7 +234,7 @@ fun MonthlyCalendarScreen(
             },
         )
     }
-
+    // 下部リストOFF時の日別予定ポップアップ
     if (showDayEventsDialog && dayEventsDialogDate != null) {
         val dialogDate = dayEventsDialogDate!!
         val dialogEvents = events.filter { it.occursOn(dialogDate) }
@@ -250,7 +261,7 @@ fun MonthlyCalendarScreen(
             },
         )
     }
-
+    // 予定詳細ダイアログ
     if (showEventDetailDialog && viewingEvent != null && viewingDate != null) {
         EventDetailDialog(
             event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
@@ -269,13 +280,12 @@ fun MonthlyCalendarScreen(
             },
         )
     }
-
+    // 予定の追加・編集ダイアログ
     if (showEventDialog) {
         val zone = editingEvent?.let { if (it.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault() } ?: ZoneId.systemDefault()
         val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(zone).toLocalDate() }
             ?: tempFABDate
             ?: selectedDate
-
         EventDialog(
             event = editingEvent,
             selectedDate = dialogDate,
@@ -283,7 +293,11 @@ fun MonthlyCalendarScreen(
             fromCalendar = fromCalendar,
             initialPhotos = editingPhotos,
             photoAttachEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
+            // Golendarモード時のみAI解析ボタンを表示する
+            aiParseEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
+            onAiParse = { showAiParseDialog = true },
             onDismiss = { showEventDialog = false; tempFABDate = null },
+            // 新規はaddEvent、既存はupdateEventで保存する
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule,
                        newPhotoUris, keptPhotoIds ->
                 if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris)
@@ -294,9 +308,23 @@ fun MonthlyCalendarScreen(
             onDelete = { ev -> viewModel.deleteEvent(ev.id); showEventDialog = false; tempFABDate = null },
         )
     }
+    // AI解析ダイアログ（初回説明完了フラグを渡す）
+    if (showAiParseDialog) {
+        AiParseDialog(
+            colors = colors,
+            needsSetup = !aiSetupDone,
+            onSetupComplete = { viewModel.markAiSetupDone() },
+            onDismiss = { showAiParseDialog = false },
+            onConfirm = { events ->
+                viewModel.addEventsFromAi(events)
+                showAiParseDialog = false
+                showEventDialog = false
+            },
+        )
+    }
 }
 
-// 対象月のカレンダーグリッド（曜日ヘッダーと日付セル）を描画する。
+// 対象月のカレンダーグリッド（曜日ヘッダーと日付セル）を描画する
 @Composable
 private fun MonthGridView(
     month: YearMonth,
@@ -308,16 +336,16 @@ private fun MonthGridView(
     colors: AppColors,
     onSelectDate: (LocalDate) -> Unit,
 ) {
+    // 曜日文字列からDayOfWeekへの変換テーブル
     val stringToDayOfWeek = mapOf(
         "日" to DayOfWeek.SUNDAY, "月" to DayOfWeek.MONDAY, "火" to DayOfWeek.TUESDAY,
         "水" to DayOfWeek.WEDNESDAY, "木" to DayOfWeek.THURSDAY, "金" to DayOfWeek.FRIDAY, "土" to DayOfWeek.SATURDAY
     )
-
     Column(modifier = Modifier.fillMaxSize()) {
+        // 週の開始曜日に合わせて曜日ヘッダーを並び替える
         val allDays = listOf("日", "月", "火", "水", "木", "金", "土")
         val startIndex = if (weekStartDay == DayOfWeek.MONDAY) 1 else 0
         val orderedWeekDays = allDays.drop(startIndex) + allDays.take(startIndex)
-
         Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
             orderedWeekDays.forEach { dayString ->
                 val dayEnum = stringToDayOfWeek[dayString]!!
@@ -330,14 +358,14 @@ private fun MonthGridView(
                 )
             }
         }
-
+        // 月初の曜日オフセットと週数を計算する
         val firstDayOfMonth = month.atDay(1)
         val offset = (firstDayOfMonth.dayOfWeek.value - weekStartDay.value + 7) % 7
         val daysInMonth = month.lengthOfMonth()
         val totalCells = ((daysInMonth + offset + 6) / 7) * 7
         val numRows = totalCells / 7
-
         Column(modifier = Modifier.fillMaxSize()) {
+            // 行ごとに7日分のセルを並べる
             repeat(numRows) { rowIndex ->
                 Row(
                     modifier = Modifier.fillMaxWidth().weight(1f),
@@ -346,6 +374,7 @@ private fun MonthGridView(
                     repeat(7) { colIndex ->
                         val index = rowIndex * 7 + colIndex
                         val dayOffset = index - offset
+                        // 前月・当月・翌月に応じて実際の日付を算出する
                         val date = when {
                             dayOffset < 0 -> month.minusMonths(1).atEndOfMonth().plusDays((dayOffset + 1).toLong())
                             dayOffset < daysInMonth -> month.atDay(dayOffset + 1)
@@ -355,7 +384,7 @@ private fun MonthGridView(
                         val isToday = date == today
                         val dailyEvents = events.filter { it.occursOn(date) }
                         val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
-
+                        // 1日分のセル（日付＋予定タイトル）を描画する
                         CalendarCell(
                             date = date,
                             events = dailyEvents,

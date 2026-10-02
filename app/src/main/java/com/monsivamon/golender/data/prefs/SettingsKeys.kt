@@ -35,10 +35,10 @@ object SettingsKeys {
     val BACKUP_PHOTOS = booleanPreferencesKey("backup_photos")
     // 初回起動時のジェスチャー案内完了フラグ。
     val GESTURE_SETUP_DONE = booleanPreferencesKey("gesture_setup_done")
-
+    // AI解析の初回説明完了フラグ。
+    val AI_SETUP_DONE = booleanPreferencesKey("ai_setup_done")
     // 曜日ごとの色キーを動的に生成する。
     fun dayColor(day: DayOfWeek) = stringPreferencesKey("day_color_${day.name}")
-
     // 色が未設定であることを示すセンチネル値。
     const val COLOR_UNSPECIFIED = "UNSPECIFIED"
 }

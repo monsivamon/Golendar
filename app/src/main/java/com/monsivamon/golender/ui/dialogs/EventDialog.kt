@@ -46,10 +46,11 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import java.util.Locale
 
+// ログタグとラベル幅の共通定数
 private const val TAG = "Golendar"
 private val LABEL_WIDTH = 60.dp
 
-// 予定の追加・編集ダイアログを表示する。
+// 予定の追加・編集ダイアログを表示する
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventDialog(
@@ -59,21 +60,27 @@ fun EventDialog(
     fromCalendar: Boolean = false,
     initialPhotos: List<EventPhoto> = emptyList(),
     photoAttachEnabled: Boolean = false,
+    // Golendarモード時のみAI解析ボタンを表示するフラグ
+    aiParseEnabled: Boolean = false,
     onDismiss: () -> Unit,
     onSave: (
         title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean,
         location: String, description: String, rrule: String?,
         newPhotoUris: List<Uri>, keptPhotoIds: List<Long>,
     ) -> Unit,
-    onDelete: (Event) -> Unit
+    onDelete: (Event) -> Unit,
+    onAiParse: () -> Unit
 ) {
+    // 基本入力項目（タイトル・場所・メモ・終日フラグ）の状態
     var title by remember(event) { mutableStateOf(event?.title ?: "") }
     var location by remember(event) { mutableStateOf(event?.location ?: "") }
     var description by remember(event) { mutableStateOf(event?.description ?: "") }
     var isAllDay by remember(event) { mutableStateOf(event?.isAllDay ?: false) }
 
+    // 既存予定のID（新規時は -1）
     val eventKey = event?.id ?: -1L
 
+    // 繰り返しON/OFFと種別（DAILY/WEEKDAYS/WEEKLY/MONTHLY/YEARLY）
     var isRecurring by remember(eventKey) { mutableStateOf(event?.rrule != null) }
     var recurringType by remember(eventKey) {
         mutableStateOf(
@@ -88,12 +95,14 @@ fun EventDialog(
         )
     }
 
+    // 繰り返しの終了日指定ON/OFFと日付
     var hasRecurrenceEnd by remember(eventKey) { mutableStateOf(RruleExpander.parseUntilDate(event?.rrule) != null) }
     var recurrenceEndDate by remember(eventKey) {
         val parsed = RruleExpander.parseUntilDate(event?.rrule)
         mutableStateOf(parsed ?: LocalDate.now().plusMonths(1))
     }
 
+    // 繰り返し種別の選択肢（値とラベル）
     val recurringOptions = listOf(
         "DAILY" to "毎日",
         "WEEKDAYS" to "平日",
@@ -102,21 +111,22 @@ fun EventDialog(
         "YEARLY" to "毎年",
     )
 
+    // 既存予定の開始/終了から初期日時を算出する
     val initialZone = if (event?.isAllDay == true) ZoneOffset.UTC else ZoneId.systemDefault()
-
     val initialStart = event?.let { LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), initialZone) }
         ?: selectedDate.atTime(10, 0)
-
     val initialEnd = event?.let {
         val adjustedEnd = if (it.isAllDay && it.endTime > it.startTime) it.endTime - 1 else it.endTime
         LocalDateTime.ofInstant(Instant.ofEpochMilli(adjustedEnd), initialZone)
     } ?: selectedDate.atTime(11, 0)
 
+    // 開始・終了の日付と時刻の状態
     var startDate by remember(eventKey, selectedDate) { mutableStateOf(initialStart.toLocalDate()) }
     var startTime by remember(eventKey, selectedDate) { mutableStateOf(initialStart.toLocalTime()) }
     var endDate by remember(eventKey, selectedDate) { mutableStateOf(initialEnd.toLocalDate()) }
     var endTime by remember(eventKey, selectedDate) { mutableStateOf(initialEnd.toLocalTime()) }
 
+    // 各ピッカー・場所選択ダイアログの表示フラグ
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
@@ -124,11 +134,13 @@ fun EventDialog(
     var showRecurrenceEndPicker by remember { mutableStateOf(false) }
     var showPlacePicker by remember { mutableStateOf(false) }
 
+    // 添付写真の既存ID集合と新規追加URIリスト
     var keptPhotoIds by remember(event?.id, initialPhotos) {
         mutableStateOf(initialPhotos.map { it.id }.toSet())
     }
     var newPhotoUris by remember(event?.id) { mutableStateOf<List<Uri>>(emptyList()) }
 
+    // 写真ピッカー（最大5枚まで、既存分を差し引いて追加）
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(
             maxItems = EventPhoto.MAX_PHOTOS_PER_EVENT,
@@ -142,20 +154,32 @@ fun EventDialog(
         }
     }
 
+    // 背景輝度でチェックマーク色などを見分ける
     val isLightBackground = colors.bg.luminance() > 0.5f
 
+    // カレンダー起点の場合は日付をロック（繰り返し時は終了日もロック）
     val startDateLocked = fromCalendar
     val endDateLocked = fromCalendar && isRecurring
 
+    // メインの予定編集ダイアログ枠
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
         title = { Text(if (event == null) "予定の追加" else "予定の編集", color = colors.text) },
         text = {
+            // 縦スクロールの入力フォーム本体
             Column(
                 modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // Golendarモード時のみAI解析ダイアログを開くボタンを表示する
+                if (aiParseEnabled) {
+                    TextButton(onClick = onAiParse) {
+                        Text("AIに読み取らせる (BETA)", color = colors.primaryAccent)
+                    }
+                }
+
+                // タイトル入力欄
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -170,6 +194,7 @@ fun EventDialog(
                     )
                 )
 
+                // 終日・繰り返しチェックと繰り返し種別の選択UI
                 Column(modifier = Modifier.fillMaxWidth()) {
                     val checkboxColors = CheckboxDefaults.colors(
                         checkedColor = colors.primaryAccent,
@@ -200,6 +225,7 @@ fun EventDialog(
                         Text("繰り返し", color = colors.text)
                     }
 
+                    // 繰り返し種別（毎日/平日/毎週/毎月/毎年）の選択チップ
                     if (isRecurring) {
                         FlowRow(
                             modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 4.dp, bottom = 8.dp),
@@ -230,6 +256,7 @@ fun EventDialog(
                         }
                     }
 
+                    // カレンダー起点時の日付ロック注意書き
                     if (startDateLocked) {
                         Text(
                             "※カレンダーで選んだ日付に追加されます（日付は変更できません）",
@@ -239,9 +266,9 @@ fun EventDialog(
                         )
                     }
 
+                    // 開始日時行（日付＋時刻、ロック時はグレーアウト）
                     val startDateBorder = if (startDateLocked) colors.textGray.copy(alpha = 0.3f) else colors.textGray
                     val startDateText = colors.text.copy(alpha = if (startDateLocked) 0.4f else 1f)
-
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -276,6 +303,7 @@ fun EventDialog(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
+                            // 終日でない場合のみ開始時刻を表示する
                             if (!isAllDay) {
                                 Box(
                                     modifier = Modifier
@@ -296,9 +324,9 @@ fun EventDialog(
                         }
                     }
 
+                    // 終了日時行（日付＋時刻、ロック時はグレーアウト）
                     val endDateBorder = if (endDateLocked) colors.textGray.copy(alpha = 0.3f) else colors.textGray
                     val endDateText = colors.text.copy(alpha = if (endDateLocked) 0.4f else 1f)
-
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(start = 12.dp, top = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -333,6 +361,7 @@ fun EventDialog(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             }
+                            // 終日でない場合のみ終了時刻を表示する
                             if (!isAllDay) {
                                 Box(
                                     modifier = Modifier
@@ -353,6 +382,7 @@ fun EventDialog(
                         }
                     }
 
+                    // 繰り返しの終了日指定（チェック＋日付選択）
                     if (isRecurring) {
                         Text(
                             "※「終了」は1回分の所要時間です。繰り返しの終了日は下で指定します。",
@@ -390,6 +420,7 @@ fun EventDialog(
                     }
                 }
 
+                // 場所入力欄（右端のアイコンで地図ピッカーを起動）
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
@@ -413,6 +444,7 @@ fun EventDialog(
                     )
                 )
 
+                // メモ／内容入力欄
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
@@ -429,6 +461,7 @@ fun EventDialog(
                     )
                 )
 
+                // Golendarモードのみ写真添付セクションを表示する
                 if (photoAttachEnabled) {
                     PhotoAttachmentSection(
                         colors = colors,
@@ -446,6 +479,7 @@ fun EventDialog(
             }
         },
         confirmButton = {
+            // 保存ボタン（終日/時間指定のミリ秒換算とRRULE組立を行う）
             TextButton(onClick = {
                 val effectiveEndDate = if (endDateLocked) startDate else endDate
                 val finalTitle = title.ifBlank { "名称未設定" }
@@ -454,7 +488,6 @@ fun EventDialog(
                 val endDateTime = effectiveEndDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else endTime)
                 val startMillis = startDateTime.atZone(saveZone).toInstant().toEpochMilli()
                 val endMillis = endDateTime.atZone(saveZone).toInstant().toEpochMilli()
-
                 val finalRrule = when {
                     !isRecurring -> null
                     else -> {
@@ -462,7 +495,6 @@ fun EventDialog(
                         if (hasRecurrenceEnd) "$base;UNTIL=${RruleExpander.formatUntil(recurrenceEndDate)}" else base
                     }
                 }
-
                 onSave(
                     finalTitle, startMillis, endMillis, isAllDay, location, description, finalRrule,
                     newPhotoUris, keptPhotoIds.toList(),
@@ -472,6 +504,7 @@ fun EventDialog(
             }
         },
         dismissButton = {
+            // 削除（既存時のみ）／キャンセルボタン
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (event != null) {
                     TextButton(onClick = { onDelete(event) }) { Text("削除", color = colors.sunRed) }
@@ -482,6 +515,7 @@ fun EventDialog(
         }
     )
 
+    // 開始日ピッカー（変更時は終了日を自動補正）
     if (showStartDatePicker) {
         GolendarDatePickerDialog(
             initialDate = startDate,
@@ -493,6 +527,8 @@ fun EventDialog(
             },
         )
     }
+
+    // 終了日ピッカー（変更時は開始日を自動補正）
     if (showEndDatePicker) {
         GolendarDatePickerDialog(
             initialDate = endDate,
@@ -504,6 +540,8 @@ fun EventDialog(
             },
         )
     }
+
+    // 開始時刻ピッカー
     if (showStartTimePicker) {
         GolendarTimePickerDialog(
             initialTime = startTime,
@@ -512,6 +550,8 @@ fun EventDialog(
             onTimeSelected = { startTime = it },
         )
     }
+
+    // 終了時刻ピッカー
     if (showEndTimePicker) {
         GolendarTimePickerDialog(
             initialTime = endTime,
@@ -520,6 +560,8 @@ fun EventDialog(
             onTimeSelected = { endTime = it },
         )
     }
+
+    // 繰り返し終了日ピッカー
     if (showRecurrenceEndPicker) {
         GolendarDatePickerDialog(
             initialDate = recurrenceEndDate,
@@ -531,6 +573,8 @@ fun EventDialog(
             },
         )
     }
+
+    // 場所ピッカー（地図から住所を選択してlocationへ反映）
     if (showPlacePicker) {
         PlacePickerDialog(
             initialLatitude = null,
@@ -545,7 +589,7 @@ fun EventDialog(
     }
 }
 
-// 予定に添付する写真の選択・プレビューセクションを描画する。
+// 予定に添付する写真の選択・プレビューセクションを描画する
 @Composable
 private fun PhotoAttachmentSection(
     colors: AppColors,
@@ -555,10 +599,12 @@ private fun PhotoAttachmentSection(
     onRemoveExisting: (EventPhoto) -> Unit,
     onRemoveNew: (Uri) -> Unit,
 ) {
+    // コンテキストと合計枚数（既存＋新規）を取得する
     val context = LocalContext.current
     val total = existingPhotos.size + newPhotoUris.size
 
     Column(modifier = Modifier.fillMaxWidth()) {
+        // 見出し（写真ラベルと枚数カウンタ）
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("写真", color = colors.textGray, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             Spacer(Modifier.width(8.dp))
@@ -566,6 +612,7 @@ private fun PhotoAttachmentSection(
         }
         Spacer(Modifier.height(6.dp))
 
+        // 既存写真・新規URI・「+」ボタンを横スクロールで並べる
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(existingPhotos, key = { "existing_${it.id}" }) { photo ->
                 PhotoThumbnail(
@@ -594,6 +641,7 @@ private fun PhotoAttachmentSection(
                     )
                 }
             }
+            // 上限未満なら写真追加ボタンを表示する
             if (total < EventPhoto.MAX_PHOTOS_PER_EVENT) {
                 item {
                     Box(
@@ -609,6 +657,7 @@ private fun PhotoAttachmentSection(
                 }
             }
         }
+        // 保存仕様の注記
         Text(
             "写真はアプリ内に保存されます（長辺 ${PhotoStorage.MAX_LONG_EDGE}px に縮小）",
             color = colors.textGray, fontSize = 11.sp,
@@ -617,7 +666,7 @@ private fun PhotoAttachmentSection(
     }
 }
 
-// 添付写真のサムネイル枠（削除ボタン付き）を描画する。
+// 添付写真のサムネイル枠（右上に削除ボタン付き）を描画する
 @Composable
 private fun PhotoThumbnail(
     colors: AppColors,
@@ -634,6 +683,7 @@ private fun PhotoThumbnail(
             .clickable(onClick = onClick),
     ) {
         content()
+        // 右上の×ボタンで写真を削除する
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)

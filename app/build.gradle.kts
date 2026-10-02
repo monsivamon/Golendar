@@ -1,4 +1,4 @@
-// プラグインの適用（Android、Kotlin、Compose、KSP）
+// ビルドに使用するプラグイン（Android・Kotlin・Compose・KSP）を適用する
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,37 +6,45 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// Androidアプリのビルド設定
+// Androidアプリ全体のビルド設定
 android {
+    // アプリのパッケージ名前空間
     namespace = "com.monsivamon.golender"
+    // コンパイルに使用するSDKバージョン
     compileSdk = 35
 
-    // NDKバージョンを指定
+    // 使用するNDKのバージョン
     ndkVersion = "27.3.13750724"
 
-    // アプリの基本設定（ID、SDKバージョン、バージョン情報）
+    // アプリの基本情報（ID・SDK・バージョン・ABIなど）
     defaultConfig {
+        // アプリケーションID
         applicationId = "com.monsivamon.golender"
+        // 最小対応SDKバージョン
         minSdk = 29
+        // 対象SDKバージョン
         targetSdk = 35
+        // バージョンコード
         versionCode = 1
-        versionName = "1.1.2"
+        // バージョン名
+        versionName = "1.1.3"
 
+        // 計装テストのランナー
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // 対応するABIを指定
+        // 対応するCPUアーキテクチャ（ABI）
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
         }
 
-        // 16KB ELFアライメントを有効化するリンカーフラグ
+        // 16KBページサイズ対応を有効化するリンカーフラグ
         externalNativeBuild {
             cmake {
                 arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
             }
         }
 
-        // 日本語と英語以外の言語リソースを除外
+        // 同梱する言語リソースを日本語・英語に限定する
         resourceConfigurations += listOf("ja", "en")
     }
 
@@ -50,12 +58,14 @@ android {
         }
     }
 
-    // ビルドタイプの設定
+    // デバッグ・リリース各ビルドタイプの設定
     buildTypes {
+        // デバッグビルドは圧縮・難読化なし
         debug {
             isMinifyEnabled = false
             isShrinkResources = false
         }
+        // リリースビルドは署名を付与して出力
         release {
             isMinifyEnabled = false
             isShrinkResources = false
@@ -63,29 +73,29 @@ android {
         }
     }
 
-    // Lintチェックの設定
+    // Lintチェックの挙動設定
     lint {
         checkReleaseBuilds = false
         abortOnError = false
     }
 
-    // Java/Kotlinの互換性バージョン設定
+    // Java/Kotlinの互換性バージョン
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    // ビルド機能の有効化（Compose）
+    // Composeのビルド機能を有効化する
     buildFeatures {
         compose = true
     }
 
-    // KSPでRoomのスキーマ出力先を指定
+    // KSP経由でRoomのスキーマJSON出力先を指定する
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
     }
 
-    // APK内の不要ファイル除去・ネイティブライブラリの非圧縮格納
+    // APKへの梱包ルール（JNI非圧縮・不要リソース除外）
     packaging {
         jniLibs {
             useLegacyPackaging = false
@@ -108,7 +118,7 @@ android {
     }
 }
 
-// KotlinコンパイラのJVMターゲット指定
+// KotlinコンパイラのJVMターゲットを17に指定する
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
@@ -117,18 +127,18 @@ kotlin {
 
 // 依存ライブラリの定義
 dependencies {
-    // Compose BOMでバージョンを一括管理
+    // Compose BOMでCompose系のバージョンを一括管理する
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
-    // Composeコアライブラリ
+    // ComposeのUI・グラフィック・プレビュー・Material3
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
-    // Android標準ライブラリ
+    // Android標準系ライブラリ（Core・Lifecycle・Activity）
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -137,28 +147,28 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.datastore.preferences)
 
-    // Room（データベース）
+    // Room（実行時・Kotlin拡張・KSPプロセッサ）
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // Glance（ウィジェット）とWorkManager（バックグラウンド更新）
+    // GlanceウィジェットとWorkManager
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.work.runtime.ktx)
 
     // 地図表示（MapLibre Native）
     implementation("org.maplibre.gl:android-sdk:11.13.1")
 
-    // 画像読込（写真添付機能）
+    // 画像読み込み（Coil）
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // テスト用
+    // 単体テスト・計装テスト用
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 
-    // デバッグ時のみのツール
+    // デバッグビルド限定のツール（Composeテストマニフェスト・ツーリング）
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

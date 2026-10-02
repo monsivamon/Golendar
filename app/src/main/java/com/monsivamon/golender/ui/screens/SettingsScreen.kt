@@ -34,9 +34,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.monsivamon.golender.data.util.getJpDayOfWeek
+import com.monsivamon.golender.ui.dialogs.AiSetupDialog
 import com.monsivamon.golender.ui.dialogs.BackgroundColorPickerDialog
 import com.monsivamon.golender.ui.dialogs.CalendarPermissionDialog
 import com.monsivamon.golender.ui.dialogs.DayColorPickerDialog
+import com.monsivamon.golender.ui.dialogs.GestureSetupDialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LinearProgressIndicator
 import com.monsivamon.golender.ui.theme.getAppColors
@@ -116,24 +118,18 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     val calendarBgColor by viewModel.calendarBgColor.collectAsState()
     val dayColors by viewModel.dayColors.collectAsState()
     val backupPhotos by viewModel.backupPhotos.collectAsState()
-
     val notifyAtStart by viewModel.notifyAtStart.collectAsState()
     val notify10MinBefore by viewModel.notify10MinBefore.collectAsState()
-
     val statusMessage by viewModel.statusMessage.collectAsState()
     val colors = getAppColors(themeMode, calendarBgColor)
-
     val isSystemDark = isSystemInDarkTheme()
-
     var colorPickerDay by remember { mutableStateOf<DayOfWeek?>(null) }
     var showBgColorPicker by remember { mutableStateOf(false) }
     var showRestartModal by remember { mutableStateOf(false) }
     var showCalendarPermissionDialog by remember { mutableStateOf(false) }
-
     var notificationPermissionGranted by remember {
         mutableStateOf(ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
     }
-
     var exactAlarmPermissionGranted by remember {
         mutableStateOf(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -141,31 +137,29 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             } else true
         )
     }
-
     val powerManager = context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
     var isIgnoringBatteryOptimizations by remember {
         mutableStateOf(powerManager.isIgnoringBatteryOptimizations(context.packageName))
     }
-
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         notificationPermissionGranted = isGranted
     }
-
     val backupMime = if (backupPhotos) "application/zip" else "application/json"
     val backupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument(backupMime)) { uri ->
         uri?.let { viewModel.exportBackup(it) }
     }
-
     val appendLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.importBackup(it, isAppend = true) }
     }
-
     val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { viewModel.importBackup(it, isAppend = false) }
     }
-
+    // チュートリアル再表示用のフラグを購読する
+    val showCalendarTutorial by viewModel.showCalendarTutorial.collectAsState()
+    val showGestureTutorial by viewModel.showGestureTutorial.collectAsState()
+    val showAiSetup by viewModel.showAiSetup.collectAsState()
     // 権限状態を再取得して UI に反映する。
     fun refreshPermissions() {
         notificationPermissionGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
@@ -174,16 +168,13 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
         }
         isIgnoringBatteryOptimizations = powerManager.isIgnoringBatteryOptimizations(context.packageName)
     }
-
     LaunchedEffect(Unit) { refreshPermissions() }
-
     LaunchedEffect(statusMessage) {
         statusMessage?.let {
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             viewModel.clearStatusMessage()
         }
     }
-
     val backupProgress by viewModel.backupProgress.collectAsState()
     backupProgress?.let { p ->
         AlertDialog(
@@ -213,10 +204,9 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             },
             confirmButton = { },
             containerColor = colors.surface,
-            textContentColor = colors.text,
+            titleContentColor = colors.text,
         )
     }
-
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = colors.bg,
@@ -243,7 +233,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 Text(text = "設定", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text)
             }
             HorizontalDivider(color = colors.divider, modifier = Modifier.padding(bottom = 8.dp))
-
             SettingsSection("カレンダーモード", colors) {
                 Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(colors.surface).padding(4.dp)) {
                     Box(
@@ -255,14 +244,12 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     ) {
                         Text("Golendar", color = if (calendarMode == CalendarMode.GOLENDAR) Color.White else colors.text, fontWeight = FontWeight.Bold)
                     }
-
                     Box(
                         modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp))
                             .background(if (calendarMode == CalendarMode.GOOGLE) colors.primaryAccent else Color.Transparent)
                             .clickable {
                                 val hasRead = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CALENDAR) == PackageManager.PERMISSION_GRANTED
                                 val hasWrite = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) == PackageManager.PERMISSION_GRANTED
-
                                 if (hasRead && hasWrite) {
                                     if (calendarMode != CalendarMode.GOOGLE) {
                                         showRestartModal = true
@@ -282,7 +269,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     else "Googleカレンダーのシステムと同期して予定を読み書きします。",
                     fontSize = 13.sp, color = colors.textGray, modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
                 )
-
                 if (calendarMode == CalendarMode.GOOGLE && availableAccounts.isNotEmpty()) {
                     Text(
                         "表示するカレンダー",
@@ -301,7 +287,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     }
                 }
             }
-
             SettingsSection("通知設定", colors) {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
                     Switch(
@@ -312,7 +297,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     Spacer(modifier = Modifier.width(16.dp))
                     Text("定刻（開始時間）に通知", fontSize = 16.sp, color = colors.text)
                 }
-
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
                     Switch(
                         checked = notify10MinBefore,
@@ -322,9 +306,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     Spacer(modifier = Modifier.width(16.dp))
                     Text("10分前に通知", fontSize = 16.sp, color = colors.text)
                 }
-
                 HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
-
                 Text(
                     "バックグラウンド通知の確実化",
                     fontSize = 14.sp,
@@ -332,7 +314,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     color = colors.textGray,
                     modifier = Modifier.padding(bottom = SECTION_LABEL_BOTTOM),
                 )
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -350,7 +331,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         }) { Text("設定を開く", color = colors.primaryAccent) }
                     }
                 }
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -365,7 +345,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         }
                     }
                 }
-
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -384,7 +363,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         }
                     }
                 }
-
                 Button(
                     onClick = { refreshPermissions() },
                     colors = ButtonDefaults.buttonColors(containerColor = colors.surface, contentColor = colors.textGray),
@@ -393,7 +371,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     Text("設定状況を再チェックする", fontSize = 12.sp)
                 }
             }
-
             SettingsSection("カスタム設定", colors) {
                 Text(
                     "アプリ背景色",
@@ -424,9 +401,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         if (calendarBgColor == Color.Unspecified) Text("/", color = colors.textGray, fontSize = 14.sp)
                     }
                 }
-
                 HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
-
                 Text(
                     "曜日の色",
                     fontSize = 14.sp,
@@ -460,9 +435,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         }
                     }
                 }
-
                 HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
-
                 Text(
                     "表示テーマ",
                     fontSize = 14.sp,
@@ -482,9 +455,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         onClick = { viewModel.setThemeMode(mode) },
                     )
                 }
-
                 HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
-
                 Text(
                     "週の始まり",
                     fontSize = 14.sp,
@@ -504,13 +475,53 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     )
                 }
             }
-
+            // チュートリアルセクション（カレンダー権限・ジェスチャー・AI解析の再表示）
+            SettingsSection("チュートリアル", colors) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { viewModel.requestShowCalendarTutorial() },
+                        )
+                        .padding(vertical = LIST_ROW_VERTICAL),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("カレンダーのアクセス権限を確認する", fontSize = 16.sp, color = colors.text)
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { viewModel.requestShowGestureTutorial() },
+                        )
+                        .padding(vertical = LIST_ROW_VERTICAL),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("ジェスチャー操作の案内を見る", fontSize = 16.sp, color = colors.text)
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { viewModel.requestShowAiSetup() },
+                        )
+                        .padding(vertical = LIST_ROW_VERTICAL),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("AI解析の使い方を見る", fontSize = 16.sp, color = colors.text)
+                }
+            }
             SettingsSection("バックアップと復元", colors) {
                 Text(
                     "現在選択されているカレンダーの予定と設定をJSONで保存します。保存したファイルから別アカウントやGolendarモードへの「追記」が可能です。\n※Googleモードでの「復元（上書き）」はデータ保護のため実行できません。",
                     fontSize = 13.sp, color = colors.textGray, modifier = Modifier.padding(bottom = 12.dp)
                 )
-
                 if (calendarMode == CalendarMode.GOLENDAR) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -542,10 +553,8 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                             )
                         }
                     }
-
                     HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
                 }
-
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(
                         onClick = {
@@ -556,14 +565,12 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                         modifier = Modifier.weight(1f).border(1.dp, colors.divider, RoundedCornerShape(24.dp)),
                         contentPadding = PaddingValues(0.dp)
                     ) { Text("保存", fontSize = 14.sp) }
-
                     Button(
                         onClick = { appendLauncher.launch(arrayOf("application/json", "*/*")) },
                         colors = ButtonDefaults.buttonColors(containerColor = colors.surface, contentColor = colors.text),
                         modifier = Modifier.weight(1f).border(1.dp, colors.divider, RoundedCornerShape(24.dp)),
                         contentPadding = PaddingValues(0.dp)
                     ) { Text("追記", fontSize = 14.sp) }
-
                     Button(
                         onClick = {
                             if (calendarMode == CalendarMode.GOOGLE) {
@@ -581,15 +588,12 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     ) { Text("復元", fontSize = 14.sp) }
                 }
             }
-
             SettingsSection("このアプリについて", colors) {
                 AboutAppContent(colors)
             }
-
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
-
     if (showBgColorPicker) {
         BackgroundColorPickerDialog(
             colors = colors,
@@ -600,7 +604,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             onColorSelected = { viewModel.setCalendarBgColor(it) },
         )
     }
-
     colorPickerDay?.let { day ->
         DayColorPickerDialog(
             day = day,
@@ -610,13 +613,12 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             onColorSelected = { viewModel.setDayColor(day, it) },
         )
     }
-
     if (showCalendarPermissionDialog) {
         CalendarPermissionDialog(
             colors = colors,
             title = "Googleカレンダーへのアクセス",
-            message = "Googleカレンダーと同期するには、カレンダーへのアクセス許可が必要です。\n\n" +
-                    "次の画面で「許可」を選んでください。",
+            message = "Googleカレンダーと同期するには、カレンダーへのアクセス許可が必要です。\n" +
+                "次の画面で「許可」を選んでください。",
             onResult = { granted ->
                 showCalendarPermissionDialog = false
                 if (granted) {
@@ -633,7 +635,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             onDismiss = { showCalendarPermissionDialog = false },
         )
     }
-
     if (showRestartModal) {
         AlertDialog(
             onDismissRequest = { showRestartModal = false },
@@ -657,6 +658,32 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             dismissButton = {
                 TextButton(onClick = { showRestartModal = false }) { Text("キャンセル", color = colors.textGray) }
             }
+        )
+    }
+    // カレンダー権限の再表示ダイアログ
+    if (showCalendarTutorial) {
+        CalendarPermissionDialog(
+            colors = colors,
+            title = "Googleカレンダーへのアクセス",
+            message = "Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\n" +
+                "\n" +
+                "Golendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。",
+            onResult = { viewModel.dismissCalendarTutorial() },
+            onDismiss = { viewModel.dismissCalendarTutorial() },
+        )
+    }
+    // ジェスチャー案内の再表示ダイアログ
+    if (showGestureTutorial) {
+        GestureSetupDialog(
+            colors = colors,
+            onComplete = { viewModel.dismissGestureTutorial() },
+        )
+    }
+    // AI解析の初回説明を再表示する
+    if (showAiSetup) {
+        AiSetupDialog(
+            colors = colors,
+            onComplete = { viewModel.markAiSetupDone() },
         )
     }
 }
