@@ -21,12 +21,13 @@ import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.ui.theme.AppColors
 import kotlinx.coroutines.launch
 
-// AI解析の初回説明を3ページで案内するダイアログを表示する。
+// AI 解析の初回説明を 3 ページで案内するダイアログを表示する
 @Composable
 fun AiSetupDialog(
     colors: AppColors,
     onComplete: () -> Unit,
 ) {
+    // 3 ページのページャー状態とスクロール用スコープ
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage == 2
@@ -39,6 +40,7 @@ fun AiSetupDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                // ページごとに説明内容を切り替える
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxWidth().height(220.dp),
@@ -49,6 +51,7 @@ fun AiSetupDialog(
                         verticalArrangement = Arrangement.Center,
                     ) {
                         when (page) {
+                            // 1 ページ目: AI 解析とは何か
                             0 -> {
                                 Text(
                                     "AIに読み取らせるとは",
@@ -66,6 +69,7 @@ fun AiSetupDialog(
                                     lineHeight = 22.sp,
                                 )
                             }
+                            // 2 ページ目: 使い方の流れ
                             1 -> {
                                 Text(
                                     "使い方の流れ",
@@ -83,6 +87,7 @@ fun AiSetupDialog(
                                     lineHeight = 22.sp,
                                 )
                             }
+                            // 3 ページ目: プレビューと登録
                             2 -> {
                                 Text(
                                     "プレビューと登録",
@@ -103,6 +108,7 @@ fun AiSetupDialog(
                         }
                     }
                 }
+                // ページインジケータ
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     horizontalArrangement = Arrangement.Center,
@@ -125,6 +131,7 @@ fun AiSetupDialog(
             }
         },
         confirmButton = {
+            // 次へ／始めるボタン
             TextButton(onClick = {
                 if (!isLastPage) {
                     scope.launch {
@@ -143,6 +150,7 @@ fun AiSetupDialog(
             }
         },
         dismissButton = {
+            // スキップ／戻るボタン
             if (!isLastPage) {
                 TextButton(onClick = onComplete) {
                     Text("スキップ", color = colors.textGray)

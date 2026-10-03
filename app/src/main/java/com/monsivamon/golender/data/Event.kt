@@ -1,6 +1,6 @@
 package com.monsivamon.golender.data
 
-// システムカレンダーとローカルで共通の予定データクラス
+// システムカレンダーとローカル予定で共通に扱う予定データクラス
 data class Event(
     val id: Long,
     val title: String,
@@ -14,5 +14,7 @@ data class Event(
     val isReadOnly: Boolean = false,
     val isHolidayCalendar: Boolean = false,
     val isCulturalEvent: Boolean = false,
-    val isBirthdayCalendar: Boolean = false
+    val isBirthdayCalendar: Boolean = false,
+    val calendarColorArgb: Int? = null,
+    val calendarDisplayName: String = "",
 )

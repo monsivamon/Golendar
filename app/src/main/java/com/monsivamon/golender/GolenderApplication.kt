@@ -7,18 +7,19 @@ import androidx.work.WorkManager
 import com.monsivamon.golender.widget.WidgetUpdateWorker
 import java.util.concurrent.TimeUnit
 
-// アプリケーションクラス（バックグラウンドでのウィジェット定期更新を設定）
+// アプリ全体の起動処理とバックグラウンドタスク登録を行う Application クラス
 class GolenderApplication : Application() {
 
-    // 初期化処理を行う。
+    // アプリ起動時にウィジェット更新の定期タスクを WorkManager に登録する
     override fun onCreate() {
         super.onCreate()
 
-        // 6時間ごとにウィジェットを更新する定期タスクをWorkManagerに登録
+        // 6 時間ごとにウィジェットを更新する定期リクエストを組み立てる
         val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(
             6, TimeUnit.HOURS
         ).build()
 
+        // 同名タスクが既にあれば維持し、二重登録を防ぐ
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             WidgetUpdateWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,

@@ -12,19 +12,19 @@ import kotlinx.coroutines.flow.first
 import com.monsivamon.golender.data.dataStore
 import com.monsivamon.golender.data.CalendarRepository
 
-// バックグラウンドで定期的にウィジェットを更新し、祝日データも30日ごとに更新するワーカー
+// バックグラウンドで定期的にウィジェットを更新し、祝日データも 30 日ごとに更新するワーカー
 class WidgetUpdateWorker(
     context: Context,
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
-    // バックグラウンド処理を実行する。
+    // バックグラウンド処理を実行する
     override suspend fun doWork(): Result {
         return withContext(Dispatchers.IO) {
             try {
                 val context = applicationContext
 
-                // 祝日データを30日ごとに更新（前回取得から30日以上経過していれば実行）
+                // 祝日データを 30 日ごとに更新（前回取得から 30 日以上経過していれば実行）
                 val lastFetchKey = longPreferencesKey("last_holiday_fetch_time")
                 val prefs = context.dataStore.data.first()
                 val lastFetch = prefs[lastFetchKey] ?: 0L
@@ -36,7 +36,7 @@ class WidgetUpdateWorker(
                     context.dataStore.edit { it[lastFetchKey] = now }
                 }
 
-                // 全ウィジェット（日・週・月）を強制更新
+                // 全ウィジェット（日・週・月）を強制更新する
                 val widgets = listOf(DayWidget(), WeekWidget(), MonthWidget())
                 widgets.forEach { widget ->
                     val manager = GlanceAppWidgetManager(context)
@@ -47,6 +47,7 @@ class WidgetUpdateWorker(
                 }
                 Result.success()
             } catch (_: Exception) {
+                // 失敗時はリトライを要求する
                 Result.retry()
             }
         }

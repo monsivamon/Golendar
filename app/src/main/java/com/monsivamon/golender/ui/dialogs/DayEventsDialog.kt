@@ -3,7 +3,9 @@ package com.monsivamon.golender.ui.dialogs
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,12 +18,13 @@ import com.monsivamon.golender.ui.EventCard
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
 
-// 指定日の予定一覧をポップアップ表示する。
+// 指定日の予定一覧をポップアップ表示する
 @Composable
 fun DayEventsDialog(
     date: LocalDate,
     events: List<Event>,
     colors: AppColors,
+    showCalendarName: Boolean = false,
     onDismiss: () -> Unit,
     onEventClick: (Event) -> Unit,
     onAddEvent: () -> Unit,
@@ -30,6 +33,7 @@ fun DayEventsDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
         title = {
+            // 日付＋曜日と予定件数を横並びで表示する
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
                     "${date.monthValue}月${date.dayOfMonth}日 (${getJpDayOfWeek(date.dayOfWeek)})",
@@ -42,6 +46,7 @@ fun DayEventsDialog(
             }
         },
         text = {
+            // 予定が無い場合と一覧表示を分ける
             if (events.isEmpty()) {
                 Text(
                     "予定なし",
@@ -53,10 +58,12 @@ fun DayEventsDialog(
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth().heightIn(max = 400.dp),
                 ) {
+                    // 予定カードをタップで詳細を開く
                     items(events) { event ->
                         EventCard(
                             event = event,
                             colors = colors,
+                            showCalendarName = showCalendarName,
                             onClick = onEventClick,
                         )
                     }
@@ -64,6 +71,7 @@ fun DayEventsDialog(
             }
         },
         confirmButton = {
+            // この日付で新規予定追加
             TextButton(onClick = onAddEvent) {
                 Text("+ 予定を追加", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
             }

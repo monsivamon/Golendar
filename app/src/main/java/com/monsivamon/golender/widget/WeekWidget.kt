@@ -34,29 +34,31 @@ import java.util.Locale
 
 // 週次表示ウィジェット（週間予定を表示）
 class WeekWidget : GlanceAppWidget() {
-    // ウィジェットの表示内容を構築する。
+    // ウィジェットの表示内容を構築する
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetDataManager.getWeekWidgetData(context)
         provideContent { WeekWidgetContent(data) }
     }
 }
 
-// 週次ウィジェットの内容を描画する。
+// 週次ウィジェットの内容を描画する
 @Composable
 fun WeekWidgetContent(data: WeekWidgetData) {
+    // 表示に必要なパラメータを取得する
     val context = LocalContext.current
     val weekStart = data.weekStart
     val weekEnd = data.weekEnd
     val events = data.events
 
-    // テーマ・背景色からウィジェット用の色セットを取得
+    // テーマ・背景色からウィジェット用の色セットを取得する
     val wc = computeWidgetColors(data.themeMode, data.bgColor)
 
-    // タップ時に週表示画面を直接開くIntent
+    // タップ時に週表示画面を直接開く Intent
     val openAppIntent = Intent(context, MainActivity::class.java).apply {
         putExtra(MainActivity.EXTRA_ROUTE, Routes.WEEKLY)
     }
 
+    // 外枠（背景色＋タップ領域）を描画する
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -73,20 +75,25 @@ fun WeekWidgetContent(data: WeekWidgetData) {
 
         Spacer(modifier = GlanceModifier.height(4.dp))
 
+        // 週の 7 日分の日付と、予定有無を判定する
         val weekDays = (0..6).map { weekStart.plusDays(it.toLong()) }
         val hasEvents = events.values.any { it.isNotEmpty() }
 
         if (!hasEvents) {
+            // 週全体で予定なしの場合
             Text(text = "予定なし", style = TextStyle(color = wc.textGray, fontSize = 14.sp))
         } else {
-            // 週の各日ごとに最初の予定を1件表示
+            // 週の各日ごとに最初の予定を 1 件表示
             weekDays.forEach { date ->
+                // その日の予定と曜日 1 文字を取得する
                 val dayEvents = events[date] ?: emptyList()
                 val dayOfWeek = date.dayOfWeek.getDisplayName(FULL, Locale.JAPANESE).take(1)
 
+                // 予定有無に応じた表示内容を決める
                 val hasEvent = dayEvents.isNotEmpty()
                 val eventTitle = if (hasEvent) dayEvents.first().title else "―"
 
+                // 1 日分の行を描画する（日付＋アクセントライン＋タイトル）
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
@@ -96,6 +103,7 @@ fun WeekWidgetContent(data: WeekWidgetData) {
                         .padding(horizontal = 8.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    // 日付ラベル（予定がある日は太字）
                     Text(
                         text = "${date.monthValue}/${date.dayOfMonth}($dayOfWeek)",
                         style = TextStyle(
@@ -111,6 +119,7 @@ fun WeekWidgetContent(data: WeekWidgetData) {
                         Box(modifier = GlanceModifier.width(3.dp).height(12.dp).background(wc.primaryAccent)) {}
                     }
                     Spacer(modifier = GlanceModifier.width(6.dp))
+                    // 先頭予定のタイトル（無い日は「―」）
                     Text(
                         text = eventTitle,
                         style = TextStyle(

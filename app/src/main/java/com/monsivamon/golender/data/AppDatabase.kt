@@ -7,27 +7,28 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-// ローカル予定データと添付写真を管理するRoomデータベース。
+// ローカル予定と添付写真を管理する Room データベース
 @Database(
     entities = [LocalEvent::class, EventPhoto::class],
     version = 4,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
-    // 予定操作用のDAOを取得する。
+    // 予定操作用の DAO を取得する
     abstract fun localEventDao(): LocalEventDao
 
-    // 写真操作用のDAOを取得する。
+    // 写真操作用の DAO を取得する
     abstract fun eventPhotoDao(): EventPhotoDao
 
-    // シングルトンインスタンスとマイグレーションを管理する。
+    // シングルトンインスタンスとマイグレーションを管理する
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        // v3 → v4：event_photos テーブルを追加するマイグレーション。
+        // v3 → v4 : event_photos テーブルを追加するマイグレーション
         private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                // event_photos テーブルを作成する
                 db.execSQL(
                     """
                     CREATE TABLE IF NOT EXISTS `event_photos` (
@@ -39,6 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                     """.trimIndent()
                 )
+                // eventId にインデックスを付与する
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_event_photos_eventId` " +
                             "ON `event_photos` (`eventId`)"
@@ -46,7 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        // スレッドセーフなシングルトンインスタンスを取得する。
+        // スレッドセーフにシングルトンインスタンスを取得する
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(

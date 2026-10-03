@@ -10,6 +10,7 @@ captures/
 all_sources.txt
 all_sources.bat
 _backup*/**
+bakdel.bat
 
 # ── Gradle ──
 /build

@@ -11,20 +11,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.data.Event
-import com.monsivamon.golender.data.util.localStartDate
 import com.monsivamon.golender.ui.SearchResultCard
 import com.monsivamon.golender.ui.theme.AppColors
 
-// 検索モード中に表示する検索結果リストを描画する。
+// 検索モード中に表示する検索結果リストを描画する
 @Composable
 fun SearchResultsList(
     query: String,
     results: List<Event>,
     isLoading: Boolean,
     colors: AppColors,
+    showCalendarName: Boolean = false,
     onResultSelected: (Event) -> Unit,
 ) {
     when {
+        // クエリが空のときはプレースホルダを中央表示する
         query.isBlank() -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
@@ -35,12 +36,14 @@ fun SearchResultsList(
             }
         }
 
+        // 検索中はローディング表示
         isLoading -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = colors.primaryAccent)
             }
         }
 
+        // 該当なし
         results.isEmpty() -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
@@ -51,6 +54,7 @@ fun SearchResultsList(
             }
         }
 
+        // 検索結果一覧（件数ヘッダー＋安定キー付きリスト）
         else -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -67,6 +71,7 @@ fun SearchResultsList(
                     SearchResultCard(
                         event = event,
                         colors = colors,
+                        showCalendarName = showCalendarName,
                         onClick = onResultSelected,
                     )
                 }

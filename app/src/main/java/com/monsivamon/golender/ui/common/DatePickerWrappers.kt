@@ -25,7 +25,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneOffset
 
-// 初期日付付きの日付選択ダイアログを表示する。
+// 初期日付付きの日付選択ダイアログを表示する
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GolendarDatePickerDialog(
@@ -39,7 +39,7 @@ fun GolendarDatePickerDialog(
     onDateSelected = onDateSelected,
 )
 
-// 初期日付なしの日付選択ダイアログを表示する（今日が初期値）。
+// 初期日付なしの日付選択ダイアログを表示する（今日が初期値）
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GolendarDatePickerDialog(
@@ -48,13 +48,14 @@ fun GolendarDatePickerDialog(
     onDateSelected: (LocalDate) -> Unit,
 ) = GolendarDatePickerDialogImpl(colors, onDismiss, initialMillis = null, onDateSelected = onDateSelected)
 
-// 日付選択ダイアログの共通実装。
+// 日付選択ダイアログの共通実装
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GolendarDatePickerDialogImpl(
     colors: AppColors, onDismiss: () -> Unit,
     initialMillis: Long?, onDateSelected: (LocalDate) -> Unit,
 ) {
+    // 初期値あり／なしで状態を分岐する
     val state = if (initialMillis != null) rememberDatePickerState(initialSelectedDateMillis = initialMillis)
     else rememberDatePickerState()
     DatePickerDialog(
@@ -70,6 +71,7 @@ private fun GolendarDatePickerDialogImpl(
         dismissButton = { TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) } },
         colors = DatePickerDefaults.colors(containerColor = colors.surface),
     ) {
+        // テーマ色を反映した DatePicker
         DatePicker(
             state = state,
             colors = DatePickerDefaults.colors(
@@ -95,7 +97,7 @@ private fun GolendarDatePickerDialogImpl(
     }
 }
 
-// 時刻選択ダイアログ（24時間表示）を表示する。
+// 時刻選択ダイアログ（24 時間表示）を表示する
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GolendarTimePickerDialog(
@@ -104,6 +106,7 @@ fun GolendarTimePickerDialog(
     onDismiss: () -> Unit,
     onTimeSelected: (LocalTime) -> Unit,
 ) {
+    // 24 時間表示の時刻ピッカー状態
     val state = rememberTimePickerState(initialTime.hour, initialTime.minute, true)
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -128,13 +131,14 @@ fun GolendarTimePickerDialog(
     )
 }
 
-// 年月選択ダイアログ（年送りボタンと12ヶ月グリッド）を表示する。
+// 年月選択ダイアログ（年送りボタンと 12 ヶ月グリッド）を表示する
 @Composable
 fun YearMonthPickerDialog(
     currentYear: Int, currentMonth: Int,
     colors: AppColors, onDismiss: () -> Unit,
     onDateSelected: (Int, Int) -> Unit,
 ) {
+    // 表示中の年を保持する（初期値は現在の年）
     var year by remember { mutableIntStateOf(currentYear) }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -142,6 +146,7 @@ fun YearMonthPickerDialog(
         title = { Text("年月へジャンプ", color = colors.text) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // 年送りヘッダー
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -151,6 +156,7 @@ fun YearMonthPickerDialog(
                     Text("$year 年", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
                     IconButton(onClick = { year++ }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "翌年", tint = colors.primaryAccent) }
                 }
+                // 12 ヶ月を 4 列グリッドで表示する
                 LazyVerticalGrid(GridCells.Fixed(4),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)) {

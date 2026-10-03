@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
 import com.monsivamon.golender.viewmodel.ThemeMode
 
-// アプリ全体のカラーパレットを保持するデータクラス。
+// アプリ全体のカラーパレットを保持するデータクラス
 data class AppColors(
     val bg: Color = Color.Unspecified,
     val surface: Color = Color.Unspecified,
@@ -19,15 +19,17 @@ data class AppColors(
     val divider: Color = Color.Unspecified,
 )
 
-// テーマと背景色から最適なカラーパレットを生成する。
+// テーマモードと背景色から最適なカラーパレットを生成する
 @Composable
 fun getAppColors(themeMode: ThemeMode, customBg: Color = Color.Unspecified): AppColors {
+    // ダークテーマかどうかを判定する
     val isDark = when (themeMode) {
         ThemeMode.DARK -> true
         ThemeMode.LIGHT -> false
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
 
+    // 背景色を決定する（未設定時は既定色、ダークで明色カスタムは暗くする）
     val bg = when {
         customBg == Color.Unspecified || customBg == Color.Transparent ->
             if (isDark) Color(0xFF121212) else Color(0xFFF0F2F5)
@@ -38,8 +40,10 @@ fun getAppColors(themeMode: ThemeMode, customBg: Color = Color.Unspecified): App
         else -> customBg
     }
 
+    // 背景輝度から文字色などを見分ける
     val light = bg.luminance() > 0.5f
 
+    // surface と divider を背景色から派生させる
     val surface = if (light) lerp(bg, Color.White, 0.55f) else lerp(bg, Color.White, 0.08f)
     val divider = if (light) lerp(bg, Color.Black, 0.08f) else lerp(bg, Color.White, 0.15f)
 
@@ -55,7 +59,7 @@ fun getAppColors(themeMode: ThemeMode, customBg: Color = Color.Unspecified): App
     )
 }
 
-// 曜日色に使う16色のカラーパレット。
+// 曜日色に使う 16 色のカラーパレット
 val DayColorPalette = listOf(
     Color(0xFFE53935), Color(0xFFD81B60), Color(0xFF8E24AA), Color(0xFF5E35B1),
     Color(0xFF3949AB), Color(0xFF1E88E5), Color(0xFF039BE5), Color(0xFF00ACC1),
@@ -63,7 +67,7 @@ val DayColorPalette = listOf(
     Color(0xFFFBC02D), Color(0xFFFFB300), Color(0xFFFB8C00), Color(0xFFF4511E),
 )
 
-// 背景色に使う16色のパステルカラーパレット。
+// 背景色に使う 16 色のパステルカラーパレット
 val PastelColorPalette = listOf(
     Color(0xFFFFB3BA), Color(0xFFFFDFBA), Color(0xFFFFFFBA), Color(0xFFBAFFC9),
     Color(0xFFBAE1FF), Color(0xFFE6B3FF), Color(0xFFFFC6FF), Color(0xFFC4FAF8),
@@ -71,10 +75,10 @@ val PastelColorPalette = listOf(
     Color(0xFFB5EAD7), Color(0xFFC7CEEA), Color(0xFFF4C2C2), Color(0xFFFDECDA),
 )
 
-// 明色を黒とブレンドしてダークテーマ向けの暗色を生成する。
+// 明色を黒とブレンドしてダークテーマ向けの暗色を生成する
 fun darkVariant(color: Color, factor: Float = 0.65f): Color =
     lerp(color, Color.Black, factor)
 
-// 現在のテーマでパステル色がどう表示されるかを返す（プレビュー用）。
+// 現在のテーマでパステル色がどう表示されるかを返す（プレビュー用）
 fun previewColor(base: Color, isDarkTheme: Boolean): Color =
     if (isDarkTheme) darkVariant(base) else base

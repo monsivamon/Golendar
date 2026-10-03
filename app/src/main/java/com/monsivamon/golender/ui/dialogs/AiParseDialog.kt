@@ -27,7 +27,7 @@ import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
 import java.time.ZoneId
 
-// AIに画像を読み取らせて予定を一括登録するダイアログ（Golendarモード専用）
+// AI に画像を読み取らせて予定を一括登録するダイアログ（Golendar モード専用）
 @Composable
 fun AiParseDialog(
     colors: AppColors,
@@ -56,7 +56,7 @@ fun AiParseDialog(
     // 警告モーダルの状態
     var pendingWarnings by remember { mutableStateOf<List<String>>(emptyList()) }
     var showWarningDialog by remember { mutableStateOf(false) }
-    // プロンプトのプレースホルダを今日の日付・TZに置換する
+    // プロンプトのプレースホルダを今日の日付・TZ に置換する
     val prompt = AiPromptTemplate.PROMPT_TEMPLATE
         .replace("{{TODAY}}", LocalDate.now().toString())
         .replace("{{TZ}}", ZoneId.systemDefault().id)
@@ -79,6 +79,7 @@ fun AiParseDialog(
                     modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    // 警告を 1 件ずつ列挙する
                     pendingWarnings.forEach { warning ->
                         Text(
                             "・$warning",
@@ -116,7 +117,7 @@ fun AiParseDialog(
                         .padding(horizontal = 24.dp, vertical = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // タイトルと説明文（Golendarモード専用を明示）
+                    // タイトルと説明文（Golendar モード専用を明示）
                     Text("AIに読み取らせる (BETA)", style = MaterialTheme.typography.titleLarge, color = colors.text)
                     Text(
                         "Golendarモード専用機能です。\n" +
@@ -125,7 +126,7 @@ fun AiParseDialog(
                         color = colors.textGray,
                         fontSize = 14.sp
                     )
-                    // プロンプトのコピー／AIアプリ起動ボタン
+                    // プロンプトのコピー／AI アプリ起動ボタン
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = {
                             val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -142,7 +143,7 @@ fun AiParseDialog(
                             Toast.makeText(context, "AIに画像と一緒に渡してください", Toast.LENGTH_LONG).show()
                         }) { Text("AIアプリを開く") }
                     }
-                    // AIの回答JSONを貼り付ける入力欄
+                    // AI の回答 JSON を貼り付ける入力欄
                     OutlinedTextField(
                         value = rawText,
                         onValueChange = { rawText = it },
@@ -151,7 +152,7 @@ fun AiParseDialog(
                         minLines = 4,
                         maxLines = 8
                     )
-                    // JSONを解析してプレビューを生成するボタン
+                    // JSON を解析してプレビューを生成するボタン
                     Button(
                         onClick = {
                             val result = AiJsonConverter.convert(rawText)

@@ -7,42 +7,43 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 
+// ローカル予定の CRUD を提供する DAO
 @Dao
 interface LocalEventDao {
 
-    // 指定期間内（重複含む）または繰り返し予定を取得
+    // 指定期間に該当する予定（または繰り返し予定）を開始時刻順で取得する
     @Query("SELECT * FROM local_events WHERE (startTime <= :end AND endTime >= :start) OR rrule IS NOT NULL ORDER BY startTime ASC")
     suspend fun getEventsInRange(start: Long, end: Long): List<LocalEvent>
 
-    // 全件取得（バックアップ用）
+    // 全予定を取得する（バックアップ用）
     @Query("SELECT * FROM local_events")
     suspend fun getAllEvents(): List<LocalEvent>
 
-    // ローカルDBに予定を新規登録する。
+    // 予定を挿入し採番 ID を返す
     @Insert
     suspend fun insert(event: LocalEvent): Long
 
-    // ローカルDBの予定を更新する。
+    // 予定を更新する
     @Update
     suspend fun update(event: LocalEvent)
 
-    // ID指定で削除
+    // ID 指定で予定を削除する
     @Query("DELETE FROM local_events WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    // description指定で削除（システム祝日更新用）
+    // description 指定で予定を削除する（祝日更新用）
     @Query("DELETE FROM local_events WHERE description = :description")
     suspend fun deleteByDescription(description: String)
 
-    // 全件削除（復元前の初期化用）
+    // 全予定を削除する（復元前の初期化用）
     @Query("DELETE FROM local_events")
     suspend fun deleteAll()
 
-    // 一括挿入（競合時は置き換え）
+    // 予定を一括挿入する（競合時は置換）
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(events: List<LocalEvent>)
 
-    // 祝日データを原子的に置き換える（並行呼び出しによる二重挿入を防ぐ）
+    // 祝日データを原子的に置き換える（二重挿入防止）
     @Transaction
     suspend fun replaceSystemHolidays(holidays: List<LocalEvent>) {
         deleteByDescription(LocalEvent.DESCRIPTION_HOLIDAY)

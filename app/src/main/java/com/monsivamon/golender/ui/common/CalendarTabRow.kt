@@ -23,7 +23,7 @@ import com.monsivamon.golender.ui.navigateTab
 import com.monsivamon.golender.ui.navigateToTab
 import com.monsivamon.golender.ui.theme.AppColors
 
-// 日・週・月の表示切り替えタブと前後移動ボタンを描画する。
+// 日・週・月の表示切り替えタブと前後移動ボタンを描画する
 @Composable
 fun CalendarTabRow(currentRoute: String, colors: AppColors, navController: NavController) {
     Row(
@@ -31,25 +31,28 @@ fun CalendarTabRow(currentRoute: String, colors: AppColors, navController: NavCo
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // 前のタブへ循環移動
         CompactIconButton(onClick = { navigateTab(navController, currentRoute, -1) }) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "前へ", tint = colors.text)
         }
         TabLabel("日", Routes.DAILY, currentRoute, colors, navController)
         TabLabel("週", Routes.WEEKLY, currentRoute, colors, navController)
         TabLabel("月", Routes.MONTHLY, currentRoute, colors, navController)
+        // 次のタブへ循環移動
         CompactIconButton(onClick = { navigateTab(navController, currentRoute, 1) }) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "次へ", tint = colors.text)
         }
     }
 }
 
-// タブのラベル（選択中はアクセントカラーの背景で強調）を描画する。
+// タブのラベル（選択中はアクセントカラーの背景で強調）を描画する
 @Composable
 private fun TabLabel(
     label: String, route: String, currentRoute: String,
     colors: AppColors, navController: NavController,
 ) {
     if (route == currentRoute) {
+        // 選択中のタブは強調表示
         Box(
             Modifier.clip(RoundedCornerShape(20.dp)).background(colors.primaryAccent)
                 .padding(horizontal = 24.dp, vertical = 6.dp)
@@ -57,6 +60,7 @@ private fun TabLabel(
             Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
     } else {
+        // 非選択タブはタップで遷移
         Text(
             text = label, fontSize = 16.sp, color = colors.text,
             modifier = Modifier

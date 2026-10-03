@@ -44,7 +44,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// 添付写真を全画面表示するビューア（複数枚は左右スワイプで切替）。
+// 添付写真を全画面表示するビューア（複数枚は左右スワイプで切替）
 @Composable
 fun EventPhotoViewerDialog(
     photos: List<EventPhoto>,
@@ -54,21 +54,24 @@ fun EventPhotoViewerDialog(
 ) {
     if (photos.isEmpty()) return
     val context = LocalContext.current
+    // 現在表示中のページを管理するページャー状態
     val pagerState = rememberPagerState(
         initialPage = initialIndex.coerceIn(0, photos.lastIndex),
         pageCount = { photos.size },
     )
 
-    // 現在ページの写真を端末のピクチャフォルダに書き出す。
+    // 現在ページの写真を端末のピクチャフォルダに書き出す
     fun performSave(index: Int) {
         val photo = photos.getOrNull(index) ?: return
         val src = PhotoStorage.getFile(context, photo.fileName)
+        // タイムスタンプ付きの保存ファイル名を生成する
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val name = "Golendar_${stamp}_${index + 1}.jpg"
         val result = MediaSaver.saveToPictures(context, src, name)
         Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
     }
 
+    // 権限要求後に保存するための保留インデックス
     var pendingSaveIndex by remember { mutableStateOf<Int?>(null) }
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -86,13 +89,14 @@ fun EventPhotoViewerDialog(
         }
     }
 
-    // 表示中の写真を保存する（権限を考慮）。
+    // 表示中の写真を保存する（権限を考慮）
     fun saveCurrent() {
         val idx = pagerState.currentPage
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Android 10 以降は権限不要
             performSave(idx)
         } else {
+            // 以前はストレージ権限を確認してから保存する
             val granted = ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -106,7 +110,7 @@ fun EventPhotoViewerDialog(
         }
     }
 
-    // 現在ページの写真を FileProvider 経由で他アプリへ共有する。
+    // 現在ページの写真を FileProvider 経由で他アプリへ共有する
     fun shareCurrent() {
         val idx = pagerState.currentPage
         val photo = photos.getOrNull(idx) ?: return
@@ -116,6 +120,7 @@ fun EventPhotoViewerDialog(
             return
         }
         try {
+            // content:// URI に変換して共有 Intent を組み立てる
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider",
@@ -142,6 +147,7 @@ fun EventPhotoViewerDialog(
     ) {
         Surface(modifier = Modifier.fillMaxSize(), color = Color.Black.copy(alpha = 0.95f)) {
             Box(modifier = Modifier.fillMaxSize()) {
+                // 写真をページャーで左右スワイプ表示する
                 HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
                     val file = PhotoStorage.getFile(context, photos[page].fileName)
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -153,6 +159,7 @@ fun EventPhotoViewerDialog(
                         )
                     }
                 }
+                // 複数枚のときはページ番号を上部に表示する
                 if (photos.size > 1) {
                     Text(
                         "${pagerState.currentPage + 1} / ${photos.size}",
@@ -163,7 +170,7 @@ fun EventPhotoViewerDialog(
                     )
                 }
 
-                // 左上：保存＋共有ボタンを並べる
+                // 左上：保存＋共有ボタン
                 Row(
                     modifier = Modifier.align(Alignment.TopStart).padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,

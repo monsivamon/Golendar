@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.monsivamon.golender.ui.theme.AppColors
 
-// 初回起動時の通知セットアップ進行状態。
+// 初回起動時の通知セットアップ進行状態
 private enum class NotificationSetupStep { INTRO, EXACT_ALARM, BATTERY }
 
-// 初回起動時に通知関連の権限を順番に案内するダイアログを表示する。
+// 初回起動時に通知関連の権限を順番に案内するダイアログを表示する
 @Composable
 fun NotificationSetupDialog(
     colors: AppColors,
@@ -32,7 +32,7 @@ fun NotificationSetupDialog(
 ) {
     val context = LocalContext.current
 
-    // 通知権限が許可されているかを返す。
+    // 通知権限が許可されているかを返す（Android 13 未満は常に true）
     fun isNotificationGranted(): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             ContextCompat.checkSelfPermission(
@@ -42,7 +42,7 @@ fun NotificationSetupDialog(
             true
         }
 
-    // 正確なアラーム権限が許可されているかを返す。
+    // 正確なアラーム権限が許可されているかを返す（Android 12 未満は常に true）
     fun isExactAlarmGranted(): Boolean =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
@@ -51,12 +51,13 @@ fun NotificationSetupDialog(
             true
         }
 
-    // バッテリー最適化が無効化されているかを返す。
+    // バッテリー最適化が無効化されているかを返す
     fun isBatteryOptimizationIgnored(): Boolean {
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         return pm.isIgnoringBatteryOptimizations(context.packageName)
     }
 
+    // 未許可の項目に応じて開始ステップを決定する
     val initialStep: NotificationSetupStep? = remember {
         when {
             !isNotificationGranted() -> NotificationSetupStep.INTRO
@@ -66,20 +67,24 @@ fun NotificationSetupDialog(
         }
     }
 
+    // 既に全て許可済みなら即座に完了する
     LaunchedEffect(initialStep) {
         if (initialStep == null) onComplete()
     }
 
     if (initialStep == null) return
 
+    // 現在のステップを保持する
     var step by remember { mutableStateOf(initialStep) }
 
+    // 通知権限要求のランチャー（結果後に正確なアラームステップへ進む）
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
         step = NotificationSetupStep.EXACT_ALARM
     }
 
+    // ステップごとに表示するタイトル・本文・ボタン文言を用意する
     val title: String
     val message: String
     val confirmLabel: String
@@ -107,6 +112,7 @@ fun NotificationSetupDialog(
                     "次の画面で「アラームとリマインダー」を許可してください。"
             confirmLabel = "設定を開く"
             onConfirm = {
+                // 正確なアラームの設定画面を開く
                 try {
                     context.startActivity(
                         Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
@@ -124,6 +130,7 @@ fun NotificationSetupDialog(
                     "次の画面で「許可」を選ぶと、Golendar が最適化の対象外になります。"
             confirmLabel = "設定を開く"
             onConfirm = {
+                // バッテリー最適化除外の要求画面を開く
                 try {
                     context.startActivity(
                         Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
@@ -151,6 +158,7 @@ fun NotificationSetupDialog(
             }
         },
         dismissButton = {
+            // 「あとで」で全工程をスキップする
             TextButton(onClick = onComplete) {
                 Text("あとで", color = colors.textGray)
             }

@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
 
-// カレンダー共通ヘッダー（タイトル・検索・今日・同期・設定ボタンを表示）を描画する。
+// カレンダー共通ヘッダー（タイトル・検索・今日・同期・設定）を描画する
 @Composable
 fun CalendarHeader(
     title: String,
@@ -49,8 +49,10 @@ fun CalendarHeader(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (isSearchMode) {
+            // 検索モード時は検索ボックスに置き換える
             SearchBox(searchQuery, colors, onSearchQueryChange, onSearchClose, Modifier.weight(1f))
         } else {
+            // 通常時はタイトルと操作ボタン群を表示する
             DateTitleWithPicker(title, colors, onTitleClick)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (showBottomListToggle) {
@@ -77,13 +79,14 @@ fun CalendarHeader(
     }
 }
 
-// 検索テキスト入力欄と閉じるボタンを表示する。
+// 検索テキスト入力欄と閉じるボタンを表示する
 @Composable
 private fun SearchBox(
     query: String, colors: AppColors,
     onQueryChange: (String) -> Unit, onClose: () -> Unit, modifier: Modifier,
 ) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        // 入力欄（空のときプレースホルダを表示）
         Box(
             modifier = Modifier.weight(1f).height(40.dp)
                 .border(1.dp, colors.textGray, RoundedCornerShape(8.dp))
@@ -98,13 +101,14 @@ private fun SearchBox(
             )
         }
         Spacer(Modifier.width(4.dp))
+        // 検索モードを閉じるボタン
         CompactIconButton(onClick = onClose) {
             Icon(Icons.Default.Close, "閉じる", tint = colors.textGray)
         }
     }
 }
 
-// ドロップダウンアイコン付きの日付タイトル（タップで年月選択を開く）を描画する。
+// ドロップダウンアイコン付きの日付タイトル（タップで年月選択を開く）
 @Composable
 fun DateTitleWithPicker(title: String, colors: AppColors, onClick: () -> Unit) {
     Row(
@@ -119,7 +123,7 @@ fun DateTitleWithPicker(title: String, colors: AppColors, onClick: () -> Unit) {
     }
 }
 
-// 「今日」ボタンを描画する。
+// 「今日」ボタンを描画する
 @Composable
 private fun TodayButton(onClick: () -> Unit, colors: AppColors) {
     Box(
@@ -129,6 +133,7 @@ private fun TodayButton(onClick: () -> Unit, colors: AppColors) {
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
+        // 日付アイコン風のミニカレンダー
         Box(
             modifier = Modifier
                 .size(24.dp)
@@ -149,7 +154,7 @@ private fun TodayButton(onClick: () -> Unit, colors: AppColors) {
     }
 }
 
-// 月表示の下部予定リストの表示切替トグルを描画する。
+// 月表示の下部予定リストの表示切替トグルを描画する
 @Composable
 private fun BottomListToggleButton(
     isOn: Boolean,
@@ -163,6 +168,7 @@ private fun BottomListToggleButton(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
+        // ON 時はアクセント色、OFF 時はグレー表示
         Icon(
             imageVector = Icons.AutoMirrored.Filled.List,
             contentDescription = if (isOn) "下部リストを非表示" else "下部リストを表示",

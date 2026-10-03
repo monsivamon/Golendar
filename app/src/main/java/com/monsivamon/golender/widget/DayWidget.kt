@@ -34,28 +34,30 @@ import java.util.Locale
 
 // 日次表示ウィジェット（今日の予定を表示）
 class DayWidget : GlanceAppWidget() {
-    // ウィジェットの表示内容を構築する。
+    // ウィジェットの表示内容を構築する
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = WidgetDataManager.getDayWidgetData(context)
         provideContent { DayWidgetContent(data) }
     }
 }
 
-// 日次ウィジェットの内容を描画する。
+// 日次ウィジェットの内容を描画する
 @Composable
 fun DayWidgetContent(data: DayWidgetData) {
+    // 表示に必要なパラメータを取得する（予定は最大 5 件）
     val context = LocalContext.current
     val date = data.date
-    val events = data.events.take(5) // 最大5件まで表示
+    val events = data.events.take(5)
 
-    // テーマ・背景色からウィジェット用の色セットを取得
+    // テーマ・背景色からウィジェット用の色セットを取得する
     val wc = computeWidgetColors(data.themeMode, data.bgColor)
 
-    // タップ時に日表示画面を直接開くIntent
+    // タップ時に日表示画面を直接開く Intent
     val openAppIntent = Intent(context, MainActivity::class.java).apply {
         putExtra(MainActivity.EXTRA_ROUTE, Routes.DAILY)
     }
 
+    // 外枠（背景色＋タップ領域）を描画する
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
@@ -63,6 +65,7 @@ fun DayWidgetContent(data: DayWidgetData) {
             .clickable(onClick = actionStartActivity(openAppIntent))
             .padding(12.dp),
     ) {
+        // 曜日名（フル）を取得する
         val dayOfWeek = date.dayOfWeek.getDisplayName(FULL, Locale.JAPANESE)
         // 共通ヘッダー（タイトル＋更新＋設定）
         WidgetHeader(title = "${date.monthValue}/${date.dayOfMonth} ($dayOfWeek)", colors = wc)
@@ -70,9 +73,10 @@ fun DayWidgetContent(data: DayWidgetData) {
         Spacer(modifier = GlanceModifier.height(4.dp))
 
         if (events.isEmpty()) {
+            // 予定なしのメッセージ
             Text(text = "予定なし", style = TextStyle(color = wc.textGray, fontSize = 14.sp))
         } else {
-            // 予定を1件ずつカード風に表示
+            // 予定を 1 件ずつカード風に表示する
             events.forEach { event ->
                 Row(
                     modifier = GlanceModifier.fillMaxWidth().defaultWeight()
@@ -80,8 +84,10 @@ fun DayWidgetContent(data: DayWidgetData) {
                         .background(wc.surface).padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    // アクセントライン（左端の細い縦バー）
                     Box(modifier = GlanceModifier.width(4.dp).height(16.dp).background(wc.primaryAccent)) {}
                     Spacer(modifier = GlanceModifier.width(8.dp))
+                    // 予定タイトル（1 行省略）
                     Text(
                         text = event.title,
                         style = TextStyle(color = wc.text, fontSize = 14.sp),

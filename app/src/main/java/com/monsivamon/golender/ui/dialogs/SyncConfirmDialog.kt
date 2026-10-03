@@ -15,6 +15,7 @@ fun SyncConfirmDialog(colors: AppColors, onDismiss: () -> Unit, onConfirm: () ->
         title = { Text("同期の確認", color = colors.text) },
         text = { Text("端末内のアカウントのカレンダー情報と同期します。\nよろしいですか？", color = colors.text) },
         confirmButton = {
+            // 同期実行して閉じる
             TextButton(onClick = { onConfirm(); onDismiss() }) {
                 Text("同期する", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
             }

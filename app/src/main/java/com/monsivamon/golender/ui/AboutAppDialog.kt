@@ -17,12 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.ui.theme.AppColors
 
-// 「このアプリについて」の内容表示（バージョン・説明・GitHubリンク）
+// 「このアプリについて」の内容表示（バージョン・説明・GitHub リンク）
 @Composable
 fun AboutAppContent(colors: AppColors) {
     val context = LocalContext.current
 
-    // パッケージ情報からバージョン名を取得（失敗時はフォールバック）
+    // パッケージ情報からバージョン名を取得する（失敗時はフォールバック）
     val pInfo = try {
         context.packageManager.getPackageInfo(context.packageName, 0)
     } catch (e: PackageManager.NameNotFoundException) { null }
@@ -32,11 +32,13 @@ fun AboutAppContent(colors: AppColors) {
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // アプリ名とバージョン表示
         Text("Golendar", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.text)
         Text("v$versionName", fontSize = 14.sp, color = colors.textGray)
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // アプリの簡単な説明文
         Text(
             "月表示のカレンダーで、終日予定と時間指定予定をひと目で区別できるアプリです。\nGoogleカレンダーと連携し、月・週・日表示を切り替えられます。",
             color = colors.text,
@@ -46,7 +48,7 @@ fun AboutAppContent(colors: AppColors) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // GitHubリポジトリへのリンクボタン
+        // GitHub リポジトリへのリンクボタン
         Button(
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/monsivamon/Golendar"))

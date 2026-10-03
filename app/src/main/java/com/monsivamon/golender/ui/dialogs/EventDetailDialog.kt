@@ -27,7 +27,7 @@ import com.monsivamon.golender.data.util.*
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
 
-// 予定詳細ダイアログを表示する（編集・複数日予定の一部削除・写真表示・共有に対応）。
+// 予定詳細ダイアログ（編集・複数日予定の一部削除・写真表示・共有に対応）
 @Composable
 fun EventDetailDialog(
     event: Event, currentDate: LocalDate, colors: AppColors,
@@ -37,8 +37,11 @@ fun EventDetailDialog(
     val context = LocalContext.current
     val s = event.localStartDate()
     val e = event.localEndDate()
+    // 複数日にまたがる予定かどうかを判定する
     val multiDay = s != e
+    // 拡大ビューアで表示中のインデックス（null なら非表示）
     var viewerIndex by remember { mutableStateOf<Int?>(null) }
+    // 繰り返しの種類に応じた接尾辞を用意する
     val recurringText = when (event.rrule) {
         "FREQ=DAILY" -> "（毎日）"
         "FREQ=WEEKLY" -> "（毎週）"
@@ -53,8 +56,10 @@ fun EventDetailDialog(
         containerColor = colors.surface,
         title = { Text(event.title + recurringText, color = colors.text, fontWeight = FontWeight.Bold) },
         text = {
+            // 詳細内容（日時・場所・メモ・写真）を縦スクロールで表示する
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // 日付と時刻の範囲
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("🕒", fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
                     Column {
@@ -62,6 +67,7 @@ fun EventDetailDialog(
                         Text(event.timeRangeString(), color = colors.textGray, fontSize = 14.sp)
                     }
                 }
+                // 場所（地図アプリで開くボタン付き）
                 if (event.location.isNotBlank()) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("📍", fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
@@ -72,6 +78,7 @@ fun EventDetailDialog(
                         }
                     }
                 }
+                // メモ（自由記述）
                 if (event.description.isNotBlank()) {
                     HorizontalDivider(color = colors.divider)
                     Column {
@@ -80,6 +87,7 @@ fun EventDetailDialog(
                         Text(event.description, color = colors.text, fontSize = 14.sp)
                     }
                 }
+                // 添付写真のサムネイル一覧
                 if (photos.isNotEmpty()) {
                     HorizontalDivider(color = colors.divider)
                     Column {
@@ -100,6 +108,7 @@ fun EventDetailDialog(
         },
         confirmButton = {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // 予定内容をテキストとして他アプリへ共有する
                 TextButton(onClick = {
                     val shareText = buildString {
                         appendLine(event.title + recurringText)
@@ -118,6 +127,7 @@ fun EventDetailDialog(
                     }
                     context.startActivity(Intent.createChooser(intent, "予定を共有"))
                 }) { Text("共有", color = colors.primaryAccent) }
+                // 編集（読み取り専用でなければ表示）
                 if (!event.isReadOnly) TextButton(onClick = onEdit) {
                     Text("編集", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
                 }
@@ -125,6 +135,7 @@ fun EventDetailDialog(
         },
         dismissButton = {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // 複数日かつ繰り返しでない場合のみ「この日だけ削除」を表示
                 if (!event.isReadOnly && multiDay && currentDate in s..e && event.rrule == null) {
                     TextButton(onClick = onSplitDelete) { Text("この日だけ削除", color = colors.sunRed) }
                     Spacer(Modifier.weight(1f))
@@ -134,6 +145,7 @@ fun EventDetailDialog(
         },
     )
 
+    // 写真拡大ビューアの表示（viewerIndex が非 null のとき）
     viewerIndex?.let { idx ->
         EventPhotoViewerDialog(
             photos = photos,
@@ -144,7 +156,7 @@ fun EventDetailDialog(
     }
 }
 
-// 詳細ダイアログ内の写真サムネイルを描画する。
+// 詳細ダイアログ内の写真サムネイルを描画する
 @Composable
 private fun EventDetailPhotoThumbnail(
     colors: AppColors,
@@ -161,6 +173,7 @@ private fun EventDetailPhotoThumbnail(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
+        // 内部保存の実ファイルを読み込んでサムネイル表示する
         val file = com.monsivamon.golender.data.util.PhotoStorage.getFile(context, fileName)
         AsyncImage(
             model = file,

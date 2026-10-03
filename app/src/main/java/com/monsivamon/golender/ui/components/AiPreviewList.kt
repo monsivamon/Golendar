@@ -18,7 +18,7 @@ import java.time.ZoneOffset
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-// AI解析結果のプレビュー一覧（チェックボックスで選択可能）
+// AI 解析結果のプレビュー一覧（チェックボックスで選択可能）
 @Composable
 fun AiPreviewList(
     events: List<LocalEvent>,
@@ -29,13 +29,14 @@ fun AiPreviewList(
     // イベント一覧をスクロール可能なリストで表示する
     LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
         itemsIndexed(events) { index, event ->
-            // 終日は UTC、時間指定はシステムTZで日時を解釈する
+            // 終日は UTC、時間指定はシステム TZ で日時を解釈する
             val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
             val startDt = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone)
             val endDt = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), zone)
             val dateStr = startDt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
             val timeStr = if (event.isAllDay) "終日" else "${startDt.format(DateTimeFormatter.ofPattern("HH:mm"))}-${endDt.format(DateTimeFormatter.ofPattern("HH:mm"))}"
-            // 1件分の行（チェックボックス＋日付・タイトル・時刻）
+
+            // 1 件分の行（チェックボックス＋日付・タイトル・時刻）
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically

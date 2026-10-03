@@ -35,6 +35,7 @@ fun WidgetHeader(
         modifier = GlanceModifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // タイトル文字列（残り幅を占有）
         Text(
             text = title,
             style = TextStyle(
@@ -44,6 +45,7 @@ fun WidgetHeader(
             ),
             modifier = GlanceModifier.defaultWeight(),
         )
+        // 更新ボタンと設定ボタンを並べる
         WidgetRefreshButton(colors = colors)
         WidgetSettingsButton(colors = colors)
     }
@@ -56,6 +58,7 @@ fun WidgetRefreshButton(
     touchSize: Int = 32,
     iconSize: Int = 18,
 ) {
+    // タップ時に WidgetUpdateAction を実行するアイコンボタン
     Box(
         modifier = GlanceModifier
             .size(touchSize.dp)
@@ -78,11 +81,13 @@ fun WidgetSettingsButton(
     touchSize: Int = 32,
     iconSize: Int = 18,
 ) {
+    // 設定画面を開く Intent を組み立てる
     val context = LocalContext.current
     val openSettingsIntent = Intent(context, MainActivity::class.java).apply {
         putExtra(MainActivity.EXTRA_ROUTE, Routes.SETTINGS)
     }
 
+    // タップ時に設定画面を起動するアイコンボタン
     Box(
         modifier = GlanceModifier
             .size(touchSize.dp)

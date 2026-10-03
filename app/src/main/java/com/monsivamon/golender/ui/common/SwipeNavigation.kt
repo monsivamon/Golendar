@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlin.math.abs
 
-// 月・週・日で共通のスワイプ設定値を保持する。
+// 月・週・日で共通のスワイプ設定値を保持する
 object CalendarSwipeDefaults {
     const val REQUIRED_SWIPES = 2
     const val RESET_TIMEOUT_MILLIS = 1000L
@@ -33,7 +33,7 @@ object CalendarSwipeDefaults {
     const val FLING_MAX_DURATION_MILLIS = 250L
 }
 
-// カレンダー用スワイプの共通エントリポイント。
+// カレンダー用スワイプの共通エントリポイント
 fun Modifier.swipeToNavigateCalendar(
     onSwipeUp: () -> Unit,
     onSwipeDown: () -> Unit,
@@ -48,7 +48,7 @@ fun Modifier.swipeToNavigateCalendar(
     ignoreConsumption = CalendarSwipeDefaults.IGNORE_CONSUMPTION,
 )
 
-// 縦スワイプで前後の期間へ移動するModifier。
+// 縦スワイプで前後の期間へ移動する Modifier
 fun Modifier.swipeToNavigate(
     onSwipeUp: () -> Unit,
     onSwipeDown: () -> Unit,
@@ -59,6 +59,7 @@ fun Modifier.swipeToNavigate(
     resetTimeoutMillis: Long = 1000L,
     ignoreConsumption: Boolean = false,
 ): Modifier = composed {
+    // 最新のコールバックを保持する
     val currentOnSwipeUp by rememberUpdatedState(onSwipeUp)
     val currentOnSwipeDown by rememberUpdatedState(onSwipeDown)
 
@@ -68,11 +69,13 @@ fun Modifier.swipeToNavigate(
     ) {
         val thresholdPx = threshold.dp.toPx()
 
+        // 連続スワイプ判定用のカウンタと直近情報
         var swipeCount = 0
         var lastDirection = 0
         var lastSwipeTime = 0L
 
         awaitEachGesture {
+            // ダウン開始とベロシティトラッカーを用意する
             val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
             val velocityTracker = VelocityTracker()
 
@@ -81,6 +84,7 @@ fun Modifier.swipeToNavigate(
             var trackingStarted = false
             val pointerId = down.id
 
+            // 指が離れるまで位置を追跡する
             while (true) {
                 val event = awaitPointerEvent(PointerEventPass.Final)
                 val change = event.changes.firstOrNull { it.id == pointerId } ?: break
@@ -98,6 +102,7 @@ fun Modifier.swipeToNavigate(
                 }
             }
 
+            // 移動量とベロシティから方向を判定する
             val velocityY = if (trackingStarted) velocityTracker.calculateVelocity().y else 0f
             val duration = lastUptime - down.uptimeMillis
 
@@ -117,6 +122,7 @@ fun Modifier.swipeToNavigate(
             val direction = if (distanceDirection != 0) distanceDirection else flingDirection
             if (direction == 0) return@awaitEachGesture
 
+            // 同方向のスワイプを一定時間内に繰り返したらカウントする
             val now = System.currentTimeMillis()
             if (direction == lastDirection && now - lastSwipeTime < resetTimeoutMillis) {
                 swipeCount++
@@ -126,6 +132,7 @@ fun Modifier.swipeToNavigate(
             }
             lastSwipeTime = now
 
+            // 必要回数に達したらコールバックを発火する
             if (swipeCount >= requiredSwipes) {
                 swipeCount = 0
                 lastDirection = 0
@@ -135,12 +142,13 @@ fun Modifier.swipeToNavigate(
     }
 }
 
-// 横スワイプでタブを切り替えるModifier。
+// 横スワイプでタブを切り替える Modifier
 fun Modifier.swipeToNavigateHorizontal(
     onSwipeLeft: () -> Unit,
     onSwipeRight: () -> Unit,
     threshold: Float = 60f,
 ): Modifier = composed {
+    // 最新のコールバックを保持する
     val currentOnSwipeLeft by rememberUpdatedState(onSwipeLeft)
     val currentOnSwipeRight by rememberUpdatedState(onSwipeRight)
 
@@ -148,6 +156,7 @@ fun Modifier.swipeToNavigateHorizontal(
         val thresholdPx = threshold.dp.toPx()
         var accumulated = 0f
 
+        // ドラッグ終了時に閾値を超えていればコールバックを発火する
         detectHorizontalDragGestures(
             onDragStart = { accumulated = 0f },
             onDragCancel = { accumulated = 0f },
@@ -165,7 +174,7 @@ fun Modifier.swipeToNavigateHorizontal(
     }
 }
 
-// 期間切替時に縦スライドとフェードを行うトランジション。
+// 期間切替時に縦スライドとフェードを行うトランジション
 fun <T> AnimatedContentTransitionScope<T>.slideVertical(
     isForward: Boolean,
     durationMillis: Int = 250,
@@ -173,6 +182,7 @@ fun <T> AnimatedContentTransitionScope<T>.slideVertical(
     val slideSpec = tween<IntOffset>(durationMillis, easing = FastOutSlowInEasing)
     val fadeSpec = tween<Float>(durationMillis, easing = FastOutSlowInEasing)
 
+    // 進行方向に応じてスライドの向きを切り替える
     return if (isForward) {
         (slideInVertically(slideSpec) { it } + fadeIn(fadeSpec)) togetherWith
                 (slideOutVertically(slideSpec) { -it } + fadeOut(fadeSpec))

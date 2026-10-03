@@ -16,18 +16,20 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-// 押下時に全体をわずかに縮小する Modifier.Node。
+// 押下時に全体をわずかに縮小する Modifier.Node
 private class PressScaleIndicationNode(
     private val interactionSource: InteractionSource,
     private val pressedScale: Float,
     private val durationMillis: Int,
 ) : Modifier.Node(), DrawModifierNode {
 
+    // メインスレッドに紐づくコルーチンスコープ
     private val scope = CoroutineScope(SupervisorJob() + AndroidUiDispatcher.Main)
 
+    // 現在のスケール値をアニメーションで保持する
     private val scaleAnim = Animatable(1f)
 
-    // 押下・解放のインタラクションを監視して拡大縮小アニメーションを開始する。
+    // 押下・解放のインタラクションを監視して拡大縮小アニメーションを開始する
     override fun onAttach() {
         scope.launch {
             interactionSource.interactions.collect { interaction ->
@@ -45,12 +47,12 @@ private class PressScaleIndicationNode(
         }
     }
 
-    // ノード破棄時にコルーチンスコープをキャンセルする。
+    // ノード破棄時にコルーチンスコープをキャンセルする
     override fun onDetach() {
         scope.cancel()
     }
 
-    // 現在のスケール値で内容を描画する。
+    // 現在のスケール値で内容を描画する
     override fun ContentDrawScope.draw() {
         val s = scaleAnim.value
         if (s == 1f) {
@@ -65,9 +67,9 @@ private class PressScaleIndicationNode(
     }
 }
 
-// アプリ全体で押下時の縮小フィードバックを提供する Indication。
+// アプリ全体で押下時の縮小フィードバックを提供する Indication
 object PressScaleIndication : IndicationNodeFactory {
-    // IndicationNodeFactory 用の Indication ノードを生成する。
+    // Indication ノードを生成する
     override fun create(interactionSource: InteractionSource): DelegatableNode =
         PressScaleIndicationNode(
             interactionSource = interactionSource,
@@ -75,9 +77,9 @@ object PressScaleIndication : IndicationNodeFactory {
             durationMillis = 100,
         )
 
-    // IndicationNodeFactory 用の hashCode を返す。
+    // IndicationNodeFactory 用の hashCode を返す
     override fun hashCode(): Int = "PressScaleIndication".hashCode()
 
-    // IndicationNodeFactory 用の equals を返す。
+    // IndicationNodeFactory 用の equals を返す
     override fun equals(other: Any?): Boolean = other is PressScaleIndication
 }

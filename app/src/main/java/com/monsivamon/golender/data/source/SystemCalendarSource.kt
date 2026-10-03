@@ -7,58 +7,94 @@ import android.provider.CalendarContract
 import com.monsivamon.golender.data.Event
 import java.util.TimeZone
 
-// カレンダーごとのアクセス権限・祝日・誕生日情報を保持するデータクラス。
+// カレンダーごとのアクセス権限・祝日・誕生日情報を保持するデータクラス
 data class CalendarInfo(val accessLevel: Int, val isHoliday: Boolean, val isBirthday: Boolean)
 
-// システムカレンダー（CalendarContract）の読み書きを担当するソース。
+// カレンダーのメタ情報（表示名・色・権限・種別）を保持するデータクラス
+data class CalendarMeta(
+    val id: Long,
+    val accountName: String,
+    val displayName: String,
+    val defaultColor: Int,
+    val isHoliday: Boolean,
+    val isBirthday: Boolean,
+    val accessLevel: Int
+)
+
+// システムカレンダー（CalendarContract）の読み書きを担当するソース
 class SystemCalendarSource(private val context: Context) {
 
-    // カレンダーIDごとのアクセス権限・祝日・誕生日情報を取得する。
-    private fun getCalendarInfo(): Map<Long, CalendarInfo> {
-        val map = mutableMapOf<Long, CalendarInfo>()
+    // 全カレンダーのメタ情報を取得する
+    fun getAllCalendars(): List<CalendarMeta> {
+        val list = mutableListOf<CalendarMeta>()
+        // 取得する列を定義する
         val projection = arrayOf(
             CalendarContract.Calendars._ID,
             CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
             CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
             CalendarContract.Calendars.ACCOUNT_NAME,
-            CalendarContract.Calendars.NAME
+            CalendarContract.Calendars.NAME,
+            CalendarContract.Calendars.CALENDAR_COLOR
         )
         try {
+            // カーソルを回して 1 カレンダーずつメタ情報を組み立てる
             context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, projection, null, null, null)?.use { cursor ->
-                while (cursor.moveToNext()) {
-                    val accessLevel = cursor.getInt(1)
-                    val dispName = cursor.getString(2) ?: ""
-                    val accountName = cursor.getString(3) ?: ""
-                    val sysName = cursor.getString(4) ?: ""
+                val idIdx = cursor.getColumnIndex(CalendarContract.Calendars._ID)
+                val accessIdx = cursor.getColumnIndex(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL)
+                val dispIdx = cursor.getColumnIndex(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME)
+                val accIdx = cursor.getColumnIndex(CalendarContract.Calendars.ACCOUNT_NAME)
+                val sysIdx = cursor.getColumnIndex(CalendarContract.Calendars.NAME)
+                val colorIdx = cursor.getColumnIndex(CalendarContract.Calendars.CALENDAR_COLOR)
 
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idIdx)
+                    val accessLevel = cursor.getInt(accessIdx)
+                    val dispName = cursor.getString(dispIdx) ?: ""
+                    val accountName = cursor.getString(accIdx) ?: ""
+                    val sysName = cursor.getString(sysIdx) ?: ""
+                    val color = cursor.getInt(colorIdx)
+
+                    // 表示名・アカウント名・内部名から祝日カレンダーを判定する
                     val isHoliday = dispName.contains("祝日") ||
                             dispName.contains("休日") ||
                             dispName.contains("holiday", ignoreCase = true) ||
                             accountName.contains("holiday", ignoreCase = true) ||
                             sysName.contains("holiday", ignoreCase = true)
-
+                    // 表示名・アカウント名・内部名から誕生日カレンダーを判定する
                     val isBirthday = dispName.contains("誕生日") ||
                             dispName.contains("birthdays", ignoreCase = true) ||
                             accountName.contains("#contacts@group.v.calendar.google.com") ||
                             sysName.contains("contacts", ignoreCase = true)
 
-                    map[cursor.getLong(0)] = CalendarInfo(accessLevel, isHoliday, isBirthday)
+                    list.add(CalendarMeta(id, accountName, dispName, color, isHoliday, isBirthday, accessLevel))
                 }
             }
         } catch (_: Exception) {}
+        return list
+    }
+
+    // カレンダー ID ごとのアクセス権限・祝日・誕生日情報を返す
+    private fun getCalendarInfo(): Map<Long, CalendarInfo> {
+        val map = mutableMapOf<Long, CalendarInfo>()
+        val metas = getAllCalendars()
+        for (meta in metas) {
+            map[meta.id] = CalendarInfo(meta.accessLevel, meta.isHoliday, meta.isBirthday)
+        }
         return map
     }
 
-    // 月表示用にシステムカレンダーの予定を取得する（読み取り専用・祝日・誕生日フラグ付き）。
+    // 期間とカレンダー ID 群を指定して Instances から予定を取得する
     fun getEventsForMonth(startMillis: Long, endMillis: Long, calendarIds: List<Long>? = null): List<Event> {
         val events = mutableListOf<Event>()
         val calInfo = getCalendarInfo()
 
+        // Instances の期間 URI を組み立てる
         val builder = CalendarContract.Instances.CONTENT_URI.buildUpon()
         ContentUris.appendId(builder, startMillis)
         ContentUris.appendId(builder, endMillis)
         val uri = builder.build()
 
+        // 取得する列を定義する
         val projection = arrayOf(
             CalendarContract.Instances.EVENT_ID,
             CalendarContract.Instances.TITLE,
@@ -71,14 +107,15 @@ class SystemCalendarSource(private val context: Context) {
             CalendarContract.Instances.RRULE
         )
 
+        // カレンダー ID フィルタを組み立てる
         val selectionBuilder = java.lang.StringBuilder("1=1")
         val selectionArgs = mutableListOf<String>()
-
         if (!calendarIds.isNullOrEmpty()) {
             selectionBuilder.append(" AND ${CalendarContract.Instances.CALENDAR_ID} IN (${calendarIds.joinToString(",") { "?" }})")
             selectionArgs.addAll(calendarIds.map { it.toString() })
         }
 
+        // カーソルを回して Event を組み立てる
         context.contentResolver.query(uri, projection, selectionBuilder.toString(), selectionArgs.toTypedArray(), "${CalendarContract.Instances.BEGIN} ASC")?.use { cursor ->
             val idIdx = cursor.getColumnIndex(CalendarContract.Instances.EVENT_ID)
             val titleIdx = cursor.getColumnIndex(CalendarContract.Instances.TITLE)
@@ -97,6 +134,7 @@ class SystemCalendarSource(private val context: Context) {
                 val isHolidayCalendar = info.isHoliday
                 val isBirthdayCalendar = info.isBirthday
 
+                // 祝日カレンダーや「非表示」指定は説明を空にする
                 val rawDescription = cursor.getString(descIdx) ?: ""
                 val finalDescription = if (isHolidayCalendar || rawDescription.contains("非表示")) "" else rawDescription
 
@@ -121,11 +159,12 @@ class SystemCalendarSource(private val context: Context) {
         return events
     }
 
-    // バックアップ用に指定アカウントの全イベントを取得する（祝日・誕生日フラグ付き）。
+    // バックアップ用に指定アカウントの全 Events を取得する
     fun getAllGoogleEvents(accountName: String?): List<Event> {
         val events = mutableListOf<Event>()
         val calInfo = getCalendarInfo()
 
+        // 取得する列を定義する
         val projection = arrayOf(
             CalendarContract.Events._ID,
             CalendarContract.Events.TITLE,
@@ -138,9 +177,9 @@ class SystemCalendarSource(private val context: Context) {
             CalendarContract.Events.RRULE
         )
 
+        // 削除済みを除外しつつアカウントのカレンダーで絞り込む
         val selectionBuilder = java.lang.StringBuilder("${CalendarContract.Events.DELETED} != 1")
         val selectionArgs = mutableListOf<String>()
-
         if (accountName != null) {
             val calendarIds = getCalendarIdsForAccount(accountName)
             if (calendarIds.isNotEmpty()) {
@@ -151,6 +190,7 @@ class SystemCalendarSource(private val context: Context) {
             }
         }
 
+        // カーソルを回して Event を組み立てる
         context.contentResolver.query(
             CalendarContract.Events.CONTENT_URI,
             projection,
@@ -175,6 +215,7 @@ class SystemCalendarSource(private val context: Context) {
                 val isHolidayCalendar = info.isHoliday
                 val isBirthdayCalendar = info.isBirthday
 
+                // DTEND が無い終日予定は DTSTART と同値にする
                 val start = cursor.getLong(startIdx)
                 val end = cursor.getLong(endIdx).takeIf { it > 0 } ?: start
 
@@ -202,7 +243,7 @@ class SystemCalendarSource(private val context: Context) {
         return events
     }
 
-    // 利用可能なGoogleアカウント一覧を取得する（「@」を含む実アカウントのみ）。
+    // 実アカウント（「@」を含む）のみを抽出してソートして返す
     fun getAccountNames(): List<String> {
         val cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars.ACCOUNT_NAME), null, null, null)
         val accounts = mutableSetOf<String>()
@@ -217,7 +258,7 @@ class SystemCalendarSource(private val context: Context) {
         return accounts.toList().sorted()
     }
 
-    // アカウント名に紐づくカレンダーIDリストを取得する。
+    // アカウント名に紐づくカレンダー ID リストを返す
     fun getCalendarIdsForAccount(accountName: String): List<Long> {
         val cursor = context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars._ID), "${CalendarContract.Calendars.ACCOUNT_NAME} = ?", arrayOf(accountName), null)
         val ids = mutableListOf<Long>()
@@ -225,12 +266,12 @@ class SystemCalendarSource(private val context: Context) {
         return ids
     }
 
-    // 祝日・誕生日カレンダーのIDのみを取得する（特殊カレンダーの識別用）。
+    // 祝日・誕生日カレンダーの ID のみを返す
     fun getSpecialCalendarIds(): List<Long> {
         return getCalendarInfo().filter { it.value.isHoliday || it.value.isBirthday }.map { it.key }
     }
 
-    // 予定作成に使う優先カレンダーIDを解決する（プライマリ→最初のID→デフォルト1）。
+    // 予定挿入先の優先カレンダー ID を解決する（プライマリ→先頭→1）
     private fun getTargetCalendarId(accountName: String?): Long {
         if (accountName != null) {
             context.contentResolver.query(CalendarContract.Calendars.CONTENT_URI, arrayOf(CalendarContract.Calendars._ID), "${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND ${CalendarContract.Calendars.IS_PRIMARY} = 1", arrayOf(accountName), null)?.use { if (it.moveToFirst()) return it.getLong(0) }
@@ -241,7 +282,7 @@ class SystemCalendarSource(private val context: Context) {
         return 1L
     }
 
-    // システムカレンダーに予定を新規作成する（終日予定はタイムゾーンをUTCに設定）。
+    // アカウント指定で予定を新規作成する（終日予定は TZ を UTC に）
     fun insertEvent(title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?, accountName: String? = null): Long? {
         val values = ContentValues().apply {
             put(CalendarContract.Events.DTSTART, startMillis)
@@ -257,7 +298,28 @@ class SystemCalendarSource(private val context: Context) {
         return context.contentResolver.insert(CalendarContract.Events.CONTENT_URI, values)?.lastPathSegment?.toLongOrNull()
     }
 
-    // システムカレンダーの予定を更新する（終日予定はタイムゾーンをUTCに設定）。
+    // 挿入先カレンダー ID を直接指定して予定を新規作成する（復元時などに使用）
+    fun insertEventWithCalendarId(
+        title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean,
+        location: String, description: String, rrule: String?, calendarId: Long,
+    ): Long? {
+        val values = ContentValues().apply {
+            put(CalendarContract.Events.DTSTART, startMillis)
+            put(CalendarContract.Events.DTEND, endMillis)
+            put(CalendarContract.Events.TITLE, title)
+            put(CalendarContract.Events.CALENDAR_ID, calendarId)
+            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else TimeZone.getDefault().id)
+            put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
+            put(CalendarContract.Events.EVENT_LOCATION, location)
+            put(CalendarContract.Events.DESCRIPTION, description)
+            if (rrule != null) put(CalendarContract.Events.RRULE, rrule)
+        }
+        return context.contentResolver
+            .insert(CalendarContract.Events.CONTENT_URI, values)
+            ?.lastPathSegment?.toLongOrNull()
+    }
+
+    // システムカレンダーの予定を更新する（終日予定は TZ を UTC に）
     fun updateEvent(eventId: Long, title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean, location: String, description: String, rrule: String?): Boolean {
         val values = ContentValues().apply {
             put(CalendarContract.Events.DTSTART, startMillis)
@@ -272,6 +334,6 @@ class SystemCalendarSource(private val context: Context) {
         return context.contentResolver.update(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), values, null, null) > 0
     }
 
-    // システムカレンダーの予定を削除する。
+    // システムカレンダーの予定を削除する
     fun deleteEvent(eventId: Long): Boolean = context.contentResolver.delete(ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId), null, null) > 0
 }

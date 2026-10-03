@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import com.monsivamon.golender.ui.theme.AppColors
 
-// アプリ終了確認ダイアログ
+// アプリ終了の確認ダイアログを表示する
 @Composable
 fun ExitConfirmDialog(
     colors: AppColors,
@@ -20,6 +20,7 @@ fun ExitConfirmDialog(
         title = { Text("終了しますか？", color = colors.text, fontWeight = FontWeight.Bold) },
         text = { Text("Golendarを終了します。", color = colors.text) },
         confirmButton = {
+            // 終了を実行する（赤色で強調）
             TextButton(onClick = onConfirm) {
                 Text("終了", color = colors.sunRed, fontWeight = FontWeight.Bold)
             }

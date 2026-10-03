@@ -26,7 +26,7 @@ import com.monsivamon.golender.ui.theme.previewColor
 import com.monsivamon.golender.viewmodel.ThemeMode
 import java.time.DayOfWeek
 
-// アプリ全体の背景色を選択するダイアログを表示する。
+// アプリ全体の背景色を選択するダイアログを表示する
 @Composable
 fun BackgroundColorPickerDialog(
     colors: AppColors,
@@ -36,6 +36,7 @@ fun BackgroundColorPickerDialog(
     onDismiss: () -> Unit,
     onColorSelected: (Color) -> Unit,
 ) {
+    // 現在のテーマがダークかどうかを判定する
     val isDarkTheme = when (themeMode) {
         ThemeMode.DARK -> true
         ThemeMode.LIGHT -> false
@@ -49,6 +50,7 @@ fun BackgroundColorPickerDialog(
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
 
+                // ダークモード時の見え方を説明する
                 Text(
                     text = if (isDarkTheme)
                         "ダークモードでは選択した色が自動的に暗く表示されます。"
@@ -59,6 +61,7 @@ fun BackgroundColorPickerDialog(
                     modifier = Modifier.padding(bottom = 12.dp),
                 )
 
+                // カスタム色を解除する「標準」行
                 StandardRow(
                     colors = colors,
                     isSelected = currentColor == Color.Unspecified,
@@ -69,6 +72,7 @@ fun BackgroundColorPickerDialog(
 
                 Spacer(Modifier.height(12.dp))
 
+                // パステルカラーのスウォッチグリッド
                 ColorSwatchGrid(
                     palette = PastelColorPalette,
                     colors = colors,
@@ -86,7 +90,7 @@ fun BackgroundColorPickerDialog(
     )
 }
 
-// 指定曜日の文字色を選択するダイアログを表示する。
+// 指定曜日の文字色を選択するダイアログを表示する
 @Composable
 fun DayColorPickerDialog(
     day: DayOfWeek,
@@ -101,6 +105,7 @@ fun DayColorPickerDialog(
         title = { Text("${day.jpShort()}曜日の色", color = colors.text, fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
+                // カスタム色を解除する「標準」行
                 StandardRow(
                     colors = colors,
                     isSelected = currentColor == Color.Unspecified,
@@ -109,6 +114,7 @@ fun DayColorPickerDialog(
                     onDismiss()
                 }
                 Spacer(Modifier.height(12.dp))
+                // 曜日色パレットのスウォッチグリッド
                 ColorSwatchGrid(
                     palette = DayColorPalette,
                     colors = colors,
@@ -126,7 +132,7 @@ fun DayColorPickerDialog(
     )
 }
 
-// カスタム色を解除する「標準（カスタムなし）」行を表示する。
+// カスタム色を解除する「標準（カスタムなし）」行を表示する
 @Composable
 private fun StandardRow(
     colors: AppColors,
@@ -149,11 +155,13 @@ private fun StandardRow(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("標準（カスタムなし）", color = colors.text, fontSize = 15.sp)
+            // 選択中はチェックマークを表示する
             if (isSelected) {
                 Spacer(Modifier.width(8.dp))
                 Text("✓ 選択中", color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
+        // カスタムなしを意味する「/」付きの丸
         Box(
             modifier = Modifier
                 .size(24.dp)
@@ -166,7 +174,7 @@ private fun StandardRow(
     }
 }
 
-// 4列の色見本グリッドを表示し、選択された色をコールバックする。
+// 4 列の色見本グリッドを表示し、選択された色をコールバックする
 @Composable
 private fun ColorSwatchGrid(
     palette: List<Color>,
@@ -176,12 +184,15 @@ private fun ColorSwatchGrid(
     onColorSelected: (Color) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        // 4 色ずつ行に分けて描画する
         palette.chunked(4).forEach { rowColors ->
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 rowColors.forEach { baseColor ->
+                    // ダークテーマでの見え方をプレビューする
                     val previewed = previewColor(baseColor, isDarkTheme)
                     val isSelected = currentColor == baseColor
 
+                    // 選択時のチェックマーク色を輝度から決める
                     val checkColor = if (previewed.luminance() > 0.5f) Color.Black else Color.White
 
                     Box(
@@ -199,6 +210,7 @@ private fun ColorSwatchGrid(
                             .clickable { onColorSelected(baseColor) },
                         contentAlignment = Alignment.Center,
                     ) {
+                        // 選択中はチェックマークを表示する
                         if (isSelected) {
                             Text(
                                 text = "✓",
@@ -209,6 +221,7 @@ private fun ColorSwatchGrid(
                         }
                     }
                 }
+                // 余り列をスペーサで埋める
                 repeat(4 - rowColors.size) {
                     Spacer(Modifier.weight(1f))
                 }

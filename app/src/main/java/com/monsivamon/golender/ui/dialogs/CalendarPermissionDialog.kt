@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.ui.theme.AppColors
 
-// Googleカレンダーへのアクセス許可を案内するダイアログを表示する。
+// Google カレンダーへのアクセス許可を案内するダイアログを表示する
 @Composable
 fun CalendarPermissionDialog(
     colors: AppColors,
@@ -22,11 +22,13 @@ fun CalendarPermissionDialog(
     onResult: (granted: Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    // 読み取り・書き込みの複数権限を要求するランチャー
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val readGranted = permissions[Manifest.permission.READ_CALENDAR] == true
         val writeGranted = permissions[Manifest.permission.WRITE_CALENDAR] == true
+        // 読み書き両方が許可された場合のみ成功扱い
         onResult(readGranted && writeGranted)
     }
 

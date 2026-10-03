@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.ui.theme.AppColors
 import kotlinx.coroutines.launch
 
-// ジェスチャー案内の1ページ分を表すデータクラス。
+// ジェスチャー案内の 1 ページ分を表すデータクラス
 private data class GesturePage(
     val title: String,
     val description: String,
@@ -44,15 +44,17 @@ private data class GesturePage(
     val baseIllustration: @Composable (AppColors) -> Unit,
 )
 
-// 初回起動時にジェスチャー操作を3ページで案内するダイアログを表示する。
+// 初回起動時にジェスチャー操作を 3 ページで案内するダイアログを表示する
 @Composable
 fun GestureSetupDialog(
     colors: AppColors,
     onComplete: () -> Unit,
 ) {
+    // ページャー状態とスクロール用スコープ
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
 
+    // 3 ページ分の内容を定義する
     val pages = listOf(
         GesturePage(
             title = "上下スワイプで前後の期間へ",
@@ -74,6 +76,7 @@ fun GestureSetupDialog(
         ),
     )
 
+    // 最終ページかどうかを判定する
     val isLastPage = pagerState.currentPage == pages.lastIndex
 
     AlertDialog(
@@ -85,6 +88,7 @@ fun GestureSetupDialog(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                // ページごとにイラスト・タイトル・説明を切り替える
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxWidth().height(340.dp),
@@ -95,6 +99,7 @@ fun GestureSetupDialog(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
+                        // ベースイラスト＋オーバーレイ画像を重ねて表示する
                         IllustrationWithOverlay(
                             colors = colors,
                             overlayName = p.overlayName,
@@ -123,6 +128,7 @@ fun GestureSetupDialog(
                     }
                 }
 
+                // ページインジケータ
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
                     horizontalArrangement = Arrangement.Center,
@@ -145,6 +151,7 @@ fun GestureSetupDialog(
             }
         },
         confirmButton = {
+            // 次へ／始めるボタン
             TextButton(onClick = {
                 if (!isLastPage) {
                     scope.launch {
@@ -163,6 +170,7 @@ fun GestureSetupDialog(
             }
         },
         dismissButton = {
+            // スキップ／戻るボタン
             if (!isLastPage) {
                 TextButton(onClick = onComplete) {
                     Text("スキップ", color = colors.textGray)
@@ -180,7 +188,7 @@ fun GestureSetupDialog(
     )
 }
 
-// ベースイラストの上に透過PNGオーバーレイを重ねて描画する。
+// ベースイラストの上に透過 PNG オーバーレイを重ねて描画する
 @Composable
 private fun IllustrationWithOverlay(
     colors: AppColors,
@@ -188,6 +196,7 @@ private fun IllustrationWithOverlay(
     base: @Composable (AppColors) -> Unit,
 ) {
     val context = LocalContext.current
+    // 文字列名から drawable リソース ID を解決する
     val overlayResId = remember(overlayName) {
         context.resources.getIdentifier(overlayName, "drawable", context.packageName)
     }
@@ -200,6 +209,7 @@ private fun IllustrationWithOverlay(
     ) {
         base(colors)
 
+        // リソースが見つかった場合のみオーバーレイを描画する
         if (overlayResId != 0) {
             Image(
                 painter = painterResource(id = overlayResId),
@@ -211,12 +221,12 @@ private fun IllustrationWithOverlay(
     }
 }
 
-// リソース存在チェック（デバッグ用）。
+// リソース存在チェック（デバッグ用）
 @Suppress("unused")
 private fun Context.hasDrawable(name: String): Boolean =
     resources.getIdentifier(name, "drawable", packageName) != 0
 
-// 上下スワイプのベースイラストを描画する。
+// 上下スワイプのベースイラストを描画する
 @Composable
 private fun VerticalSwipeBase(colors: AppColors) {
     Box(
@@ -227,6 +237,7 @@ private fun VerticalSwipeBase(colors: AppColors) {
             .border(2.dp, colors.divider, RoundedCornerShape(20.dp)),
         contentAlignment = Alignment.Center,
     ) {
+        // 中央の「×2」バッジ
         Box(
             modifier = Modifier
                 .size(56.dp)
@@ -237,6 +248,7 @@ private fun VerticalSwipeBase(colors: AppColors) {
             Text("×2", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
 
+        // 上方向の矢印
         Icon(
             imageVector = Icons.Default.KeyboardArrowUp,
             contentDescription = null,
@@ -247,6 +259,7 @@ private fun VerticalSwipeBase(colors: AppColors) {
                 .size(48.dp),
         )
 
+        // 下方向の矢印
         Icon(
             imageVector = Icons.Default.KeyboardArrowDown,
             contentDescription = null,
@@ -257,6 +270,7 @@ private fun VerticalSwipeBase(colors: AppColors) {
                 .size(48.dp),
         )
 
+        // 左右の「前へ／次へ」ラベル
         Text(
             "前へ",
             color = colors.textGray,
@@ -276,7 +290,7 @@ private fun VerticalSwipeBase(colors: AppColors) {
     }
 }
 
-// 左右スワイプのベースイラストを描画する。
+// 左右スワイプのベースイラストを描画する
 @Composable
 private fun HorizontalSwipeBase(colors: AppColors) {
     Box(
@@ -287,6 +301,7 @@ private fun HorizontalSwipeBase(colors: AppColors) {
             .border(2.dp, colors.divider, RoundedCornerShape(20.dp)),
         contentAlignment = Alignment.Center,
     ) {
+        // 日・週・月のタブ風ピル
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -296,6 +311,7 @@ private fun HorizontalSwipeBase(colors: AppColors) {
             TabPill("月", colors, selected = true)
         }
 
+        // 左方向の矢印
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
             contentDescription = null,
@@ -306,6 +322,7 @@ private fun HorizontalSwipeBase(colors: AppColors) {
                 .size(40.dp),
         )
 
+        // 右方向の矢印
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
@@ -316,6 +333,7 @@ private fun HorizontalSwipeBase(colors: AppColors) {
                 .size(40.dp),
         )
 
+        // 下部の説明テキスト
         Text(
             "左右にスワイプ",
             color = colors.textGray,
@@ -327,7 +345,7 @@ private fun HorizontalSwipeBase(colors: AppColors) {
     }
 }
 
-// 準備完了ページのベースイラストを描画する。
+// 準備完了ページのベースイラストを描画する
 @Composable
 private fun ReadyBase(colors: AppColors) {
     Box(
@@ -338,6 +356,7 @@ private fun ReadyBase(colors: AppColors) {
             .border(2.dp, colors.divider, RoundedCornerShape(20.dp)),
         contentAlignment = Alignment.Center,
     ) {
+        // 中央に大きなチェックアイコン
         Icon(
             imageVector = Icons.Default.CheckCircle,
             contentDescription = null,
@@ -347,7 +366,7 @@ private fun ReadyBase(colors: AppColors) {
     }
 }
 
-// タブ風の小さなピルを描画する。
+// タブ風の小さなピルを描画する
 @Composable
 private fun TabPill(label: String, colors: AppColors, selected: Boolean = false) {
     Box(

@@ -33,7 +33,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import com.monsivamon.golender.ui.dialogs.AiParseDialog
-import com.monsivamon.golender.data.LocalEvent
 
 // 週間カレンダー画面（週の日付ごとの予定一覧と追加・編集・詳細を扱う）
 @Composable
@@ -43,7 +42,7 @@ fun WeeklyCalendarScreen(
     isSearchMode: Boolean,
     onSearchResultSelected: (LocalDate) -> Unit = {},
 ) {
-    // ViewModelから各種状態を購読する
+    // ViewModel から各種状態を購読する
     val selectedDate by viewModel.selectedDate.collectAsState()
     val events by viewModel.events.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
@@ -54,7 +53,14 @@ fun WeeklyCalendarScreen(
     val dayColors by viewModel.dayColors.collectAsState()
     val customBg by viewModel.calendarBgColor.collectAsState()
     val colors = getAppColors(themeMode, customBg)
-    // ダイアログ表示や選択中イベントのUI状態
+
+    // 可視カレンダー数が 2 以上なら予定カードにカレンダー名を表示する
+    val visibleCalendarCount by remember {
+        derivedStateOf { viewModel.selectedCalendars.value.count { it.isVisible } }
+    }
+    val showCalendarName = visibleCalendarCount >= 2
+
+    // 予定ダイアログ・詳細ダイアログ・AI 解析の表示状態
     var showEventDialog by remember { mutableStateOf(false) }
     var showAiParseDialog by remember { mutableStateOf(false) }
     var editingEvent by remember { mutableStateOf<Event?>(null) }
@@ -65,168 +71,90 @@ fun WeeklyCalendarScreen(
     var fromCalendar by remember { mutableStateOf(false) }
     var editingPhotos by remember { mutableStateOf<List<EventPhoto>>(emptyList()) }
     var detailPhotos by remember { mutableStateOf<List<EventPhoto>>(emptyList()) }
-    // AI解析の初回説明完了フラグを購読する
     val aiSetupDone by viewModel.aiSetupDone.collectAsState()
-    // 閲覧対象が変わったら添付写真を読み込む
-    LaunchedEffect(viewingEvent) {
-        detailPhotos = viewingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList()
-    }
-    // 編集対象が変わったら添付写真を読み込む
-    LaunchedEffect(editingEvent) {
-        editingPhotos = editingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList()
-    }
-    // 検索モード中は結果リストを表示して終了する
+
+    // 閲覧・編集対象の予定が変わったら添付写真を読み込む
+    LaunchedEffect(viewingEvent) { detailPhotos = viewingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList() }
+    LaunchedEffect(editingEvent) { editingPhotos = editingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList() }
+
+    // 検索モード中は検索結果リストを表示して終了する
     if (isSearchMode) {
-        SearchResultsList(
-            query = searchQuery,
-            results = searchResults,
-            isLoading = isSearchLoading,
-            colors = colors,
-            onResultSelected = { event ->
-                onSearchResultSelected(event.localStartDate())
-            },
-        )
+        SearchResultsList(query = searchQuery, results = searchResults, isLoading = isSearchLoading, colors = colors, showCalendarName = showCalendarName, onResultSelected = { event -> onSearchResultSelected(event.localStartDate()) })
         return
     }
+
     // 選択日が属する週の開始日を算出する
     val offset = (selectedDate.dayOfWeek.value - weekStartDay.value + 7) % 7
     val startOfWeek = selectedDate.minusDays(offset.toLong())
-    // 縦スワイプで前後の週へ移動する
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .swipeToNavigateCalendar(
-                onSwipeUp = { viewModel.selectDate(selectedDate.plusWeeks(1)) },
-                onSwipeDown = { viewModel.selectDate(selectedDate.minusWeeks(1)) },
-            )
-    ) {
+
+    // 縦スワイプで前後の週へ移動するコンテナ
+    Box(modifier = Modifier.fillMaxSize().swipeToNavigateCalendar(
+        onSwipeUp = { viewModel.selectDate(selectedDate.plusWeeks(1)) },
+        onSwipeDown = { viewModel.selectDate(selectedDate.minusWeeks(1)) },
+    )) {
         // 週が切り替わったらスライドアニメーションで切替える
-        AnimatedContent(
-            targetState = startOfWeek,
-            transitionSpec = { slideVertical(isForward = targetState > initialState) },
-            modifier = Modifier.fillMaxSize(),
-            label = "weekTransition",
-        ) { weekStart ->
+        AnimatedContent(targetState = startOfWeek, transitionSpec = { slideVertical(isForward = targetState > initialState) }, modifier = Modifier.fillMaxSize(), label = "weekTransition") { weekStart ->
             val weekEnd = weekStart.plusDays(6)
             // 週の範囲に重なる予定を抽出する
-            val weekEvents = events.filter {
-                it.localStartDate() <= weekEnd && it.localEndDate() >= weekStart
-            }
+            val weekEvents = events.filter { it.localStartDate() <= weekEnd && it.localEndDate() >= weekStart }
             LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                 val weekDates = (0..6).map { weekStart.plusDays(it.toLong()) }
                 weekDates.forEach { date ->
                     item {
+                        // その日の予定を抽出し、曜日ごとの色を決める
                         val dayEvents = weekEvents.filter { it.occursOn(date) }
                         val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
                         val dayColor = if (c == Color.Unspecified) colors.text else c
-                        // その日の日付ヘッダーと件数
-                        Text(
-                            "${date.monthValue}月${date.dayOfMonth}日 (${getJpDayOfWeek(date.dayOfWeek)})  ${dayEvents.size}件",
-                            fontSize = 18.sp, fontWeight = FontWeight.Bold, color = dayColor,
-                            modifier = Modifier.padding(bottom = 8.dp, top = 16.dp),
-                        )
-                        // 予定なし or 予定カード一覧
+                        // 日付ヘッダーと件数
+                        Text("${date.monthValue}月${date.dayOfMonth}日 (${getJpDayOfWeek(date.dayOfWeek)})  ${dayEvents.size}件", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = dayColor, modifier = Modifier.padding(bottom = 8.dp, top = 16.dp))
                         if (dayEvents.isEmpty()) {
-                            Box(
-                                modifier = Modifier.fillMaxWidth()
-                                    .clickable {
-                                        editingEvent = null
-                                        dialogDateForNewEvent = date
-                                        fromCalendar = true
-                                        showEventDialog = true
-                                    }
-                                    .padding(vertical = 8.dp)
-                            ) {
-                                Text(
-                                    "予定なし",
-                                    color = colors.textGray, modifier = Modifier.padding(vertical = 4.dp),
-                                )
+                            // 予定なし時はタップで新規追加できる空状態を表示する
+                            Box(modifier = Modifier.fillMaxWidth().clickable { editingEvent = null; dialogDateForNewEvent = date; fromCalendar = true; showEventDialog = true }.padding(vertical = 8.dp)) {
+                                Text("予定なし", color = colors.textGray, modifier = Modifier.padding(vertical = 4.dp))
                             }
                         } else {
+                            // 予定をカードで並べ、タップで詳細ダイアログを開く
                             dayEvents.forEach { event: Event ->
-                                EventCard(event = event, colors = colors, onClick = { ev ->
-                                    viewingEvent = ev; viewingDate = date; showEventDetailDialog = true
-                                })
+                                EventCard(event = event, colors = colors, showCalendarName = showCalendarName, onClick = { ev -> viewingEvent = ev; viewingDate = date; showEventDetailDialog = true })
                             }
                         }
                         // 各日付の下に予定追加ボタンを配置する
-                        Button(
-                            onClick = {
-                                editingEvent = null
-                                dialogDateForNewEvent = date
-                                fromCalendar = true
-                                showEventDialog = true
-                            },
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colors.primaryAccent.copy(alpha = 0.15f),
-                                contentColor = colors.primaryAccent,
-                            ),
-                            shape = RoundedCornerShape(12.dp),
-                        ) { Text("+ 予定を追加", fontSize = 14.sp, fontWeight = FontWeight.Medium) }
+                        Button(onClick = { editingEvent = null; dialogDateForNewEvent = date; fromCalendar = true; showEventDialog = true }, modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), colors = ButtonDefaults.buttonColors(containerColor = colors.primaryAccent.copy(alpha = 0.15f), contentColor = colors.primaryAccent), shape = RoundedCornerShape(12.dp)) { Text("+ 予定を追加", fontSize = 14.sp, fontWeight = FontWeight.Medium) }
                     }
                 }
             }
         }
     }
-    // 予定詳細ダイアログ
+
+    // 予定詳細ダイアログ（編集・この日だけ削除に対応）
     if (showEventDetailDialog && viewingEvent != null && viewingDate != null) {
-        EventDetailDialog(
-            event = viewingEvent!!, currentDate = viewingDate!!, colors = colors,
-            photos = detailPhotos,
+        EventDetailDialog(event = viewingEvent!!, currentDate = viewingDate!!, colors = colors, photos = detailPhotos,
             onDismiss = { showEventDetailDialog = false; viewingEvent = null; viewingDate = null },
-            onEdit = {
-                showEventDetailDialog = false
-                editingPhotos = emptyList()
-                editingEvent = viewingEvent
-                fromCalendar = false
-                showEventDialog = true
-            },
-            onSplitDelete = {
-                viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!)
-                showEventDetailDialog = false; viewingEvent = null; viewingDate = null
-            },
-        )
+            onEdit = { showEventDetailDialog = false; editingPhotos = emptyList(); editingEvent = viewingEvent; fromCalendar = false; showEventDialog = true },
+            onSplitDelete = { viewModel.splitAndDeleteDay(viewingEvent!!, viewingDate!!); showEventDetailDialog = false; viewingEvent = null; viewingDate = null })
     }
-    // 予定の追加・編集ダイアログ
+
+    // 予定の追加・編集ダイアログを表示する
     if (showEventDialog) {
+        // 既存予定の終日有無で初期タイムゾーンを切り替える
         val zone = editingEvent?.let { if (it.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault() } ?: ZoneId.systemDefault()
-        val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(zone).toLocalDate() }
-            ?: dialogDateForNewEvent
-            ?: selectedDate
-        EventDialog(
-            event = editingEvent,
-            selectedDate = dialogDate,
-            colors = colors,
-            fromCalendar = fromCalendar,
-            initialPhotos = editingPhotos,
+        val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(zone).toLocalDate() } ?: dialogDateForNewEvent ?: selectedDate
+        EventDialog(event = editingEvent, selectedDate = dialogDate, colors = colors, fromCalendar = fromCalendar, initialPhotos = editingPhotos,
             photoAttachEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
-            // Golendarモード時のみAI解析ボタンを表示する
             aiParseEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
-            onAiParse = { showAiParseDialog = true },
-            onDismiss = { showEventDialog = false },
-            // 新規はaddEvent、既存はupdateEventで保存する
-            onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule,
-                       newPhotoUris, keptPhotoIds ->
+            onAiParse = { showAiParseDialog = true }, onDismiss = { showEventDialog = false },
+            onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris, keptPhotoIds ->
+                // 新規は addEvent、既存は updateEvent で保存する
                 if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris)
                 else viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris, keptPhotoIds = keptPhotoIds)
                 showEventDialog = false
             },
-            onDelete = { ev -> viewModel.deleteEvent(ev.id); showEventDialog = false },
-        )
+            onDelete = { ev -> viewModel.deleteEvent(ev.id); showEventDialog = false })
     }
-    // AI解析ダイアログ（初回説明完了フラグを渡す）
+
+    // AI 解析ダイアログ（選択されたイベントを一括登録する）
     if (showAiParseDialog) {
-        AiParseDialog(
-            colors = colors,
-            needsSetup = !aiSetupDone,
-            onSetupComplete = { viewModel.markAiSetupDone() },
-            onDismiss = { showAiParseDialog = false },
-            onConfirm = { events ->
-                viewModel.addEventsFromAi(events)
-                showAiParseDialog = false
-                showEventDialog = false
-            },
-        )
+        AiParseDialog(colors = colors, needsSetup = !aiSetupDone, onSetupComplete = { viewModel.markAiSetupDone() }, onDismiss = { showAiParseDialog = false },
+            onConfirm = { events -> viewModel.addEventsFromAi(events); showAiParseDialog = false; showEventDialog = false })
     }
 }
