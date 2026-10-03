@@ -40,7 +40,7 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import androidx.compose.ui.graphics.toArgb
 
-// UI 状態とビジネスロジックを集約する ViewModel
+// UI状態とビジネスロジックを集約する ViewModel
 class CalendarViewModel(application: Application) : AndroidViewModel(application) {
     // 依存コンポーネントと作業用フィールド
     private val repository = CalendarRepository(application)
@@ -322,10 +322,6 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 val rawJson = preferences[SettingsKeys.SELECTED_CALENDARS]
                 if (!rawJson.isNullOrBlank()) {
                     _selectedCalendars.value = SelectedCalendarJson.fromJson(rawJson)
-                    // Googleモードなのに選択カレンダーが空の場合は Golendar へ自動フォールバック
-                    if (_calendarMode.value == CalendarMode.GOOGLE && _selectedCalendars.value.isEmpty()) {
-                        fallbackToGolendar("カレンダーが1つも選択されていないため Golendar モードに切り替えました")
-                    }
                 } else {
                     val oldAccount = preferences[SettingsKeys.ACCOUNT]
                     if (!oldAccount.isNullOrBlank()) {
@@ -333,9 +329,14 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                     }
                 }
 
-                // カレンダー選択ダイアログの初回表示判定と再取得
+                // カレンダー選択ダイアログの表示判定
+                // Googleモードで選択カレンダーが空の場合は、起動時フォールバックせず選択ダイアログを表示する
+                // （v1.1.4 で起動時フォールバックを繰り返して復帰不能になったユーザーを救済するため）
                 val selectionDone = preferences[SettingsKeys.CALENDAR_SELECTION_DONE] ?: false
-                if (!selectionDone && _calendarMode.value == CalendarMode.GOOGLE) {
+                if (_calendarMode.value == CalendarMode.GOOGLE && _selectedCalendars.value.isEmpty()) {
+                    // 空なら選択完了フラグに関わらず、必ず選択ダイアログを表示する
+                    _showCalendarSelection.value = true
+                } else if (!selectionDone && _calendarMode.value == CalendarMode.GOOGLE) {
                     _showCalendarSelection.value = true
                 } else {
                     refreshAvailableCalendars()
@@ -401,6 +402,8 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 dataStore.edit {
                     it[SettingsKeys.MODE] = CalendarMode.GOLENDAR.name
                     it[SettingsKeys.SELECTED_CALENDARS] = SelectedCalendarJson.toJson(emptyList())
+                    // 次回 Google モード選択時にカレンダー選択ダイアログを再表示させる
+                    it[SettingsKeys.CALENDAR_SELECTION_DONE] = false
                 }
             } catch (_: Exception) { }
             invalidateSearchCache()
@@ -434,6 +437,10 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         val updated = _selectedCalendars.value.map {
             if (it.calendarId == calendarId) it.copy(isVisible = visible) else it
         }
+        // Googleモードで全カレンダーが非表示になった場合は警告する（モードは維持）
+        if (_calendarMode.value == CalendarMode.GOOGLE && updated.none { it.isVisible }) {
+            _statusMessage.value = "すべてのカレンダーが非表示です。予定が表示されません"
+        }
         saveSelectedCalendars(updated)
     }
 
@@ -448,6 +455,10 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     // 全カレンダーの表示 ON/OFF を一括で設定する
     fun setAllCalendarsVisible(visible: Boolean) {
         val updated = _selectedCalendars.value.map { it.copy(isVisible = visible) }
+        // Googleモードで全カレンダーが非表示になった場合は警告する（モードは維持）
+        if (_calendarMode.value == CalendarMode.GOOGLE && updated.none { it.isVisible }) {
+            _statusMessage.value = "すべてのカレンダーが非表示です。予定が表示されません"
+        }
         saveSelectedCalendars(updated)
     }
 
@@ -667,7 +678,12 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
             if (mode == CalendarMode.GOLENDAR) {
                 checkAndFetchHolidays(force = true)
             } else {
-                refreshAvailableCalendars()
+                // Googleモード切替時、選択カレンダーが空なら選択ダイアログを再表示する
+                if (_selectedCalendars.value.isEmpty()) {
+                    _showCalendarSelection.value = true
+                } else {
+                    refreshAvailableCalendars()
+                }
             }
         }
         loadEvents()
@@ -916,6 +932,11 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     // 全カレンダーのメタ情報を取得する（復元先ピッカー等で使用）
     suspend fun loadAllCalendarMetas(): List<com.monsivamon.golender.data.source.CalendarMeta> =
         repository.getAllCalendars()
+
+    // 実アカウントに紐づくカレンダーのメタ情報のみを取得する（カレンダー選択ダイアログ用）
+    // account_local などの内部アカウントを除外する
+    suspend fun loadGoogleCalendarMetas(): List<com.monsivamon.golender.data.source.CalendarMeta> =
+        repository.getAllCalendars().filter { it.accountName.contains("@") }
 
     // AI 解析の初回説明完了を記録する
     fun markAiSetupDone() {

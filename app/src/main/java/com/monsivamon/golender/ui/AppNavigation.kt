@@ -220,7 +220,8 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     if (showCalendarSelection) {
         val calendars = remember { mutableStateOf<List<com.monsivamon.golender.data.source.CalendarMeta>>(emptyList()) }
         LaunchedEffect(Unit) {
-            calendars.value = viewModel.loadAllCalendarMetas()
+            // 実アカウントのカレンダーのみを取得する（account_local などを除外）
+            calendars.value = viewModel.loadGoogleCalendarMetas()
         }
         CalendarSelectionDialog(
             colors = colors,

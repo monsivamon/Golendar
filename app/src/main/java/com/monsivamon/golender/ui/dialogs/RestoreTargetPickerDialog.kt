@@ -22,7 +22,7 @@ import com.monsivamon.golender.data.source.CalendarMeta
 import com.monsivamon.golender.ui.theme.AppColors
 
 // 復元（追記）先のカレンダーを 1 つ選ぶダイアログ
-// 書き込み可能（accessLevel >= 500）かつ祝日・誕生日以外のカレンダーのみを候補にする
+// 書き込み可能（accessLevel >= 500）かつ祝日・誕生日以外、かつ実アカウントのカレンダーのみを候補にする
 @Composable
 fun RestoreTargetPickerDialog(
     colors: AppColors,
@@ -30,9 +30,14 @@ fun RestoreTargetPickerDialog(
     onDismiss: () -> Unit,
     onConfirm: (CalendarMeta) -> Unit,
 ) {
-    // 書き込み可能かつ特殊カレンダー以外を抽出する
+    // 書き込み可能かつ特殊カレンダー以外、かつ実アカウント（@ を含む）のカレンダーを抽出する
     val writable = remember(calendars) {
-        calendars.filter { it.accessLevel >= 500 && !it.isHoliday && !it.isBirthday }
+        calendars.filter {
+            it.accessLevel >= 500 &&
+                    !it.isHoliday &&
+                    !it.isBirthday &&
+                    it.accountName.contains("@")
+        }
     }
     // 初期選択は先頭カレンダー
     var selectedId by remember(writable) {
