@@ -35,7 +35,7 @@ fun CalendarSelectionDialog(
     onComplete: (List<SelectedCalendar>) -> Unit,
 ) {
     // 初期状態は全カレンダー選択済み
-    var selectedIds by remember { mutableStateOf(calendars.map { it.id }.toSet()) }
+    var selectedIds by remember(calendars) { mutableStateOf(calendars.map { it.id }.toSet()) }
     var showWarning by remember { mutableStateOf(false) }
 
     // 1 つも選択されなかった場合の警告ダイアログ

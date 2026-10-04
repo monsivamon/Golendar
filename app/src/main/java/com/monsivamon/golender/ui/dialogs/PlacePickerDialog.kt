@@ -287,73 +287,40 @@ fun PlacePickerDialog(
 
     // 位置情報の権限案内ダイアログ
     if (showPermissionIntro) {
-        AlertDialog(
-            onDismissRequest = {
+        MapPermissionIntroDialog(
+            colors = colors,
+            title = "現在地の利用について",
+            message = "現在地を初期位置として地図に表示します。\n" +
+                    "許可しなくても地図は使えます（初期位置は東京駅付近になります）。",
+            confirmLabel = "許可する",
+            dismissLabel = "許可しない",
+            onConfirm = {
+                showPermissionIntro = false
+                markLocationSetupDone()
+                launchPermissionRequest()
+            },
+            onDismiss = {
                 showPermissionIntro = false
                 markLocationSetupDone()
                 resolvedLat = DEFAULT_LAT
                 resolvedLng = DEFAULT_LNG
-            },
-            containerColor = colors.surface,
-            title = { Text("現在地の利用について", color = colors.text, fontWeight = FontWeight.Bold) },
-            text = {
-                Text(
-                    "現在地を初期位置として地図に表示します。\n\n" +
-                            "位置情報を許可しなくても、この機能はそのまま利用できます（初期位置は東京駅付近になります）。\n" +
-                            "あとから許可したい場合は、地図右下の現在地ボタンをタップしてください。",
-                    color = colors.text,
-                    fontSize = 14.sp,
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    showPermissionIntro = false
-                    markLocationSetupDone()
-                    launchPermissionRequest()
-                }) {
-                    Text("許可する", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showPermissionIntro = false
-                    markLocationSetupDone()
-                    resolvedLat = DEFAULT_LAT
-                    resolvedLng = DEFAULT_LNG
-                }) {
-                    Text("許可しない", color = colors.textGray)
-                }
             },
         )
     }
 
     // 現在地ボタンタップ時の案内ダイアログ
     if (showButtonIntro) {
-        AlertDialog(
-            onDismissRequest = { showButtonIntro = false },
-            containerColor = colors.surface,
-            title = { Text("現在地を表示", color = colors.text, fontWeight = FontWeight.Bold) },
-            text = {
-                Text(
-                    "地図に現在地を表示するには、位置情報の許可が必要です。\n\n" +
-                            "次の画面で「許可」を選んでください。",
-                    color = colors.text,
-                    fontSize = 14.sp,
-                )
+        MapPermissionIntroDialog(
+            colors = colors,
+            title = "現在地を表示",
+            message = "地図に現在地を表示するには、\n位置情報の許可が必要です。",
+            confirmLabel = "許可する",
+            dismissLabel = "キャンセル",
+            onConfirm = {
+                showButtonIntro = false
+                launchPermissionRequest()
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    showButtonIntro = false
-                    launchPermissionRequest()
-                }) {
-                    Text("許可する", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showButtonIntro = false }) {
-                    Text("キャンセル", color = colors.textGray)
-                }
-            },
+            onDismiss = { showButtonIntro = false },
         )
     }
 

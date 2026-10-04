@@ -25,6 +25,10 @@ object SettingsKeys {
     val LAST_HOLIDAY_FETCH = longPreferencesKey("last_holiday_fetch_time")
     // 月表示下部リストの表示 ON/OFF
     val SHOW_BOTTOM_LIST = booleanPreferencesKey("show_bottom_list")
+    // 初回起動時の Welcome 画面表示完了フラグ
+    val WELCOME_SHOWN = booleanPreferencesKey("welcome_shown")
+    // 最後に Welcome を表示したバージョン名（バージョンアップ検知用）
+    val LAST_WELCOME_VERSION = stringPreferencesKey("last_welcome_version")
     // 通知セットアップ完了フラグ
     val NOTIFICATION_SETUP_DONE = booleanPreferencesKey("notification_setup_done")
     // カレンダーセットアップ完了フラグ
@@ -44,6 +48,9 @@ object SettingsKeys {
     val SHOW_HOLIDAYS = booleanPreferencesKey("show_holidays")
     // カレンダー選択ダイアログ完了フラグ
     val CALENDAR_SELECTION_DONE = booleanPreferencesKey("calendar_selection_done")
+
+    // 登録済み通知アラームの要求コード台帳（プロセス死対策）
+    val SCHEDULED_ALARM_IDS = stringPreferencesKey("scheduled_alarm_ids")
 
     // 曜日ごとの色キーを動的に生成する
     fun dayColor(day: DayOfWeek) = stringPreferencesKey("day_color_${day.name}")

@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.first
 import com.monsivamon.golender.data.dataStore
 import com.monsivamon.golender.data.CalendarRepository
+import com.monsivamon.golender.notification.NotificationScheduler
 
 // バックグラウンドで定期的にウィジェットを更新し、祝日データも 30 日ごとに更新するワーカー
 class WidgetUpdateWorker(
@@ -45,6 +46,10 @@ class WidgetUpdateWorker(
                         widget.update(context, id)
                     }
                 }
+                // 祝日データ更新後に古い通知アラームが残り続けないよう、
+                // 最新の予定に合わせて再スケジュールする
+                NotificationScheduler.updateAlarms(context)
+
                 Result.success()
             } catch (_: Exception) {
                 // 失敗時はリトライを要求する

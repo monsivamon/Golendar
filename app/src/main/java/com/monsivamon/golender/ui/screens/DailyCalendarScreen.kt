@@ -53,11 +53,13 @@ fun DailyCalendarScreen(
     val customBg by viewModel.calendarBgColor.collectAsState()
     val colors = getAppColors(themeMode, customBg)
 
+    // 選択カレンダーを購読する（StateFlow.value の直接参照は Snapshot 対象外のため collectAsState を使う）
+    val selectedCalendarsState by viewModel.selectedCalendars.collectAsState()
     // 可視カレンダー数が 2 以上なら予定カードにカレンダー名を表示する
-    val visibleCalendarCount by remember {
-        derivedStateOf { viewModel.selectedCalendars.value.count { it.isVisible } }
-    }
-    val showCalendarName = visibleCalendarCount >= 2
+    val showCalendarName = selectedCalendarsState.count { it.isVisible } >= 2
+
+    // 予定追加時のカレンダー選択候補（可視カレンダーのみ）
+    val availableCalendars = selectedCalendarsState.filter { it.isVisible }
 
     // 予定ダイアログ・詳細ダイアログ・AI 解析の表示状態
     var showEventDialog by remember { mutableStateOf(false) }
@@ -143,10 +145,11 @@ fun DailyCalendarScreen(
         EventDialog(event = editingEvent, selectedDate = dialogDate, colors = colors, fromCalendar = fromCalendar, initialPhotos = editingPhotos,
             photoAttachEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
             aiParseEnabled = viewModel.calendarMode.collectAsState().value == CalendarMode.GOLENDAR,
+            availableCalendars = if (viewModel.calendarMode.collectAsState().value == CalendarMode.GOOGLE) availableCalendars else emptyList(),
             onAiParse = { showAiParseDialog = true }, onDismiss = { showEventDialog = false },
-            onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris, keptPhotoIds ->
+            onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris, keptPhotoIds, targetCalendarId ->
                 // 新規は addEvent、既存は updateEvent で保存する
-                if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris)
+                if (editingEvent == null) viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris, targetCalendarId = targetCalendarId)
                 else viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule, newPhotoUris = newPhotoUris, keptPhotoIds = keptPhotoIds)
                 showEventDialog = false
             },

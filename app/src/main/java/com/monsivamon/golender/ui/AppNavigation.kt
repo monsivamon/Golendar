@@ -39,6 +39,8 @@ import com.monsivamon.golender.ui.dialogs.ExitConfirmDialog
 import com.monsivamon.golender.ui.dialogs.GestureSetupDialog
 import com.monsivamon.golender.ui.dialogs.NotificationSetupDialog
 import com.monsivamon.golender.ui.dialogs.SyncConfirmDialog
+import com.monsivamon.golender.ui.dialogs.WelcomeDialog
+import com.monsivamon.golender.viewmodel.WelcomeInfo
 import com.monsivamon.golender.ui.theme.PressScaleIndication
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
@@ -89,6 +91,8 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     val weekStartDay by viewModel.weekStartDay.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val showBottomList by viewModel.showBottomList.collectAsState()
+    val welcomeInfo: WelcomeInfo? by viewModel.welcomeInfo.collectAsState()
+    val isWelcomeShowing = welcomeInfo != null
     val showNotificationSetup by viewModel.showNotificationSetup.collectAsState()
     val showCalendarSetup by viewModel.showCalendarSetup.collectAsState()
     val showCalendarSelection by viewModel.showCalendarSelection.collectAsState()
@@ -211,13 +215,17 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     if (showMonthPickerDialog) YearMonthPickerDialog(currentYear = currentMonth.year, currentMonth = currentMonth.monthValue, colors = colors, onDismiss = { showMonthPickerDialog = false }, onDateSelected = { year, month -> viewModel.selectDate(LocalDate.of(year, month, 1)); showMonthPickerDialog = false })
     // 日付選択ダイアログ（日／週表示のタイトルタップ）
     if (showDatePickerDialog) GolendarDatePickerDialog(initialDate = selectedDate, colors = colors, onDismiss = { showDatePickerDialog = false }, onDateSelected = { viewModel.selectDate(it); showDatePickerDialog = false })
+    // Welcome 画面（初回起動 or バージョンアップ時）
+    welcomeInfo?.let { info ->
+        WelcomeDialog(colors = colors, info = info, onStart = { viewModel.markWelcomeDone() })
+    }
     // 初回通知セットアップ
-    if (showNotificationSetup) NotificationSetupDialog(colors = colors, onComplete = { viewModel.markNotificationSetupDone() })
+    if (!isWelcomeShowing && showNotificationSetup) NotificationSetupDialog(colors = colors, onComplete = { viewModel.markNotificationSetupDone() })
     // 初回カレンダー権限セットアップ
-    if (showCalendarSetup) CalendarPermissionDialog(colors = colors, title = "Googleカレンダーへのアクセス", message = "Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\nGolendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。", onResult = { _ -> viewModel.markCalendarSetupDone() }, onDismiss = { viewModel.markCalendarSetupDone() })
+    if (!isWelcomeShowing && showCalendarSetup) CalendarPermissionDialog(colors = colors, title = "Googleカレンダーへのアクセス", message = "Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\nGolendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。", onResult = { _ -> viewModel.markCalendarSetupDone() }, onDismiss = { viewModel.markCalendarSetupDone() })
 
     // 初回カレンダー選択ダイアログ（Google モード選択時）
-    if (showCalendarSelection) {
+    if (!isWelcomeShowing && showCalendarSelection) {
         val calendars = remember { mutableStateOf<List<com.monsivamon.golender.data.source.CalendarMeta>>(emptyList()) }
         LaunchedEffect(Unit) {
             // 実アカウントのカレンダーのみを取得する（account_local などを除外）
@@ -234,5 +242,5 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     }
 
     // 初回ジェスチャー案内ダイアログ
-    if (showGestureSetup) GestureSetupDialog(colors = colors, onComplete = { viewModel.markGestureSetupDone() })
+    if (!isWelcomeShowing && showGestureSetup) GestureSetupDialog(colors = colors, onComplete = { viewModel.markGestureSetupDone() })
 }

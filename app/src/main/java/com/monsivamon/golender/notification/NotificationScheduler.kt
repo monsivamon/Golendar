@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.datastore.preferences.core.edit
 import com.monsivamon.golender.data.CalendarRepository
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.LocalEvent
@@ -17,10 +18,10 @@ import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
 import java.time.ZoneId
 
-// 予定のリマインダー通知を AlarmManager に登録・再登録するスケジューラ
+// 予定のリマインダー通知を AlarmManager に登録・再登録するスケジューラ。
+// 登録済みの要求コードは DataStore に台帳として保存し、プロセスが死んでも
+// 次回 updateAlarms 時に確実に解除できるようにする。
 object NotificationScheduler {
-    // 登録済みの PendingIntent を保持して次回更新時に解除できるようにする
-    private val scheduledIntents = mutableListOf<PendingIntent>()
     // 多重実行を防ぐためのミューテックス
     private val mutex = Mutex()
 
@@ -34,18 +35,30 @@ object NotificationScheduler {
 
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-            // Android 12+ で正確なアラーム権限が無ければ何もしない
+            // 前回登録した要求コードを DataStore から読み出し、全て解除する。
+            // メモリ上のリストではなく永続台帳を使うため、プロセス死後も取りこぼさない。
+            val previousIds = prefs[SettingsKeys.SCHEDULED_ALARM_IDS]
+                ?.split(",")
+                ?.mapNotNull { it.trim().toIntOrNull() }
+                ?: emptyList()
+            previousIds.forEach { requestCode ->
+                cancelByRequestCode(context, alarmManager, requestCode)
+            }
+
+            // 今回の登録分を蓄積する台帳
+            val currentIds = mutableListOf<Int>()
+
+            // Android 12+ で正確なアラーム権限が無ければ台帳を空にして終了
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                context.dataStore.edit { it[SettingsKeys.SCHEDULED_ALARM_IDS] = "" }
                 return@withLock
             }
 
-            // 既存アラームをすべて解除する
-            val snapshot = scheduledIntents.toList()
-            snapshot.forEach { alarmManager.cancel(it) }
-            scheduledIntents.clear()
-
-            // 通知が全て OFF なら何も登録しない
-            if (!notifyAtStart && !notify10MinBefore) return@withLock
+            // 通知が全て OFF なら台帳を空にして終了
+            if (!notifyAtStart && !notify10MinBefore) {
+                context.dataStore.edit { it[SettingsKeys.SCHEDULED_ALARM_IDS] = "" }
+                return@withLock
+            }
 
             val repo = CalendarRepository(context)
             val mode = prefs[SettingsKeys.MODE] ?: "GOLENDAR"
@@ -64,7 +77,10 @@ object NotificationScheduler {
 
             // モードに応じて対象イベントを取得する
             val events = if (mode == "GOOGLE") {
-                if (visibleIds.isEmpty()) return@withLock
+                if (visibleIds.isEmpty()) {
+                    context.dataStore.edit { it[SettingsKeys.SCHEDULED_ALARM_IDS] = "" }
+                    return@withLock
+                }
                 // 祝日・文化イベントは除外。誕生日は天皇誕生日の祝日判定で除かれる
                 repo.getEventsForMonth(startMillis, endMillis, visibleIds)
                     .filter { !it.isHolidayCalendar && !it.isCulturalEvent }
@@ -85,23 +101,52 @@ object NotificationScheduler {
             for (event in futureEvents) {
                 if (notify10MinBefore) {
                     val t = event.startTime - NotificationConfig.TEN_MIN_BEFORE_MS
-                    if (t > now) scheduleExactAlarm(context, alarmManager, event, t, true)
+                    if (t > now) {
+                        val rc = scheduleExactAlarm(context, alarmManager, event, t, true)
+                        if (rc >= 0) currentIds.add(rc)
+                    }
                 }
                 if (notifyAtStart && event.startTime > now) {
-                    scheduleExactAlarm(context, alarmManager, event, event.startTime, false)
+                    val rc = scheduleExactAlarm(context, alarmManager, event, event.startTime, false)
+                    if (rc >= 0) currentIds.add(rc)
                 }
             }
+
+            // 今回登録した要求コードを台帳へ永続化する
+            context.dataStore.edit { it[SettingsKeys.SCHEDULED_ALARM_IDS] = currentIds.joinToString(",") }
         }
     }
 
-    // 1 件分の正確なアラームを AlarmManager に登録する
+    // 要求コードから PendingIntent を復元してアラームを解除する。
+    // FLAG_NO_CREATE により、存在しない場合は null が返るので安全。
+    private fun cancelByRequestCode(
+        context: Context,
+        alarmManager: AlarmManager,
+        requestCode: Int,
+    ) {
+        try {
+            val intent = Intent(context, NotificationReceiver::class.java)
+            val pi = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                intent,
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+            ) ?: return
+            alarmManager.cancel(pi)
+            pi.cancel()
+        } catch (_: Exception) {
+            // 無効な要求コードなどは無視
+        }
+    }
+
+    // 1 件分の正確なアラームを登録し、要求コードを返す（失敗時は -1）
     private fun scheduleExactAlarm(
         context: Context,
         alarmManager: AlarmManager,
         event: Event,
         triggerTime: Long,
         is10MinBefore: Boolean,
-    ) {
+    ): Int {
         // 通知内容を Intent に詰める
         val intent = Intent(context, NotificationReceiver::class.java).apply {
             val prefix = if (is10MinBefore) "[10分前] " else ""
@@ -121,14 +166,15 @@ object NotificationScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
-        try {
+        return try {
             // Doze 中でも発火する正確アラームとして登録する
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent,
             )
-            scheduledIntents.add(pendingIntent)
+            requestCode
         } catch (_: SecurityException) {
-            // 権限不足などは無視
+            // 権限不足などは無視して -1 を返す
+            -1
         }
     }
 }
