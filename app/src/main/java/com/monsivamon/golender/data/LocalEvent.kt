@@ -1,5 +1,6 @@
 package com.monsivamon.golender.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -13,7 +14,8 @@ data class LocalEvent(
     val isAllDay: Boolean,
     val location: String,
     val description: String,
-    val rrule: String? = null
+    val rrule: String? = null,
+    @ColumnInfo(defaultValue = "0") val calendarId: Long = 0L
 ) {
     companion object {
         // システム祝日データを識別する description の値

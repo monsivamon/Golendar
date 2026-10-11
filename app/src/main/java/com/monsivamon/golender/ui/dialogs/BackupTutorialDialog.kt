@@ -35,8 +35,8 @@ fun BackupTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
                 illustration = { c -> FormatIllustration(c) },
             ),
             TutorialPage(
-                title = "追記と復元の違い",
-                description = "「追記」は既存の予定を残したまま追加、\n「復元」は既存を上書きします。\nGoogleモードでは「復元」は使えません。",
+                title = "保存・復元・追記の違い",
+                description = "「保存」で予定を書き出し、\n「追記」は既存を残して追加、\n「復元」は既存を上書きします。\nGoogleモードでは「復元」は使えません。",
                 illustration = { c -> AppendVsRestoreIllustration(c) },
             ),
             TutorialPage(

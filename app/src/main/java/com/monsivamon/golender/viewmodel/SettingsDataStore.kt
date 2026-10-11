@@ -87,6 +87,15 @@ class SettingsDataStore(
         store.edit { it[key] = true }
     }
 
+    // カレンダーモードチュートリアルの初回表示済みかを返す
+    suspend fun isCalendarModeTutorialShown(): Boolean =
+        all()[SettingsKeys.CALENDAR_MODE_TUTORIAL_SHOWN] ?: false
+
+    // カレンダーモードチュートリアルの初回表示完了を記録する
+    suspend fun markCalendarModeTutorialShown() {
+        store.edit { it[SettingsKeys.CALENDAR_MODE_TUTORIAL_SHOWN] = true }
+    }
+
     // 写真もバックアップ ON/OFF を保存する
     suspend fun saveBackupPhotos(enabled: Boolean) {
         store.edit { it[SettingsKeys.BACKUP_PHOTOS] = enabled }

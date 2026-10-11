@@ -64,6 +64,7 @@ fun DayEventsDialog(
                             event = event,
                             colors = colors,
                             showCalendarName = showCalendarName,
+                            compact = true,
                             onClick = onEventClick,
                         )
                     }

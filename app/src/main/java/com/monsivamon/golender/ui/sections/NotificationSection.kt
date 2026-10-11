@@ -26,6 +26,9 @@ import com.monsivamon.golender.ui.LIST_ROW_VERTICAL
 import com.monsivamon.golender.ui.SECTION_DIVIDER_VERTICAL
 import com.monsivamon.golender.ui.SECTION_LABEL_BOTTOM
 import com.monsivamon.golender.ui.SettingsSection
+import com.monsivamon.golender.ui.common.PermissionSettingsDialog
+import com.monsivamon.golender.ui.common.isPermissionPermanentlyDenied
+import com.monsivamon.golender.ui.common.openAppSettings
 import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 
@@ -46,6 +49,8 @@ fun NotificationSection(
                     == PackageManager.PERMISSION_GRANTED,
         )
     }
+    // 恒久拒否（Android 11+ の USER_FIXED）で「設定を開く」ダイアログを表示するフラグ
+    var showNotificationPermanentDenied by remember { mutableStateOf(false) }
     var exactAlarmPermissionGranted by remember {
         mutableStateOf(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -61,7 +66,14 @@ fun NotificationSection(
     // 通知権限要求ランチャー
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
-    ) { isGranted -> notificationPermissionGranted = isGranted }
+    ) { isGranted ->
+        notificationPermissionGranted = isGranted
+        if (!isGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            isPermissionPermanentlyDenied(context, Manifest.permission.POST_NOTIFICATIONS)
+        ) {
+            showNotificationPermanentDenied = true
+        }
+    }
 
     // 権限状態を再取得して UI に反映する
     fun refreshPermissions() {
@@ -177,5 +189,16 @@ fun NotificationSection(
         ) {
             Text("設定状況を再チェックする", fontSize = 12.sp)
         }
+    }
+
+    if (showNotificationPermanentDenied) {
+        PermissionSettingsDialog(
+            colors = colors,
+            title = "通知が許可されていません",
+            message = "通知権限が恒久的に拒否されているため、システムの権限ダイアログを表示できません。\n\n" +
+                "「設定を開く」→「通知」→「許可」を選択してください。",
+            onOpenSettings = { openAppSettings(context) },
+            onDismiss = { showNotificationPermanentDenied = false },
+        )
     }
 }

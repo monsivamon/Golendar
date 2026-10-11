@@ -26,11 +26,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.EventPhoto
+import com.monsivamon.golender.data.LocalCalendar
 import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.data.util.RruleExpander
 import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.GolendarTimePickerDialog
 import com.monsivamon.golender.ui.dialogs.event.CalendarSelector
+import com.monsivamon.golender.ui.dialogs.event.LocalCalendarSelector
 import com.monsivamon.golender.ui.dialogs.event.DateTimeRow
 import com.monsivamon.golender.ui.dialogs.event.PhotoAttachmentSection
 import com.monsivamon.golender.ui.dialogs.event.RecurrenceChips
@@ -42,10 +44,9 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 
-// 開始／終了／終了日ラベル共通の幅
 internal val LABEL_WIDTH: Dp = 60.dp
 
-// 予定の追加・編集ダイアログを表示する
+// 予定の追加・編集ダイアログ
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventDialog(
@@ -54,27 +55,28 @@ fun EventDialog(
     colors: AppColors,
     fromCalendar: Boolean = false,
     initialPhotos: List<EventPhoto> = emptyList(),
+    photosLoaded: Boolean = true,
     photoAttachEnabled: Boolean = false,
     aiParseEnabled: Boolean = false,
     availableCalendars: List<SelectedCalendar> = emptyList(),
+    localCalendars: List<LocalCalendar> = emptyList(),
     onDismiss: () -> Unit,
     onSave: (
         title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean,
         location: String, description: String, rrule: String?,
         newPhotoUris: List<Uri>, keptPhotoIds: List<Long>,
         targetCalendarId: Long?,
+        localCalendarId: Long?,
     ) -> Unit,
     onDelete: (Event) -> Unit,
-    onAiParse: () -> Unit,
+    onAiParse: (Long?) -> Unit,
 ) {
-    // ---------- 基本入力 ----------
     var title by remember(event) { mutableStateOf(event?.title ?: "") }
     var location by remember(event) { mutableStateOf(event?.location ?: "") }
     var description by remember(event) { mutableStateOf(event?.description ?: "") }
     var isAllDay by remember(event) { mutableStateOf(event?.isAllDay ?: false) }
     val eventKey = event?.id ?: -1L
 
-    // ---------- 追加先カレンダー ----------
     var selectedCalendarId by remember(eventKey, availableCalendars) {
         mutableStateOf(
             event?.calendarId?.takeIf { it > 0L }
@@ -83,7 +85,18 @@ fun EventDialog(
     }
     val showCalendarSelector = availableCalendars.size >= 2
 
-    // ---------- 繰り返し ----------
+    // Golendar モード用ローカルカレンダー選択
+    var selectedLocalCalendarId by remember(eventKey, localCalendars) {
+        mutableStateOf(
+            event?.calendarId?.takeIf { it > 0L && localCalendars.any { c -> c.id == it } }
+                ?: localCalendars.firstOrNull { it.isDefault }?.id
+                ?: localCalendars.firstOrNull()?.id
+                ?: 0L
+        )
+    }
+    val showLocalCalendarSelector =
+        availableCalendars.isEmpty() && localCalendars.count { it.isVisible } >= 2
+
     var isRecurring by remember(eventKey) { mutableStateOf(event?.rrule != null) }
     var recurringType by remember(eventKey) {
         mutableStateOf(
@@ -105,7 +118,6 @@ fun EventDialog(
         mutableStateOf(parsed ?: LocalDate.now().plusMonths(1))
     }
 
-    // ---------- 開始／終了 ----------
     val initialZone = if (event?.isAllDay == true) ZoneOffset.UTC else ZoneId.systemDefault()
     val initialStart = event?.let {
         LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), initialZone)
@@ -120,7 +132,6 @@ fun EventDialog(
     var endDate by remember(eventKey, selectedDate) { mutableStateOf(initialEnd.toLocalDate()) }
     var endTime by remember(eventKey, selectedDate) { mutableStateOf(initialEnd.toLocalTime()) }
 
-    // ---------- ピッカー表示フラグ ----------
     var showStartDatePicker by remember { mutableStateOf(false) }
     var showEndDatePicker by remember { mutableStateOf(false) }
     var showStartTimePicker by remember { mutableStateOf(false) }
@@ -128,9 +139,8 @@ fun EventDialog(
     var showRecurrenceEndPicker by remember { mutableStateOf(false) }
     var showPlacePicker by remember { mutableStateOf(false) }
 
-    // ---------- 写真 ----------
     var keptPhotoIds by remember(event?.id, initialPhotos) {
-        mutableStateOf(initialPhotos.map { it.id }.toSet())
+        mutableStateOf(if (event == null) emptySet() else initialPhotos.map { it.id }.toSet())
     }
     var newPhotoUris by remember(event?.id) { mutableStateOf<List<Uri>>(emptyList()) }
     val photoPicker = rememberLauncherForActivityResult(
@@ -150,17 +160,18 @@ fun EventDialog(
     val startDateLocked = fromCalendar
     val endDateLocked = fromCalendar && isRecurring
 
-    // ---------- ダイアログ本体 ----------
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
         title = { Text(if (event == null) "予定の追加" else "予定の編集", color = colors.text) },
         text = {
             Column(
-                modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .imePadding()
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                // 追加先カレンダー（Google モードで 2 件以上のときのみ）
                 if (showCalendarSelector) {
                     CalendarSelector(
                         calendars = availableCalendars,
@@ -169,30 +180,35 @@ fun EventDialog(
                         onSelect = { selectedCalendarId = it },
                     )
                 }
+                if (showLocalCalendarSelector) {
+                    LocalCalendarSelector(
+                        calendars = localCalendars.filter { it.isVisible },
+                        selectedId = selectedLocalCalendarId,
+                        colors = colors,
+                        onSelect = { selectedLocalCalendarId = it },
+                    )
+                }
 
-                // AI 解析ボタン（Golendar モード時のみ）
                 if (aiParseEnabled) {
-                    TextButton(onClick = onAiParse) {
+                    // LocalCalendarSelector で選択中のローカルカレンダーを
+                    // AI 解析結果の登録先として引き渡す（null なら既定カレンダー）。
+                    TextButton(onClick = { onAiParse(selectedLocalCalendarId.takeIf { it > 0L }) }) {
                         Text("AIに読み取らせる (BETA)", color = colors.primaryAccent)
                     }
                 }
 
-                // タイトル
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("タイトル", color = colors.textGray) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = colors.text,
-                        unfocusedTextColor = colors.text,
-                        focusedBorderColor = colors.primaryAccent,
-                        unfocusedBorderColor = colors.textGray,
+                        focusedTextColor = colors.text, unfocusedTextColor = colors.text,
+                        focusedBorderColor = colors.primaryAccent, unfocusedBorderColor = colors.textGray,
                         cursorColor = colors.primaryAccent,
                     ),
                 )
 
-                // 終日・繰り返しチェック＋繰り返し種別
                 Column(modifier = Modifier.fillMaxWidth()) {
                     val checkboxColors = CheckboxDefaults.colors(
                         checkedColor = colors.primaryAccent,
@@ -200,11 +216,7 @@ fun EventDialog(
                         checkmarkColor = if (isLightBackground) Color.White else Color(0xFF1A1A1A),
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = isAllDay,
-                            onCheckedChange = { isAllDay = it },
-                            colors = checkboxColors,
-                        )
+                        Checkbox(checked = isAllDay, onCheckedChange = { isAllDay = it }, colors = checkboxColors)
                         Text("終日", color = colors.text)
                         Spacer(modifier = Modifier.width(16.dp))
                         Checkbox(
@@ -235,44 +247,28 @@ fun EventDialog(
                     if (startDateLocked) {
                         Text(
                             "※カレンダーで選んだ日付に追加されます（日付は変更できません）",
-                            color = colors.textGray,
-                            fontSize = 11.sp,
+                            color = colors.textGray, fontSize = 11.sp,
                             modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
                         )
                     }
 
-                    // 開始日時
                     DateTimeRow(
-                        label = "開始",
-                        date = startDate,
-                        time = startTime,
-                        isAllDay = isAllDay,
-                        isDateLocked = startDateLocked,
-                        topPadding = 8.dp,
-                        colors = colors,
+                        label = "開始", date = startDate, time = startTime, isAllDay = isAllDay,
+                        isDateLocked = startDateLocked, topPadding = 8.dp, colors = colors,
                         onDateClick = { showStartDatePicker = true },
                         onTimeClick = { showStartTimePicker = true },
                     )
-
-                    // 終了日時
                     DateTimeRow(
-                        label = "終了",
-                        date = endDate,
-                        time = endTime,
-                        isAllDay = isAllDay,
-                        isDateLocked = endDateLocked,
-                        topPadding = 16.dp,
-                        colors = colors,
+                        label = "終了", date = endDate, time = endTime, isAllDay = isAllDay,
+                        isDateLocked = endDateLocked, topPadding = 16.dp, colors = colors,
                         onDateClick = { showEndDatePicker = true },
                         onTimeClick = { showEndTimePicker = true },
                     )
 
-                    // 繰り返し終了日
                     if (isRecurring) {
                         Text(
                             "※「終了」は1回分の所要時間です。繰り返しの終了日は下で指定します。",
-                            color = colors.textGray,
-                            fontSize = 11.sp,
+                            color = colors.textGray, fontSize = 11.sp,
                             modifier = Modifier.padding(start = (12 + 60 + 8).dp, top = 6.dp),
                         )
                         Spacer(Modifier.height(8.dp))
@@ -308,7 +304,6 @@ fun EventDialog(
                     }
                 }
 
-                // 場所
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
@@ -324,32 +319,25 @@ fun EventDialog(
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = colors.text,
-                        unfocusedTextColor = colors.text,
-                        focusedBorderColor = colors.primaryAccent,
-                        unfocusedBorderColor = colors.textGray,
+                        focusedTextColor = colors.text, unfocusedTextColor = colors.text,
+                        focusedBorderColor = colors.primaryAccent, unfocusedBorderColor = colors.textGray,
                         cursorColor = colors.primaryAccent,
                     ),
                 )
 
-                // メモ
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
                     label = { Text("メモ / 内容", color = colors.textGray) },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 2,
-                    maxLines = 2,
+                    minLines = 2, maxLines = 2,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = colors.text,
-                        unfocusedTextColor = colors.text,
-                        focusedBorderColor = colors.primaryAccent,
-                        unfocusedBorderColor = colors.textGray,
+                        focusedTextColor = colors.text, unfocusedTextColor = colors.text,
+                        focusedBorderColor = colors.primaryAccent, unfocusedBorderColor = colors.textGray,
                         cursorColor = colors.primaryAccent,
                     ),
                 )
 
-                // 写真添付（Golendar モードのみ）
                 if (photoAttachEnabled) {
                     PhotoAttachmentSection(
                         colors = colors,
@@ -367,7 +355,7 @@ fun EventDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = {
+            TextButton(enabled = (event == null || photosLoaded), onClick = {
                 val effectiveEndDate = if (endDateLocked) startDate else endDate
                 val finalTitle = title.ifBlank { "名称未設定" }
                 val saveZone = if (isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
@@ -383,12 +371,16 @@ fun EventDialog(
                     }
                 }
                 val finalTargetCalendarId = if (showCalendarSelector) selectedCalendarId else null
+                // 単一カレンダー時も選択中カレンダーを必ず渡す。
+                // null を渡すと EventCrudManager 側で 0L にフォールバックし、
+                // 可視カレンダーのフィルタに弾かれて予定が表示されなくなるため。
+                val finalLocalCalendarId = selectedLocalCalendarId.takeIf { it > 0L }
                 onSave(
                     finalTitle, startMillis, endMillis, isAllDay, location, description, finalRrule,
-                    newPhotoUris, keptPhotoIds.toList(), finalTargetCalendarId,
+                    newPhotoUris, keptPhotoIds.toList(), finalTargetCalendarId, finalLocalCalendarId,
                 )
             }) {
-                Text("保存", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
+                Text("保存", color = if (event == null || photosLoaded) colors.primaryAccent else colors.textGray, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
@@ -402,11 +394,9 @@ fun EventDialog(
         },
     )
 
-    // ---------- ピッカー ----------
     if (showStartDatePicker) {
         GolendarDatePickerDialog(
-            initialDate = startDate,
-            colors = colors,
+            initialDate = startDate, colors = colors,
             onDismiss = { showStartDatePicker = false },
             onDateSelected = { newDate ->
                 startDate = newDate
@@ -416,8 +406,7 @@ fun EventDialog(
     }
     if (showEndDatePicker) {
         GolendarDatePickerDialog(
-            initialDate = endDate,
-            colors = colors,
+            initialDate = endDate, colors = colors,
             onDismiss = { showEndDatePicker = false },
             onDateSelected = { newDate ->
                 endDate = newDate
@@ -427,24 +416,21 @@ fun EventDialog(
     }
     if (showStartTimePicker) {
         GolendarTimePickerDialog(
-            initialTime = startTime,
-            colors = colors,
+            initialTime = startTime, colors = colors,
             onDismiss = { showStartTimePicker = false },
             onTimeSelected = { startTime = it },
         )
     }
     if (showEndTimePicker) {
         GolendarTimePickerDialog(
-            initialTime = endTime,
-            colors = colors,
+            initialTime = endTime, colors = colors,
             onDismiss = { showEndTimePicker = false },
             onTimeSelected = { endTime = it },
         )
     }
     if (showRecurrenceEndPicker) {
         GolendarDatePickerDialog(
-            initialDate = recurrenceEndDate,
-            colors = colors,
+            initialDate = recurrenceEndDate, colors = colors,
             onDismiss = { showRecurrenceEndPicker = false },
             onDateSelected = { newDate ->
                 recurrenceEndDate = newDate
@@ -454,9 +440,7 @@ fun EventDialog(
     }
     if (showPlacePicker) {
         PlacePickerDialog(
-            initialLatitude = null,
-            initialLongitude = null,
-            colors = colors,
+            initialLatitude = null, initialLongitude = null, colors = colors,
             onDismiss = { showPlacePicker = false },
             onPlaceSelected = { picked ->
                 location = picked

@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.luminance
+import com.monsivamon.golender.data.util.CalendarColorDefaults
 import com.monsivamon.golender.viewmodel.ThemeMode
 
 // アプリ全体のカラーパレットを保持するデータクラス
@@ -33,10 +34,8 @@ fun getAppColors(themeMode: ThemeMode, customBg: Color = Color.Unspecified): App
     val bg = when {
         customBg == Color.Unspecified || customBg == Color.Transparent ->
             if (isDark) Color(0xFF121212) else Color(0xFFF0F2F5)
-
         isDark && customBg.luminance() > 0.5f ->
             darkVariant(customBg, 0.65f)
-
         else -> customBg
     }
 
@@ -74,6 +73,28 @@ val PastelColorPalette = listOf(
     Color(0xFFA0E8AF), Color(0xFFFFD1DC), Color(0xFFFDFD96), Color(0xFFE2F0CB),
     Color(0xFFB5EAD7), Color(0xFFC7CEEA), Color(0xFFF4C2C2), Color(0xFFFDECDA),
 )
+
+// カレンダー識別色パレット（ライトモード向け・濃いめ 16 色 / Material 700 番台）
+// 背景色（surface）に対して十分なコントラストを持つ。
+val CalendarColorPaletteLight: List<Color> =
+    CalendarColorDefaults.LIGHT_ARGB.map { Color(it) }
+
+// カレンダー識別色パレット（ダークモード向け・明るめ 16 色 / Material 300 番台）
+// ライト版と同じ色相を保ちつつ、ダーク背景で視認できる明度に調整。
+val CalendarColorPaletteDark: List<Color> =
+    CalendarColorDefaults.DARK_ARGB.map { Color(it) }
+
+// 現在のテーマ（AppColors）に応じたカレンダー色パレットを返す
+fun AppColors.calendarColorPalette(): List<Color> =
+    if (bg.luminance() < 0.5f) CalendarColorPaletteDark else CalendarColorPaletteLight
+
+// カレンダーの表示色を解決する。
+// 未設定(0) のときはアプリのアクセント色（primaryAccent）にフォールバックする。
+// これは Event.accentColor() のフォールバックと同じ挙動に揃えている。
+fun AppColors.resolveCalendarColor(colorArgb: Int, index: Int): Color {
+    if (colorArgb == 0) return primaryAccent
+    return Color(colorArgb)
+}
 
 // 明色を黒とブレンドしてダークテーマ向けの暗色を生成する
 fun darkVariant(color: Color, factor: Float = 0.65f): Color =

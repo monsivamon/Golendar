@@ -1,5 +1,6 @@
 package com.monsivamon.golender.viewmodel
 
+import androidx.datastore.preferences.core.Preferences
 import com.monsivamon.golender.data.prefs.SettingsKeys
 
 // 初回起動時のセットアップ進捗（Welcome→通知→カレンダー→選択→ジェスチャー）を管理する
@@ -13,9 +14,9 @@ class SetupFlowManager(private val store: SettingsDataStore) {
         val aiDone: Boolean = true,
     )
 
-    // DataStore から現在の進捗を計算する
-    suspend fun compute(): State {
-        val prefs = store.all()
+    // 進捗を計算する（Preferences を渡す版）。
+    // 起動時に DataStore を複数回読まないよう、呼び出し側が 1 度読んだものを渡す。
+    fun compute(prefs: Preferences): State {
         val notifDone   = prefs[SettingsKeys.NOTIFICATION_SETUP_DONE] ?: false
         val calDone     = prefs[SettingsKeys.CALENDAR_SETUP_DONE] ?: false
         val gestureDone = prefs[SettingsKeys.GESTURE_SETUP_DONE] ?: false
@@ -28,11 +29,13 @@ class SetupFlowManager(private val store: SettingsDataStore) {
         )
     }
 
+    // 進捗を計算する（セットアップ完了直後の再計算用・後方互換）
+    suspend fun compute(): State = compute(store.all())
+
     // Welcome の表示判定。null なら表示しない。
     // 既存ユーザーで「記録だけ必要」な場合は、ここで LAST_WELCOME_VERSION を
     // 書き込んで null を返す（アップデート後に突然 Welcome を見せないため）。
-    suspend fun decideWelcome(currentVersion: String): WelcomeInfo? {
-        val prefs = store.all()
+    suspend fun decideWelcome(currentVersion: String, prefs: Preferences): WelcomeInfo? {
         val lastVersion = prefs[SettingsKeys.LAST_WELCOME_VERSION]
         val legacyShown = prefs[SettingsKeys.WELCOME_SHOWN] ?: false
         val notifDone   = prefs[SettingsKeys.NOTIFICATION_SETUP_DONE] ?: false
@@ -41,21 +44,21 @@ class SetupFlowManager(private val store: SettingsDataStore) {
         val existingUser = legacyShown || notifDone || calDone || gestureDone
 
         return when {
-            // 記録なし + 既存ユーザー → 記録だけして表示しない
             lastVersion == null && existingUser -> {
                 markWelcomeShown(currentVersion)
                 null
             }
-            // 記録なし + 完全新規 → 初回 Welcome
             lastVersion == null ->
                 WelcomeInfo(WelcomeMode.FIRST_LAUNCH, currentVersion)
-            // バージョン違い → アップデート Welcome
             lastVersion != currentVersion ->
                 WelcomeInfo(WelcomeMode.VERSION_UPDATE, currentVersion, lastVersion)
-            // 同じバージョン → 表示しない
             else -> null
         }
     }
+
+    // Welcome の表示判定（後方互換）
+    suspend fun decideWelcome(currentVersion: String): WelcomeInfo? =
+        decideWelcome(currentVersion, store.all())
 
     // Welcome の表示完了を記録する（バージョン名を保存）
     suspend fun markWelcomeShown(version: String) {

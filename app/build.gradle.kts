@@ -27,7 +27,7 @@ android {
         // バージョンコード
         versionCode = 1
         // バージョン名
-        versionName = "1.1.6"
+        versionName = "1.1.7"
 
         // 計装テストのランナー
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

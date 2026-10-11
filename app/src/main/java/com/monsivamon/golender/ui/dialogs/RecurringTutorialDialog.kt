@@ -26,6 +26,7 @@ import com.monsivamon.golender.ui.common.TutorialPage
 import com.monsivamon.golender.ui.theme.AppColors
 
 @Composable
+// 繰り返し予定の使い方を案内するチュートリアル
 fun RecurringTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(

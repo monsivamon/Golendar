@@ -31,6 +31,7 @@ import com.monsivamon.golender.ui.common.TutorialPage
 import com.monsivamon.golender.ui.theme.AppColors
 
 @Composable
+// 月表示の下部リスト切替の使い方を案内するチュートリアル
 fun MonthViewToggleTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(

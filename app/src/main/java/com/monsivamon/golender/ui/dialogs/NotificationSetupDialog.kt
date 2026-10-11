@@ -41,7 +41,10 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
+import com.monsivamon.golender.ui.common.PermissionSettingsDialog
 import com.monsivamon.golender.ui.common.TutorialPage
+import com.monsivamon.golender.ui.common.isPermissionPermanentlyDenied
+import com.monsivamon.golender.ui.common.openAppSettings
 import com.monsivamon.golender.ui.theme.AppColors
 
 // 初回起動時の通知セットアップで扱うステップ
@@ -112,9 +115,16 @@ fun NotificationSetupDialog(
 
     // 権限リクエストの応答後に advance を呼ぶための保留フック
     var pendingAdvance by remember { mutableStateOf<(() -> Unit)?>(null) }
+    // 恒久拒否（Android 11+ の USER_FIXED）で「設定を開く」ダイアログを表示するフラグ
+    var showNotificationPermanentDenied by remember { mutableStateOf(false) }
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) {
+    ) { granted ->
+        if (!granted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            isPermissionPermanentlyDenied(context, Manifest.permission.POST_NOTIFICATIONS)
+        ) {
+            showNotificationPermanentDenied = true
+        }
         pendingAdvance?.invoke()
         pendingAdvance = null
     }
@@ -166,6 +176,17 @@ fun NotificationSetupDialog(
             }
         },
     )
+
+    if (showNotificationPermanentDenied) {
+        PermissionSettingsDialog(
+            colors = colors,
+            title = "通知が許可されていません",
+            message = "通知権限が恒久的に拒否されているため、システムの権限ダイアログを表示できません。\n\n" +
+                "「設定を開く」→「通知」→「許可」を選択してください。",
+            onOpenSettings = { openAppSettings(context) },
+            onDismiss = { showNotificationPermanentDenied = false },
+        )
+    }
 }
 
 // 通知ベル風のイラスト（大きなベルと波紋）

@@ -55,6 +55,7 @@ fun CalendarHeader(
             // 通常時はタイトルと操作ボタン群を表示する
             DateTitleWithPicker(title, colors, onTitleClick)
             Row(verticalAlignment = Alignment.CenterVertically) {
+                // アイコン間はすべて均等な 2dp に統一する
                 if (showBottomListToggle) {
                     BottomListToggleButton(
                         isOn = showBottomList,
@@ -64,13 +65,15 @@ fun CalendarHeader(
                     Spacer(Modifier.width(2.dp))
                 }
                 TodayButton(onTodayClick, colors)
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(2.dp))
                 CompactIconButton(onClick = onSearchStart) {
                     Icon(Icons.Default.Search, "検索", tint = colors.text)
                 }
+                Spacer(Modifier.width(2.dp))
                 CompactIconButton(onClick = onSyncClick) {
                     Icon(Icons.Default.Refresh, "同期", tint = colors.text)
                 }
+                Spacer(Modifier.width(2.dp))
                 CompactIconButton(onClick = onSettingsClick) {
                     Icon(Icons.Default.Settings, "設定", tint = colors.text)
                 }

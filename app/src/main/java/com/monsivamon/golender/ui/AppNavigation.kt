@@ -78,8 +78,8 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     val navController = rememberNavController()
     val animSpec = tween<IntOffset>(durationMillis = 220, easing = FastOutSlowInEasing)
     // 起動時に渡された初期ルートとショートカットを消費する
-    val initialRoute: String? = remember { val initial = viewModel.pendingRoute.value; if (initial != null) viewModel.consumeNavigation(); initial }
-    val initialShortcut: String? = remember { viewModel.pendingShortcut.value }
+    val initialRoute: String? = remember { viewModel.consumeInitialRoute() }
+    val initialShortcut: String? = remember { viewModel.peekPendingShortcut() }
     val startDestination: String = Routes.MONTHLY
     var isSettingsOpen by remember { mutableStateOf(initialRoute == Routes.SETTINGS) }
     // ViewModel から各種状態を購読する

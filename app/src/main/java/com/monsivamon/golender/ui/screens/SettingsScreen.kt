@@ -25,6 +25,7 @@ import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.data.source.CalendarMeta
 import com.monsivamon.golender.ui.dialogs.CalendarColorPickerDialog
 import com.monsivamon.golender.ui.dialogs.CalendarPermissionDialog
+import com.monsivamon.golender.ui.dialogs.CalendarModeTutorialDialog
 import com.monsivamon.golender.ui.dialogs.CalendarSelectionDialog
 import com.monsivamon.golender.ui.dialogs.DayColorPickerDialog
 import com.monsivamon.golender.ui.dialogs.BackgroundColorPickerDialog
@@ -63,13 +64,18 @@ internal val RADIO_LABEL_SPACING = 8.dp
 fun SettingsSection(
     title: String,
     colors: AppColors,
+    onExpand: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(colors.surface)
-                .clickable { expanded = !expanded }.padding(16.dp),
+                .clickable {
+                    val willExpand = !expanded
+                    expanded = willExpand
+                    if (willExpand) onExpand?.invoke()
+                }.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -112,8 +118,6 @@ fun RadioOptionRow(
     }
 }
 
-// 設定画面本体。各セクションは外部ファイルに分割し、ここでは表示順と
-// セクション間で共有するダイアログ（色ピッカー・権限・再起動・チュートリアル）を統括する
 @Composable
 fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     val context = LocalContext.current
@@ -125,21 +129,18 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     val colors = getAppColors(themeMode, calendarBgColor)
     val isSystemDark = isSystemInDarkTheme()
 
-    // 個別カラー設定ダイアログ用の状態
     var colorPickerDay by remember { mutableStateOf<DayOfWeek?>(null) }
     var colorPickerCalendar by remember { mutableStateOf<SelectedCalendar?>(null) }
     var showBgColorPicker by remember { mutableStateOf(false) }
 
-    // 再起動・権限・アカウント系モーダル
-    var showRestartModal by remember { mutableStateOf(false) }
     var showCalendarPermissionDialog by remember { mutableStateOf(false) }
     var showNoAccountDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
 
-    // チュートリアル系ダイアログ
     val showCalendarTutorial by viewModel.showCalendarTutorial.collectAsState()
     val showGestureTutorial by viewModel.showGestureTutorial.collectAsState()
     val showAiSetup by viewModel.showAiSetup.collectAsState()
+    val showCalendarModeTutorial by viewModel.showCalendarModeTutorial.collectAsState()
     val showMapTutorial by viewModel.showMapTutorial.collectAsState()
     val showScheduleAddTutorial by viewModel.showScheduleAddTutorial.collectAsState()
     val showMonthViewToggleTutorial by viewModel.showMonthViewToggleTutorial.collectAsState()
@@ -151,7 +152,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     val showBackupTutorial by viewModel.showBackupTutorial.collectAsState()
     val showWidgetTutorial by viewModel.showWidgetTutorial.collectAsState()
 
-    // 画面全体を Surface で包み、縦スクロールで設定項目を並べる
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = colors.bg,
@@ -164,7 +164,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 .navigationBarsPadding()
                 .verticalScroll(rememberScrollState()),
         ) {
-            // 戻るボタンと画面タイトル
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -185,7 +184,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 viewModel = viewModel,
                 colors = colors,
                 onPermissionNeeded = { showCalendarPermissionDialog = true },
-                onRestartNeeded = { showRestartModal = true },
                 onNoAccounts = { showNoAccountDialog = true },
                 onColorPickerRequested = { cal -> colorPickerCalendar = cal },
             )
@@ -213,7 +211,6 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 colors = colors,
             )
 
-            // ==================== このアプリについて ====================
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -237,12 +234,9 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
         }
     }
 
-    // ---------- 個別ダイアログ ----------
     if (showBgColorPicker) {
         BackgroundColorPickerDialog(
-            colors = colors,
-            themeMode = themeMode,
-            isSystemDark = isSystemDark,
+            colors = colors, themeMode = themeMode, isSystemDark = isSystemDark,
             currentColor = calendarBgColor,
             onDismiss = { showBgColorPicker = false },
             onColorSelected = { viewModel.setCalendarBgColor(it) },
@@ -250,8 +244,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     }
     colorPickerDay?.let { day ->
         DayColorPickerDialog(
-            day = day,
-            colors = colors,
+            day = day, colors = colors,
             currentColor = dayColors[day] ?: Color.Unspecified,
             onDismiss = { colorPickerDay = null },
             onColorSelected = { viewModel.setDayColor(day, it) },
@@ -259,8 +252,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     }
     colorPickerCalendar?.let { cal ->
         CalendarColorPickerDialog(
-            calendarName = cal.displayName,
-            colors = colors,
+            calendarName = cal.displayName, colors = colors,
             currentColorArgb = cal.colorArgb,
             onDismiss = { colorPickerCalendar = null },
             onColorSelected = { argb ->
@@ -271,12 +263,9 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     }
     if (showCalendarSelection) {
         val calendars = remember { mutableStateOf<List<CalendarMeta>>(emptyList()) }
-        LaunchedEffect(Unit) {
-            calendars.value = viewModel.loadGoogleCalendarMetas()
-        }
+        LaunchedEffect(Unit) { calendars.value = viewModel.loadGoogleCalendarMetas() }
         CalendarSelectionDialog(
-            colors = colors,
-            calendars = calendars.value,
+            colors = colors, calendars = calendars.value,
             onComplete = { list ->
                 viewModel.saveSelectedCalendars(list)
                 viewModel.markCalendarSelectionDone()
@@ -292,7 +281,8 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             onResult = { granted ->
                 showCalendarPermissionDialog = false
                 if (granted) {
-                    showRestartModal = true
+                    // 権限が揃ったので再起動なしで Google モードへ切り替える
+                    viewModel.setCalendarMode(CalendarMode.GOOGLE)
                 } else {
                     viewModel.setCalendarMode(CalendarMode.GOLENDAR)
                     android.widget.Toast.makeText(
@@ -305,58 +295,28 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             onDismiss = { showCalendarPermissionDialog = false },
         )
     }
-    if (showRestartModal) {
-        AlertDialog(
-            onDismissRequest = { showRestartModal = false },
-            containerColor = colors.surface,
-            title = { Text("再起動が必要です", color = colors.text, fontWeight = FontWeight.Bold) },
-            text = { Text("Googleアカウントを認識して同期するため、アプリを再起動します。", color = colors.text) },
-            confirmButton = {
-                TextButton(onClick = {
-                    showRestartModal = false
-                    viewModel.setCalendarMode(CalendarMode.GOOGLE)
-                    val pm = context.packageManager
-                    val intent = pm.getLaunchIntentForPackage(context.packageName)
-                    if (intent != null) {
-                        val mainIntent = android.content.Intent.makeRestartActivityTask(intent.component)
-                        context.startActivity(mainIntent)
-                        Runtime.getRuntime().exit(0)
-                    }
-                }) { Text("再起動", color = colors.primaryAccent, fontWeight = FontWeight.Bold) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showRestartModal = false }) { Text("キャンセル", color = colors.textGray) }
-            },
-        )
-    }
+
     if (showCalendarTutorial) {
         CalendarPermissionDialog(
             colors = colors,
             title = "Googleカレンダーへのアクセス",
-            message = "Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\n" +
-                    "\n" +
+            message = "Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\n\n" +
                     "Golendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。",
             onResult = { viewModel.dismissCalendarTutorial() },
             onDismiss = { viewModel.dismissCalendarTutorial() },
         )
     }
     if (showGestureTutorial) {
-        GestureSetupDialog(
-            colors = colors,
-            onComplete = { viewModel.dismissGestureTutorial() },
-        )
+        GestureSetupDialog(colors = colors, onComplete = { viewModel.dismissGestureTutorial() })
     }
     if (showAiSetup) {
-        AiSetupDialog(
-            colors = colors,
-            onComplete = { viewModel.markAiSetupDone() },
-        )
+        AiSetupDialog(colors = colors, onComplete = { viewModel.markAiSetupDone() })
+    }
+    if (showCalendarModeTutorial) {
+        CalendarModeTutorialDialog(colors = colors, onComplete = { viewModel.dismissCalendarModeTutorial() })
     }
     if (showMapTutorial) {
-        MapSetupDialog(
-            colors = colors,
-            onComplete = { viewModel.dismissMapTutorial() },
-        )
+        MapSetupDialog(colors = colors, onComplete = { viewModel.dismissMapTutorial() })
     }
     if (showMonthViewToggleTutorial) {
         MonthViewToggleTutorialDialog(colors = colors, onComplete = { viewModel.dismissMonthViewToggleTutorial() })
@@ -395,8 +355,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     "端末にGoogleアカウントが設定されていないため、Googleモードを使用できません。\n\n" +
                             "端末の「設定」→「アカウント」からGoogleアカウントを追加してから、もう一度お試しください。\n\n" +
                             "Golendarモード（アプリ内のみ）は引き続きご利用いただけます。",
-                    color = colors.text,
-                    fontSize = 14.sp,
+                    color = colors.text, fontSize = 14.sp,
                 )
             },
             confirmButton = {
@@ -407,11 +366,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
         )
     }
 
-    // ---------- このアプリについて（別ウィンドウ表示） ----------
     if (showAboutDialog) {
-        AboutAppDialog(
-            colors = colors,
-            onDismiss = { showAboutDialog = false },
-        )
+        AboutAppDialog(colors = colors, onDismiss = { showAboutDialog = false })
     }
 }

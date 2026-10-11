@@ -24,18 +24,29 @@ class BackupCoordinator(
         onProgress = { p, c, t -> onProgress(p, c, t) },
     )
 
+    // 復元前のプレビュー情報を取得する
+    suspend fun peek(uri: Uri): BackupManager.Metadata? = backupManager.peek(uri)
+
     // ファイルから予定をインポートし、成功時は祝日データを再取得する
     suspend fun import(
         uri: Uri,
         isAppend: Boolean,
         mode: CalendarMode,
         selectedCalendars: List<SelectedCalendar>,
-        targetCalendarId: Long?,
+        targetGoogleCalendarId: Long?,
+        targetLocalCalendarId: Long?,
+        selectedSourceIds: Set<Long>?,
+        autoCreateMissingCalendars: Boolean,
         onProgress: (phase: String, current: Int, total: Int) -> Unit,
     ): BackupManager.Result {
+        val options = BackupManager.RestoreOptions(
+            targetGoogleCalendarId = targetGoogleCalendarId,
+            targetLocalCalendarId = targetLocalCalendarId,
+            selectedSourceCalendarIds = selectedSourceIds,
+            autoCreateMissingCalendars = autoCreateMissingCalendars,
+        )
         val result = backupManager.import(
-            uri, isAppend, mode, selectedCalendars,
-            targetCalendarId = targetCalendarId,
+            uri, isAppend, mode, selectedCalendars, options,
             onProgress = { p, c, t -> onProgress(p, c, t) },
         )
         if (result is BackupManager.Result.Success) {

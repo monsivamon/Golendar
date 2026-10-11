@@ -150,7 +150,16 @@ fun AiParseDialog(
                         label = { Text("AIの回答JSONを貼り付け") },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 4,
-                        maxLines = 8
+                        maxLines = 8,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = colors.text,
+                            unfocusedTextColor = colors.text,
+                            focusedBorderColor = colors.primaryAccent,
+                            unfocusedBorderColor = colors.textGray,
+                            cursorColor = colors.primaryAccent,
+                            focusedLabelColor = colors.primaryAccent,
+                            unfocusedLabelColor = colors.textGray,
+                        ),
                     )
                     // JSON を解析してプレビューを生成するボタン
                     Button(
@@ -187,6 +196,10 @@ fun AiParseDialog(
                                         emptySet()
                                     }
                                 },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = colors.primaryAccent,
+                                    uncheckedColor = colors.text,
+                                ),
                             )
                             Text(
                                 "すべて選択",
@@ -239,7 +252,7 @@ fun AiParseDialog(
                     }
                     Spacer(Modifier.weight(1f))
                     // 右: キャンセルと追加ボタン
-                    TextButton(onClick = onDismiss) { Text("キャンセル") }
+                    TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) }
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {

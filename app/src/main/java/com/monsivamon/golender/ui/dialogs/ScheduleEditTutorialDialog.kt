@@ -28,6 +28,7 @@ import com.monsivamon.golender.ui.common.TutorialPage
 import com.monsivamon.golender.ui.theme.AppColors
 
 @Composable
+// 予定の編集・削除方法を案内するチュートリアル
 fun ScheduleEditTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(

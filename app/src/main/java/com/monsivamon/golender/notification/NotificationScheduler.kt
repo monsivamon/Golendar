@@ -147,19 +147,28 @@ object NotificationScheduler {
         triggerTime: Long,
         is10MinBefore: Boolean,
     ): Int {
+        // event.id (Long) をそのまま Int に切り詰めると別 ID と衝突し、
+        // PendingIntent の FLAG_UPDATE_CURRENT によって既存通知が上書き消失する恐れがある。
+        // 下位 31bit を 1 億未満へ正規化した「安定 ID」を基準にすることで
+        // 実用上無視できる衝突確率まで低減する。
+        // 繰り返し予定の全発生日は event.id が同一のため、startTime も
+        // 組み合わせて発生回ごとに一意な「安定 ID」を作る。
+        // これがないと同一 PendingIntent が FLAG_UPDATE_CURRENT で上書きされ、
+        // 直近の 1 回分の通知しか生き残らない（カレンダーアプリの根幹不具合）。
+        val uniqueKey = (event.id * 31L) xor (event.startTime / 60_000L)
+        val baseId = ((uniqueKey and 0x7FFFFFFFL) % 100_000_000L).toInt()
+        val notificationId = baseId + if (is10MinBefore) NotificationConfig.TEN_MIN_ID_OFFSET else 0
+
         // 通知内容を Intent に詰める
         val intent = Intent(context, NotificationReceiver::class.java).apply {
             val prefix = if (is10MinBefore) "[10分前] " else ""
             putExtra(NotificationConfig.EXTRA_TITLE, prefix + event.title)
             putExtra(NotificationConfig.EXTRA_MESSAGE, event.description)
-            putExtra(
-                NotificationConfig.EXTRA_ID,
-                event.id.toInt() + if (is10MinBefore) NotificationConfig.TEN_MIN_ID_OFFSET else 0,
-            )
+            putExtra(NotificationConfig.EXTRA_ID, notificationId)
         }
 
-        // イベント ID と種別から要求コードを組み立てる
-        val requestCode = event.id.toInt() * 10 + if (is10MinBefore) 1 else 0
+        // 発生回ごとに一意な要求コードを組み立てる
+        val requestCode = baseId * 10 + if (is10MinBefore) 1 else 0
 
         val pendingIntent = PendingIntent.getBroadcast(
             context, requestCode, intent,

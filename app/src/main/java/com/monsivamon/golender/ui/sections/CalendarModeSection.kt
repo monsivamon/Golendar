@@ -1,5 +1,6 @@
 package com.monsivamon.golender.ui.sections
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -23,13 +24,13 @@ import com.monsivamon.golender.viewmodel.CalendarMode
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 import kotlinx.coroutines.launch
 
-// カレンダーモード切替と Google カレンダー一覧を表示するセクション
+// カレンダーモード切替と、モード別のカレンダー管理 UI を表示するセクション。
+// Google モード時は Google カレンダー一覧、Golendar モード時はローカルカレンダー管理を表示する。
 @Composable
 fun CalendarModeSection(
     viewModel: CalendarViewModel,
     colors: AppColors,
     onPermissionNeeded: () -> Unit,
-    onRestartNeeded: () -> Unit,
     onNoAccounts: () -> Unit,
     onColorPickerRequested: (SelectedCalendar) -> Unit,
 ) {
@@ -37,8 +38,10 @@ fun CalendarModeSection(
     val scope = rememberCoroutineScope()
     val calendarMode by viewModel.calendarMode.collectAsState()
     val selectedCalendars by viewModel.selectedCalendars.collectAsState()
+    // 「最低1つは表示」ルール用: 現在の可視カレンダー数
+    val visibleGoogleCalendarCount = selectedCalendars.count { it.isVisible }
 
-    SettingsSection("カレンダーモード", colors) {
+    SettingsSection("カレンダーモード", colors, onExpand = { viewModel.onCalendarModeSectionExpanded() }) {
         // Golendar / Google の切替ボタン（セグメント風）
         Row(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
@@ -64,22 +67,30 @@ fun CalendarModeSection(
                     .background(if (calendarMode == CalendarMode.GOOGLE) colors.primaryAccent else Color.Transparent)
                     .clickable {
                         scope.launch {
-                            val accounts = viewModel.fetchAccountNames()
-                            if (accounts.isEmpty()) {
-                                onNoAccounts()
-                                return@launch
-                            }
+                            // 1) まずカレンダー読み書き権限の有無を確認する。
+                            //    権限が無いと fetchAccountNames() が SecurityException を
+                            //    握りつぶして空リストを返し、「アカウントなし」と誤判定するため、
+                            //    必ず権限チェックを先に行う。
                             val hasRead = ContextCompat.checkSelfPermission(
                                 context, android.Manifest.permission.READ_CALENDAR,
                             ) == android.content.pm.PackageManager.PERMISSION_GRANTED
                             val hasWrite = ContextCompat.checkSelfPermission(
                                 context, android.Manifest.permission.WRITE_CALENDAR,
                             ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                            when {
-                                hasRead && hasWrite -> {
-                                    if (calendarMode != CalendarMode.GOOGLE) onRestartNeeded()
-                                }
-                                else -> onPermissionNeeded()
+                            if (!hasRead || !hasWrite) {
+                                // 2) 権限が無ければ許可を求めるダイアログを表示する
+                                onPermissionNeeded()
+                                return@launch
+                            }
+                            // 3) 権限が揃ったのでアカウントの有無を確認する
+                            val accounts = viewModel.fetchAccountNames()
+                            if (accounts.isEmpty()) {
+                                onNoAccounts()
+                                return@launch
+                            }
+                            // 4) 再起動なしで即座に切り替える
+                            if (calendarMode != CalendarMode.GOOGLE) {
+                                viewModel.setCalendarMode(CalendarMode.GOOGLE)
                             }
                         }
                     }
@@ -93,26 +104,26 @@ fun CalendarModeSection(
                 )
             }
         }
-        // モードの説明文
+        // モードの説明文（短く）
         Text(
-            if (calendarMode == CalendarMode.GOLENDAR) "Googleアカウントと一切同期せず、アプリ内のみで完結します。"
-            else "Googleカレンダーのシステムと同期して予定を読み書きします。",
+            if (calendarMode == CalendarMode.GOLENDAR) "アプリ内のみで完結します。"
+            else "Googleカレンダーと同期します。",
             fontSize = 13.sp, color = colors.textGray,
-            modifier = Modifier.padding(top = 8.dp, bottom = 12.dp),
+            modifier = Modifier.padding(top = 8.dp),
         )
-        // Google モード時はカレンダー一覧を表示する
+
+
+        HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = 8.dp))
+
+        // モード別のカレンダー管理 UI
         if (calendarMode == CalendarMode.GOOGLE) {
+            // ---------- Google モード: Google カレンダー一覧 ----------
             val grouped = selectedCalendars.groupBy { it.accountName }
-            // 一括表示／非表示ボタン
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = { viewModel.setAllCalendarsVisible(true) }) {
                     Text("全て表示", color = colors.primaryAccent)
                 }
-                TextButton(onClick = { viewModel.setAllCalendarsVisible(false) }) {
-                    Text("全て非表示", color = colors.primaryAccent)
-                }
             }
-            // アカウント単位でカレンダーを一覧表示する
             grouped.forEach { (account, cals) ->
                 Text(
                     account, fontWeight = FontWeight.Bold, color = colors.textGray,
@@ -125,8 +136,14 @@ fun CalendarModeSection(
                     ) {
                         Checkbox(
                             checked = cal.isVisible,
-                            onCheckedChange = { viewModel.setCalendarVisibility(cal.calendarId, it) },
-                            colors = CheckboxDefaults.colors(checkedColor = colors.primaryAccent),
+                            onCheckedChange = { checked ->
+                                if (!checked && cal.isVisible && visibleGoogleCalendarCount <= 1) {
+                                    Toast.makeText(context, "最低1つのカレンダーを表示してください", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    viewModel.setCalendarVisibility(cal.calendarId, checked)
+                                }
+                            },
+                            colors = CheckboxDefaults.colors(checkedColor = colors.primaryAccent, uncheckedColor = colors.text),
                         )
                         Box(
                             modifier = Modifier
@@ -140,7 +157,6 @@ fun CalendarModeSection(
                     }
                 }
             }
-            // 端末のカレンダー追加・削除に追従するための再取得ボタン
             Button(
                 onClick = { viewModel.refreshAvailableCalendars() },
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -151,6 +167,12 @@ fun CalendarModeSection(
             ) {
                 Text("カレンダー一覧を再取得")
             }
+        } else {
+            // ---------- Golendar モード: ローカルカレンダー管理 ----------
+            LocalCalendarSectionContent(
+                viewModel = viewModel,
+                colors = colors,
+            )
         }
     }
 }

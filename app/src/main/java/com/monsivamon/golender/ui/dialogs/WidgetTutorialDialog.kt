@@ -26,6 +26,7 @@ import com.monsivamon.golender.ui.common.TutorialPage
 import com.monsivamon.golender.ui.theme.AppColors
 
 @Composable
+// ウィジェットとショートカットの使い方を案内するチュートリアル
 fun WidgetTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(

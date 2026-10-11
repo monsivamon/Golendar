@@ -24,8 +24,8 @@ class EventCrudManager(private val repository: CalendarRepository) {
         location: String, description: String, rrule: String?,
         newPhotoUris: List<Uri>,
         targetCalendarId: Long?,
+        localCalendarId: Long? = null,
     ): Long {
-        // 終日予定は UTC 日付境界に補正する
         val (finalStart, finalEnd) = if (isAllDay) {
             val c = correctAllDayMillis(startMillis, endMillis); c.start to c.end
         } else startMillis to endMillis
@@ -46,11 +46,18 @@ class EventCrudManager(private val repository: CalendarRepository) {
                 ) ?: -1L
             }
         } else {
-            repository.insertLocalEvent(title, finalStart, finalEnd, isAllDay,
-                location, description, rrule)
+            // 万一 localCalendarId が null/0 でも、既定 → 可視先頭 → 0L の順で解決する。
+            // （0L は不可視扱いになるため、必ず既定カレンダーへ着地させる）
+            val resolvedLocalId = localCalendarId?.takeIf { it > 0L }
+                ?: repository.getDefaultLocalCalendar()?.id
+                ?: repository.getVisibleLocalCalendars().firstOrNull()?.id
+                ?: 0L
+            repository.insertLocalEvent(
+                title, finalStart, finalEnd, isAllDay,
+                location, description, rrule, resolvedLocalId
+            )
         }
 
-        // Golendar モード時のみ写真を添付する
         if (!isGoogle && newEventId > 0 && newPhotoUris.isNotEmpty()) {
             newPhotoUris.take(EventPhoto.MAX_PHOTOS_PER_EVENT).forEach { uri ->
                 repository.attachPhotoToEvent(newEventId, uri)
@@ -65,6 +72,7 @@ class EventCrudManager(private val repository: CalendarRepository) {
         eventId: Long, title: String, startMillis: Long, endMillis: Long,
         isAllDay: Boolean, location: String, description: String, rrule: String?,
         newPhotoUris: List<Uri>, keptPhotoIds: List<Long>,
+        localCalendarId: Long? = null,
     ) {
         val (finalStart, finalEnd) = if (isAllDay) {
             val c = correctAllDayMillis(startMillis, endMillis); c.start to c.end
@@ -75,9 +83,13 @@ class EventCrudManager(private val repository: CalendarRepository) {
             repository.updateEvent(eventId, title, finalStart, finalEnd, isAllDay,
                 location, description, rrule)
         } else {
+            // 更新時も同様に、null/0 なら既定カレンダーへ解決してから書き戻す
+            val resolvedLocalId = localCalendarId?.takeIf { it > 0L }
+                ?: repository.getDefaultLocalCalendar()?.id
+                ?: repository.getVisibleLocalCalendars().firstOrNull()?.id
+                ?: 0L
             repository.updateLocalEvent(eventId, title, finalStart, finalEnd, isAllDay,
-                location, description, rrule)
-            // 削除された写真を消し、残り枠に新規写真を追加する
+                location, description, rrule, resolvedLocalId)
             val existing = repository.getPhotosForEvent(eventId)
             existing.filter { it.id !in keptPhotoIds }.forEach { repository.removePhoto(it) }
             val room = (EventPhoto.MAX_PHOTOS_PER_EVENT - keptPhotoIds.size).coerceAtLeast(0)
@@ -87,7 +99,6 @@ class EventCrudManager(private val repository: CalendarRepository) {
         }
     }
 
-    // 予定を削除する
     suspend fun delete(eventId: Long, mode: CalendarMode) {
         if (mode == CalendarMode.GOOGLE) repository.deleteEvent(eventId)
         else repository.deleteLocalEvent(eventId)
@@ -117,11 +128,11 @@ class EventCrudManager(private val repository: CalendarRepository) {
         when (dateToRemove) {
             eventStart -> {
                 if (isGoogle) repository.updateEvent(event.id, event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null)
-                else repository.updateLocalEvent(event.id, event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null)
+                else repository.updateLocalEvent(event.id, event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null, event.calendarId)
             }
             eventEnd -> {
                 if (isGoogle) repository.updateEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null)
-                else repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null)
+                else repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null, event.calendarId)
             }
             else -> {
                 if (isGoogle) {
@@ -142,19 +153,26 @@ class EventCrudManager(private val repository: CalendarRepository) {
                         )
                     }
                 } else {
-                    repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null)
-                    repository.insertLocalEvent(event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null)
+                    repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null, event.calendarId)
+                    repository.insertLocalEvent(event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null, event.calendarId)
                 }
             }
         }
     }
 
-    // AI 解析結果をローカル DB に一括登録する
-    suspend fun addFromAi(events: List<LocalEvent>) {
-        if (events.isNotEmpty()) repository.appendLocalEvents(events)
+    // AI 解析結果をローカル DB に一括登録する。
+    // targetCalendarId が指定されていればそれを最優先し、
+    // 無ければ既定カレンダー → 可視先頭 → 0L の順で解決する。
+    suspend fun addFromAi(events: List<LocalEvent>, targetCalendarId: Long? = null) {
+        if (events.isEmpty()) return
+        val targetId = targetCalendarId?.takeIf { it > 0L }
+            ?: repository.getDefaultLocalCalendar()?.id
+            ?: repository.getVisibleLocalCalendars().firstOrNull()?.id
+            ?: 0L
+        val fixed = events.map { it.copy(calendarId = targetId) }
+        repository.appendLocalEvents(fixed)
     }
 
-    // 予定の添付写真一覧を取得する
     suspend fun photos(eventId: Long): List<EventPhoto> =
         repository.getPhotosForEvent(eventId)
 }

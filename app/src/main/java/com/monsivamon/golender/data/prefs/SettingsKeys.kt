@@ -41,6 +41,8 @@ object SettingsKeys {
     val GESTURE_SETUP_DONE = booleanPreferencesKey("gesture_setup_done")
     // AI 解析の初回説明完了フラグ
     val AI_SETUP_DONE = booleanPreferencesKey("ai_setup_done")
+    // カレンダーモードチュートリアルの初回表示済みフラグ
+    val CALENDAR_MODE_TUTORIAL_SHOWN = booleanPreferencesKey("calendar_mode_tutorial_shown")
 
     // 選択中カレンダー（JSON 文字列）
     val SELECTED_CALENDARS = stringPreferencesKey("selected_calendars_json")
@@ -57,4 +59,10 @@ object SettingsKeys {
 
     // 色が未設定であることを示すセンチネル値
     const val COLOR_UNSPECIFIED = "UNSPECIFIED"
+
+    // 曜日色の既定値（カスタム未設定時に表示される色）。
+    // DataStore にキーが無いとき、バックアップへはこの値を書き出す。
+    // ※ CalendarViewModel の初期値と必ず一致させること。
+    const val DEFAULT_SUNDAY_COLOR_ARGB: Int = -1754827    // 0xFFE53935
+    const val DEFAULT_SATURDAY_COLOR_ARGB: Int = -14776091 // 0xFF1E88E5
 }

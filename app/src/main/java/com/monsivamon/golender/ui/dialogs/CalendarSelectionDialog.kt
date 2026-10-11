@@ -101,7 +101,7 @@ fun CalendarSelectionDialog(
                                     onCheckedChange = { checked ->
                                         selectedIds = if (checked) selectedIds + meta.id else selectedIds - meta.id
                                     },
-                                    colors = CheckboxDefaults.colors(checkedColor = colors.primaryAccent)
+                                    colors = CheckboxDefaults.colors(checkedColor = colors.primaryAccent, uncheckedColor = colors.text)
                                 )
                                 // カレンダー標準色の丸
                                 Box(

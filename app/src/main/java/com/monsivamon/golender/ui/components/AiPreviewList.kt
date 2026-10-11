@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,7 +44,11 @@ fun AiPreviewList(
             ) {
                 Checkbox(
                     checked = index in selected,
-                    onCheckedChange = { onToggle(index) }
+                    onCheckedChange = { onToggle(index) },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = colors.primaryAccent,
+                        uncheckedColor = colors.text,
+                    )
                 )
                 Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
                     Text(dateStr, fontSize = 12.sp, color = colors.textGray)

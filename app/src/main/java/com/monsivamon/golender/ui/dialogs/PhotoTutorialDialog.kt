@@ -28,6 +28,7 @@ import com.monsivamon.golender.ui.common.TutorialPage
 import com.monsivamon.golender.ui.theme.AppColors
 
 @Composable
+// 写真の添付・拡大・保存・共有の使い方を案内するチュートリアル
 fun PhotoTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(

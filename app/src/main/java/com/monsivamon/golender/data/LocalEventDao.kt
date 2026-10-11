@@ -11,42 +11,50 @@ import androidx.room.Update
 @Dao
 interface LocalEventDao {
 
-    // 指定期間に該当する予定（または繰り返し予定）を開始時刻順で取得する
     @Query("SELECT * FROM local_events WHERE (startTime <= :end AND endTime >= :start) OR rrule IS NOT NULL ORDER BY startTime ASC")
+    // 期間内の予定を取得する
     suspend fun getEventsInRange(start: Long, end: Long): List<LocalEvent>
 
-    // 全予定を取得する（バックアップ用）
+    @Query("SELECT * FROM local_events WHERE ((startTime <= :end AND endTime >= :start) OR rrule IS NOT NULL) AND (calendarId IN (:calendarIds) OR description = 'system_holiday') ORDER BY startTime ASC")
+    // 期間内かつ指定カレンダーの予定を取得する（祝日は常に含む）
+    suspend fun getEventsInRangeFiltered(start: Long, end: Long, calendarIds: List<Long>): List<LocalEvent>
+
     @Query("SELECT * FROM local_events")
+    // 全予定を取得する
     suspend fun getAllEvents(): List<LocalEvent>
 
-    // 予定を挿入し採番 ID を返す
     @Insert
+    // 予定を 1 件挿入し、採番 ID を返す
     suspend fun insert(event: LocalEvent): Long
 
-    // 予定を更新する
     @Update
+    // 予定を更新する
     suspend fun update(event: LocalEvent)
 
-    // ID 指定で予定を削除する
     @Query("DELETE FROM local_events WHERE id = :id")
+    // ID 指定で予定を削除する
     suspend fun deleteById(id: Long)
 
-    // description 指定で予定を削除する（祝日更新用）
     @Query("DELETE FROM local_events WHERE description = :description")
+    // 指定 description の予定をまとめて削除する
     suspend fun deleteByDescription(description: String)
 
-    // 全予定を削除する（復元前の初期化用）
     @Query("DELETE FROM local_events")
+    // 全予定を削除する
     suspend fun deleteAll()
 
-    // 予定を一括挿入する（競合時は置換）
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    // 予定を一括挿入する（REPLACE 戦略）
     suspend fun insertAll(events: List<LocalEvent>)
 
-    // 祝日データを原子的に置き換える（二重挿入防止）
     @Transaction
+    // 既存の祝日を全削除→再投入で置き換える
     suspend fun replaceSystemHolidays(holidays: List<LocalEvent>) {
         deleteByDescription(LocalEvent.DESCRIPTION_HOLIDAY)
         insertAll(holidays)
     }
+
+    @Query("UPDATE local_events SET calendarId = :targetCalendarId WHERE calendarId = :sourceCalendarId")
+    // 所属カレンダーを付け替える
+    suspend fun moveEvents(sourceCalendarId: Long, targetCalendarId: Long)
 }

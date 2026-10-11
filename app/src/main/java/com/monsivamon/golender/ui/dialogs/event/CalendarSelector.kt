@@ -79,6 +79,12 @@ internal fun CalendarSelector(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
+                // Material3 の DropdownMenu は MaterialTheme.colorScheme から
+                // 背景色を取得する。本アプリは MaterialTheme を被せていないため
+                // 既定でライト固定の白背景になり、ダークモード時に
+                // colors.text（ほぼ白）と衝突して文字が見えなくなる。
+                // アプリの surface 色を明示して回避する。
+                containerColor = colors.surface,
             ) {
                 calendars.forEach { cal ->
                     DropdownMenuItem(

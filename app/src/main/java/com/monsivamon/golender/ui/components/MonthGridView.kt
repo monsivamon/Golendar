@@ -32,6 +32,7 @@ fun MonthGridView(
     weekStartDay: DayOfWeek,
     dayColors: Map<DayOfWeek, Color>,
     colors: AppColors,
+    maxEventsPerCell: Int = 3,
     onSelectDate: (LocalDate) -> Unit,
 ) {
     // 曜日文字列から DayOfWeek への変換テーブル
@@ -96,6 +97,7 @@ fun MonthGridView(
                             dayColor = c,
                             colors = colors,
                             modifier = Modifier.weight(1f).fillMaxHeight(),
+                            maxEvents = maxEventsPerCell,
                             onClick = { onSelectDate(date) },
                         )
                     }

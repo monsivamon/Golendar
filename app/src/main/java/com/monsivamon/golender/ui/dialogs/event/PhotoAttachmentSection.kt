@@ -82,7 +82,7 @@ internal fun PhotoAttachmentSection(
                 item {
                     Box(
                         modifier = Modifier
-                            .size(80.dp)
+                            .size(64.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .border(1.dp, colors.textGray, RoundedCornerShape(8.dp))
                             .clickable(onClick = onAddClick),
@@ -112,7 +112,7 @@ private fun PhotoThumbnail(
 ) {
     Box(
         modifier = Modifier
-            .size(80.dp)
+            .size(64.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(colors.bg)
             .border(1.dp, colors.divider, RoundedCornerShape(8.dp))

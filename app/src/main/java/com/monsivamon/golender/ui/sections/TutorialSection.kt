@@ -78,6 +78,7 @@ fun TutorialSection(
         ) {
             Text("AI解析の使い方を見る", fontSize = 16.sp, color = colors.text)
         }
+        TutorialRow("カレンダーの表示と色の設定を見る", colors) { viewModel.requestShowCalendarModeTutorial() }
         TutorialRow("月表示の下部リストを見る", colors) { viewModel.requestShowMonthViewToggleTutorial() }
         TutorialRow("予定の追加を見る", colors) { viewModel.requestShowScheduleAddTutorial() }
         TutorialRow("予定の編集と削除を見る", colors) { viewModel.requestShowScheduleEditTutorial() }
