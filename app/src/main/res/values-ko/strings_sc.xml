@@ -1,0 +1,131 @@
+<resources>
+    <!-- ============================================================
+         ui/sections/BackupSection.kt
+         ============================================================ -->
+    <string name="sc_backupRestoreSection">백업과 복원</string>
+    <string name="sc_backupSaveDescription">저장: 표시 중인 캘린더의 일정을 모아서 내보냅니다.\n복원: 같은 이름의 캘린더를 덮어씁니다(Golendar 모드만).\n추가: 기존 일정을 남긴 채 추가합니다.</string>
+    <string name="sc_backupPhotosLabel">사진도 백업</string>
+    <string name="sc_backupPhotosZipDesc">일정에 첨부한 사진도 ZIP 파일에 포함합니다(Golendar 모드만)</string>
+    <string name="sc_backupPhotosOffDesc">OFF인 경우는 기존과 같이 JSON으로 저장됩니다</string>
+    <string name="sc_save">저장</string>
+    <string name="sc_append">추가</string>
+    <string name="sc_restore">복원</string>
+    <string name="sc_multiCalendarBackupTitle">여러 캘린더를 한 번에 백업</string>
+    <string name="sc_multiCalendarBackupMessage">여러 개의 캘린더가 표시되어 있습니다.\n한 번에 백업해도 괜찮습니까?</string>
+    <string name="sc_multiCalendarTargetCount">대상: %1$d건</string>
+    <string name="sc_bulletItemName">・%1$s</string>
+    <string name="sc_unnamed">이름 없음</string>
+    <string name="sc_cancel">취소</string>
+    <string name="sc_overwriteTitle">같은 이름의 캘린더가 존재합니다</string>
+    <string name="sc_overwriteMessage">다음 캘린더는 이미 존재합니다.\n복원하면 원래 캘린더의 일정은 덮어써집니다.\n그래도 진행하시겠습니까?</string>
+    <string name="sc_overwriteNote">※ 백업에 포함되지 않는 캘린더는 그대로 남습니다.</string>
+    <string name="sc_overwriteConfirm">덮어쓰기</string>
+    <string name="sc_restoreNotAvailableInFile">이 파일은 복원할 수 없습니다</string>
+    <string name="sc_zipAppendGolendarOnly">사진 포함 백업은 Golendar 모드에서만 추가할 수 있습니다</string>
+    <string name="sc_legacyRestoreUnavailable">구 형식의 백업은 Google 모드에서 복원할 수 없습니다. 추가를 이용해 주세요.</string>
+    <string name="sc_restoreGoogleModeUnavailable">Google 모드에서는 복원할 수 없습니다. 추가를 이용해 주세요.</string>
+
+    <!-- ============================================================
+         ui/sections/CalendarModeSection.kt
+         ============================================================ -->
+    <string name="sc_calendarModeSection">캘린더 모드</string>
+    <string name="sc_golendarModeDesc">앱 내에서만 완결됩니다.</string>
+    <string name="sc_googleModeDesc">Google 캘린더와 동기화합니다.</string>
+    <string name="sc_showAll">모두 표시</string>
+    <string name="sc_minOneCalendar">최소 1개의 캘린더를 표시해 주세요</string>
+    <string name="sc_refreshCalendarList">캘린더 목록 다시 가져오기</string>
+
+    <!-- ============================================================
+         ui/sections/CustomSettingsSection.kt
+         ============================================================ -->
+    <string name="sc_customSettingsSection">커스텀 설정</string>
+    <string name="sc_showHolidays">공휴일 표시</string>
+    <string name="sc_appBgColor">앱 배경색</string>
+    <string name="sc_appBgColorSelect">앱 배경색 선택</string>
+    <string name="sc_dayColors">요일 색</string>
+    <string name="sc_dayOfWeekRow">%1$s요일</string>
+    <string name="sc_displayTheme">표시 테마</string>
+    <string name="sc_themeSystem">기기 설정에 맞추기</string>
+    <string name="sc_themeLight">라이트 모드</string>
+    <string name="sc_themeDark">다크 모드</string>
+    <string name="sc_weekStart">주 시작 요일</string>
+    <string name="sc_weekStartSunday">일요일부터 시작</string>
+    <string name="sc_weekStartMonday">월요일부터 시작</string>
+
+    <!-- ============================================================
+         ui/sections/LocalCalendarSection.kt
+         ============================================================ -->
+    <string name="sc_defaultCalendarNotDeletable">내 캘린더는 삭제할 수 없습니다.</string>
+    <string name="sc_defaultSuffix">" (기본)"</string>
+    <string name="sc_addCalendar">캘린더 추가</string>
+    <string name="sc_name">이름</string>
+    <string name="sc_color">색</string>
+    <string name="sc_add">추가</string>
+    <string name="sc_deleteCalendarTitle">캘린더를 삭제하시겠습니까?</string>
+    <string name="sc_deleteCalendarMessage">‘%1$s’을(를) 삭제합니다.</string>
+    <string name="sc_checkingEvents">소속 일정을 확인하는 중...</string>
+    <string name="sc_noEventsInCalendar">이 캘린더에는 일정이 없습니다.</string>
+    <string name="sc_deleteWithEvents">이 캘린더에 속한 일정 %1$d건도 함께 삭제됩니다.\n되돌릴 수 없습니다.</string>
+    <string name="sc_delete">삭제</string>
+
+    <!-- ============================================================
+         ui/sections/NotificationSection.kt
+         ============================================================ -->
+    <string name="sc_notificationSection">알림 설정</string>
+    <string name="sc_notifyAtStart">정시(시작 시각)에 알림</string>
+    <string name="sc_notify10MinBefore">10분 전에 알림</string>
+    <string name="sc_bgNotificationReliability">백그라운드 알림 안정화</string>
+    <string name="sc_batteryOptimizationOff">배터리 최적화 비활성화\n(절전 중 알림 지연을 막습니다)</string>
+    <string name="sc_batteryOptimizationDone">비활성화됨</string>
+    <string name="sc_openSettings">설정 열기</string>
+    <string name="sc_notificationPermission">알림 허용</string>
+    <string name="sc_permissionGranted">허용됨</string>
+    <string name="sc_grantPermission">허용</string>
+    <string name="sc_exactAlarmPermission">정확한 알람 기능 허용</string>
+    <string name="sc_recheckSettings">설정 상태 다시 확인</string>
+    <string name="sc_notificationDeniedTitle">알림이 허용되지 않았습니다</string>
+    <string name="sc_notificationDeniedMessage">알림 권한이 영구적으로 거부되어 있어 시스템의 권한 다이얼로그를 표시할 수 없습니다.\n\n‘설정 열기’→‘알림’→‘허용’을 선택해 주세요.</string>
+
+    <!-- ============================================================
+         ui/sections/TutorialSection.kt
+         ============================================================ -->
+    <string name="sc_tutorialSection">튜토리얼</string>
+    <string name="sc_tutorialCalendarPermission">캘린더 접근 권한 확인하기</string>
+    <string name="sc_tutorialGesture">제스처 조작 안내 보기</string>
+    <string name="sc_tutorialMap">지도 사용법 보기</string>
+    <string name="sc_tutorialAi">AI 분석 사용법 보기</string>
+    <string name="sc_tutorialCalendarDisplay">캘린더 표시와 색 설정 보기</string>
+    <string name="sc_tutorialMonthList">월 표시의 하단 목록 보기</string>
+    <string name="sc_tutorialScheduleAdd">일정 추가 보기</string>
+    <string name="sc_tutorialScheduleEdit">일정 편집과 삭제 보기</string>
+    <string name="sc_tutorialRecurring">반복 일정 사용법 보기</string>
+    <string name="sc_tutorialPhoto">사진 활용 보기</string>
+    <string name="sc_tutorialSearch">검색 사용법 보기</string>
+    <string name="sc_tutorialNotification">알림 설정 보기</string>
+    <string name="sc_tutorialBackup">백업과 복원 보기</string>
+    <string name="sc_tutorialWidget">위젯과 바로가기 보기</string>
+
+    <!-- ============================================================
+         ui/screens/DailyCalendarScreen.kt / WeeklyCalendarScreen.kt / MonthlyCalendarScreen.kt
+         ============================================================ -->
+    <string name="sc_dateWithCount">%1$d월 %2$d일 (%3$s)</string>
+    <string name="sc_weekDateWithCount">%1$d월 %2$d일 (%3$s)  %4$d건</string>
+    <string name="sc_eventCount">%1$d건</string>
+    <string name="sc_noEvents">일정 없음</string>
+    <string name="sc_addEvent">+ 일정 추가</string>
+
+    <!-- ============================================================
+         ui/screens/SettingsScreen.kt
+         ============================================================ -->
+    <string name="sc_back">‹ 뒤로</string>
+    <string name="sc_settings">설정</string>
+    <string name="sc_aboutApp">이 앱 정보</string>
+    <string name="sc_googleCalendarAccess">Google 캘린더 접근</string>
+    <string name="sc_calendarPermissionMessage">Google 캘린더와 동기화하려면 캘린더 접근 권한이 필요합니다.\n다음 화면에서 ‘허용’을 선택해 주세요.</string>
+    <string name="sc_permissionDeniedSwitchMode">캘린더 접근이 허용되지 않아 Golendar 모드로 전환했습니다</string>
+    <string name="sc_calendarTutorialMessage">Google 캘린더와 동기화하여 일정을 읽고 쓰려면 캘린더 접근 권한이 필요합니다.\n\nGolendar 모드(앱 내에서만)만 사용하는 경우에는 허용하지 않고 나중에 설정 화면에서 변경할 수도 있습니다.</string>
+    <string name="sc_noGoogleAccountTitle">Google 계정을 찾을 수 없습니다</string>
+    <string name="sc_noGoogleAccountMessage">기기에 Google 계정이 설정되어 있지 않아 Google 모드를 사용할 수 없습니다.\n\n기기의 ‘설정’→‘계정’에서 Google 계정을 추가한 뒤 다시 시도해 주세요.\n\nGolendar 모드(앱 내에서만)는 계속 이용할 수 있습니다.</string>
+    <string name="sc_close">닫기</string>
+    <string name="sc_language">표시 언어</string>
+</resources>

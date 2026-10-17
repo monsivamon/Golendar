@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Golendar</string>
+
+    <string name="shortcut_add_event_short">Add Event</string>
+    <string name="shortcut_add_event_long">Add a new event</string>
+    <string name="shortcut_today_short">Today</string>
+    <string name="shortcut_today_long">Show today\'s events</string>
+    <string name="shortcut_search_short">Search</string>
+    <string name="shortcut_search_long">Search events</string>
+
+    <string name="widget_day_label">Day\'s Events</string>
+    <string name="widget_week_label">Week Calendar</string>
+    <string name="widget_month_label">Month Calendar</string>
+
+    <string name="default_calendar_name">My Calendar</string>
+</resources>

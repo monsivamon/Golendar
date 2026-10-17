@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.ui.theme.calendarColorPalette
 
@@ -37,7 +39,7 @@ fun CalendarColorPickerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
-        title = { Text("${calendarName} の色", color = colors.text, fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.dl2_calendarColorTitle, calendarName), color = colors.text, fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 // 「カレンダーの色（既定）」= 0 を選ぶ行。
@@ -64,10 +66,10 @@ fun CalendarColorPickerDialog(
                                 .background(colors.primaryAccent)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("カレンダーの色（既定）", color = colors.text, fontSize = 15.sp)
+                        Text(stringResource(R.string.dl2_calendarColorDefault), color = colors.text, fontSize = 15.sp)
                     }
                     if (currentColorArgb == 0) {
-                        Text("✓ 選択中", color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.dl2_selectedMark), color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
@@ -114,7 +116,7 @@ fun CalendarColorPickerDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("閉じる", color = colors.textGray) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.dl2_close), color = colors.textGray) }
         }
     )
 }

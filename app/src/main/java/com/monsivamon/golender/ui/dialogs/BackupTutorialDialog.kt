@@ -17,9 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -30,24 +32,24 @@ fun BackupTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "保存形式",
-                description = "「写真もバックアップ」OFF なら JSON、\nON なら写真入り ZIP で保存します。\nZIP は Golendar モード専用です。",
+                title = stringResource(R.string.dl1_backupTitleFormat),
+                description = stringResource(R.string.dl1_backupDescFormat),
                 illustration = { c -> FormatIllustration(c) },
             ),
             TutorialPage(
-                title = "保存・復元・追記の違い",
-                description = "「保存」で予定を書き出し、\n「追記」は既存を残して追加、\n「復元」は既存を上書きします。\nGoogleモードでは「復元」は使えません。",
+                title = stringResource(R.string.dl1_backupTitleOperations),
+                description = stringResource(R.string.dl1_backupDescOperations),
                 illustration = { c -> AppendVsRestoreIllustration(c) },
             ),
             TutorialPage(
-                title = "復元先の選択",
-                description = "Googleモードでの「追記」時は、\n書き込み可能なカレンダーを1つ選んで\n保存先にできます。",
+                title = stringResource(R.string.dl1_backupTitleTarget),
+                description = stringResource(R.string.dl1_backupDescTarget),
                 illustration = { c -> TargetPickerIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -93,7 +95,7 @@ private fun AppendVsRestoreIllustration(colors: AppColors) {
         ) {
             // 追記
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("追記", color = colors.text, fontSize = 11.sp, modifier = Modifier.width(38.dp))
+                Text(stringResource(R.string.dl1_append), color = colors.text, fontSize = 11.sp, modifier = Modifier.width(38.dp))
                 Box(
                     modifier = Modifier
                         .width(40.dp)
@@ -112,7 +114,7 @@ private fun AppendVsRestoreIllustration(colors: AppColors) {
             }
             // 復元
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("復元", color = colors.text, fontSize = 11.sp, modifier = Modifier.width(38.dp))
+                Text(stringResource(R.string.dl1_restore), color = colors.text, fontSize = 11.sp, modifier = Modifier.width(38.dp))
                 Box(
                     modifier = Modifier
                         .width(40.dp)
@@ -130,7 +132,7 @@ private fun AppendVsRestoreIllustration(colors: AppColors) {
                         .background(colors.primaryAccent),
                 )
             }
-            Text("薄い＝既存 / 濃い＝新規", color = colors.textGray, fontSize = 10.sp)
+            Text(stringResource(R.string.dl1_backupLegendThin), color = colors.textGray, fontSize = 10.sp)
         }
     }
 }

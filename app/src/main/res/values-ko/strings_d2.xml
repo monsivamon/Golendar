@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AiParseDialog -->
+    <string name="dl2_aiParseWarningTitle">분석 결과에 경고가 있습니다</string>
+    <string name="dl2_aiParseWarningItem">・%1$s</string>
+    <string name="dl2_aiParseAcknowledge">확인했습니다</string>
+    <string name="dl2_aiParseTitle">AI로 읽어들이기 (BETA)</string>
+    <string name="dl2_aiParseDescription">Golendar 모드 전용 기능입니다.\n이미지 인식이 가능한 AI(ChatGPT / Gemini / Qwen / DeepSeek 등)에,\n이미지와 프롬프트를 전달해 주세요. 돌아온 JSON을 붙여넣어 주세요.</string>
+    <string name="dl2_copied">복사했습니다</string>
+    <string name="dl2_copy">복사</string>
+    <string name="dl2_aiPromptSubject">Golendar 일정 분석 프롬프트</string>
+    <string name="dl2_chooseAiApp">분석할 AI 선택</string>
+    <string name="dl2_passWithPhoto">AI에 이미지와 함께 전달해 주세요</string>
+    <string name="dl2_openAiApp">AI 앱 열기</string>
+    <string name="dl2_aiParseInputLabel">AI 답변 JSON을 붙여넣기</string>
+    <string name="dl2_parseFailed">AI 출력을 분석하지 못했습니다</string>
+    <string name="dl2_parseAndAdd">분석하여 등록</string>
+    <string name="dl2_selectAllKana">모두 선택</string>
+    <string name="dl2_selectionCount">선택 중: %1$d건</string>
+    <string name="dl2_aiParseCheckboxNote">※ 체크한 일정만 추가됩니다</string>
+    <string name="dl2_footerSelectionStatus">%1$d건 중 %2$d건 선택 중</string>
+    <string name="dl2_cancel">취소</string>
+    <string name="dl2_add">추가</string>
+
+    <!-- CalendarColorPickerDialog -->
+    <string name="dl2_calendarColorTitle">%1$s의 색</string>
+    <string name="dl2_calendarColorDefault">캘린더 색(기본)</string>
+    <string name="dl2_selectedMark">✓ 선택 중</string>
+    <string name="dl2_close">닫기</string>
+
+    <!-- CalendarSelectionDialog -->
+    <string name="dl2_warning">경고</string>
+    <string name="dl2_calendarSelectionEmptyWarning">캘린더가 하나도 선택되지 않았습니다. 이 상태로는 일정이 표시되지 않습니다. 계속하시겠습니까?</string>
+    <string name="dl2_proceed">계속</string>
+    <string name="dl2_goBack">뒤로</string>
+    <string name="dl2_calendarSelectionTitle">표시할 캘린더 선택</string>
+    <string name="dl2_calendarSelectionDesc">표시할 캘린더에 체크를 해 주세요. 나중에 설정 화면에서 변경할 수 있습니다.</string>
+    <string name="dl2_selectAllCalendar">모두 선택</string>
+    <string name="dl2_deselectAll">모두 해제</string>
+    <string name="dl2_unnamedCalendar">이름 없음</string>
+    <string name="dl2_confirmDecision">결정</string>
+
+    <!-- ColorPickerDialogs -->
+    <string name="dl2_bgColorPickerTitle">앱 배경색 선택</string>
+    <string name="dl2_bgColorDarkNote">다크 모드에서는 선택한 색이 자동으로 어둡게 표시됩니다.</string>
+    <string name="dl2_bgColorLightNote">같은 색상을 유지한 채, 다크 모드에서는 어두운 배경이 됩니다.</string>
+    <string name="dl2_dayColorTitle">%1$s요일의 색</string>
+    <string name="dl2_colorStandard">표준(커스텀 없음)</string>
+
+    <!-- DayEventsDialog -->
+    <string name="dl2_dayEventsTitle">%1$d월 %2$d일 (%3$s)</string>
+    <string name="dl2_eventCount">%1$d건</string>
+    <string name="dl2_noEvents">일정 없음</string>
+    <string name="dl2_addEvent">+ 일정 추가</string>
+
+    <!-- EventDetailDialog -->
+    <string name="dl2_recurringDaily">(매일)</string>
+    <string name="dl2_recurringWeekly">(매주)</string>
+    <string name="dl2_recurringWeekdays">(평일)</string>
+    <string name="dl2_recurringMonthly">(매월)</string>
+    <string name="dl2_recurringYearly">(매년)</string>
+    <string name="dl2_viewOnMap">지도에서 보기</string>
+    <string name="dl2_memo">메모</string>
+    <string name="dl2_photoCount">사진 (%1$d)</string>
+    <string name="dl2_shareEventChooser">일정 공유</string>
+    <string name="dl2_share">공유</string>
+    <string name="dl2_edit">편집</string>
+    <string name="dl2_deleteThisDay">이 날만 삭제</string>
+
+    <!-- EventDialog -->
+    <string name="dl2_addEventTitle">일정 추가</string>
+    <string name="dl2_editEventTitle">일정 편집</string>
+    <string name="dl2_titleLabel">제목</string>
+    <string name="dl2_allDay">종일</string>
+    <string name="dl2_recurring">반복</string>
+    <string name="dl2_dateLockedNote">※캘린더에서 선택한 날짜에 추가됩니다(날짜는 변경할 수 없습니다)</string>
+    <string name="dl2_startLabel">시작</string>
+    <string name="dl2_endLabel">종료</string>
+    <string name="dl2_recurringDurationNote">※‘종료’는 1회분의 소요 시간입니다. 반복 종료일은 아래에서 지정합니다.</string>
+    <string name="dl2_specifyRecurrenceEnd">반복 종료일 지정</string>
+    <string name="dl2_recurrenceEndDate">종료일</string>
+    <string name="dl2_dateYmd">%1$d년 %2$d월 %3$d일</string>
+    <string name="dl2_locationLabel">장소</string>
+    <string name="dl2_pickFromMap">지도에서 선택</string>
+    <string name="dl2_memoLabel">메모 / 내용</string>
+    <string name="dl2_save">저장</string>
+    <string name="dl2_delete">삭제</string>
+
+    <!-- EventPhotoViewerDialog -->
+    <string name="dl2_storagePermissionRequired">저장하려면 스토리지 접근 권한이 필요합니다</string>
+    <string name="dl2_photoFileNotFound">사진 파일을 찾을 수 없습니다</string>
+    <string name="dl2_sharePhotoChooser">사진 공유</string>
+    <string name="dl2_shareFailed">공유에 실패했습니다: %1$s</string>
+
+    <!-- ExitConfirmDialog -->
+    <string name="dl2_exitTitle">종료하시겠습니까?</string>
+    <string name="dl2_exitMessage">Golendar를 종료합니다.</string>
+    <string name="dl2_exit">종료</string>
+
+    <!-- LocalCalendarEditDialog -->
+    <string name="dl2_editCalendarTitle">캘린더 편집</string>
+    <string name="dl2_nameLabel">이름</string>
+    <string name="dl2_defaultCalendarNameLocked">내 캘린더는 이름을 변경할 수 없습니다(색만 변경할 수 있습니다).</string>
+    <string name="dl2_colorLabel">색</string>
+
+    <!-- PlacePickerDialog -->
+    <string name="dl2_locationIntroTitle">현재 위치 이용에 대하여</string>
+    <string name="dl2_locationIntroMessage">현재 위치를 초기 위치로 지도에 표시합니다.\n허용하지 않아도 지도는 사용할 수 있습니다(초기 위치는 도쿄역 부근이 됩니다).</string>
+    <string name="dl2_allow">허용</string>
+    <string name="dl2_deny">허용하지 않음</string>
+    <string name="dl2_showCurrentLocation">현재 위치 표시</string>
+    <string name="dl2_locationButtonIntroMessage">지도에 현재 위치를 표시하려면,\n위치 정보 권한이 필요합니다.</string>
+    <string name="dl2_locationDeniedTitle">위치 정보가 허용되지 않았습니다</string>
+    <string name="dl2_locationDeniedMessage">현재 위치를 표시하려면 기기 설정에서 위치 정보를 허용해 주세요.\n\n‘설정 열기’를 탭하면 Golendar의 권한 설정 화면이 열립니다.\n‘권한’→‘위치 정보’→‘허용’을 선택해 주세요.</string>
+    <string name="dl2_openSettings">설정 열기</string>
+    <string name="dl2_placePickerTitle">장소 선택</string>
+    <string name="dl2_currentLocation">현재 위치</string>
+    <string name="dl2_locating">현재 위치를 가져오는 중...</string>
+    <string name="dl2_geocoding">주소를 가져오는 중...</string>
+    <string name="dl2_unknownAddress">주소 미상</string>
+    <string name="dl2_pinInstruction">지도를 움직여 가운데 핀을 장소에 맞춰 주세요.</string>
+
+    <!-- RestoreOptionsDialog -->
+    <string name="dl2_backupAppend">백업을 추가</string>
+    <string name="dl2_backupRestore">백업을 복원</string>
+    <string name="dl2_backupSummary">캘린더 %1$d개 / %2$d건</string>
+    <string name="dl2_backupPhotoSuffix">" / 사진 %1$d장"</string>
+    <string name="dl2_autoCreateExplanation">백업 안의 캘린더 이름으로 분배합니다.\n같은 이름의 캘린더가 없으면 새로 만들고,\n같은 이름의 캘린더가 이미 있으면 덮어쓰기 확인이 표시됩니다.\n구 형식의 일정은 내 캘린더로 복원됩니다.</string>
+    <string name="dl2_appendTargetLabel">추가 대상 캘린더</string>
+    <string name="dl2_restoreTargetLabel">복원 대상 캘린더</string>
+    <string name="dl2_noRestoreTargets">복원 대상으로 지정할 수 있는 캘린더가 없습니다.\n설정에서 캘린더를 추가해 주세요.</string>
+    <string name="dl2_restoreSources">복원할 캘린더</string>
+    <string name="dl2_restoreSourcesNote">체크한 캘린더의 일정만 복원 대상에 추가합니다.</string>
+    <string name="dl2_append">추가</string>
+    <string name="dl2_restore">복원</string>
+
+    <!-- SyncConfirmDialog -->
+    <string name="dl2_syncTitle">동기화 확인</string>
+    <string name="dl2_syncMessage">기기 내 계정의 캘린더 정보와 동기화합니다.\n그래도 진행하시겠습니까?</string>
+    <string name="dl2_syncConfirm">동기화</string>
+
+    <!-- event/CalendarSelector・LocalCalendarSelector -->
+    <string name="dl2_targetCalendarLabel">추가 대상 캘린더</string>
+    <string name="dl2_selectCalendarPlaceholder">캘린더 선택</string>
+
+    <!-- event/PhotoAttachmentSection -->
+    <string name="dl2_photoSection">사진</string>
+    <string name="dl2_photoResizeNote">사진은 앱 내에 저장됩니다(긴 변 %1$dpx로 축소)</string>
+
+    <!-- event/RecurrenceChips -->
+    <string name="dl2_chipDaily">매일</string>
+    <string name="dl2_chipWeekdays">평일</string>
+    <string name="dl2_chipWeekly">매주</string>
+    <string name="dl2_chipMonthly">매월</string>
+    <string name="dl2_chipYearly">매년</string>
+</resources>

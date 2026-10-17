@@ -22,9 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -39,18 +41,18 @@ fun AiSetupDialog(
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "AIに読み取らせるとは",
-                description = "カレンダーの画像やテキストをAIに渡して、\n予定を一括でカレンダーに登録する機能です。",
+                title = stringResource(R.string.dl1_aiSetupTitleOverview),
+                description = stringResource(R.string.dl1_aiSetupDescOverview),
                 illustration = { colors -> AiIntroIllustration(colors) },
             ),
             TutorialPage(
-                title = "使い方の流れ",
-                description = "① プロンプトをコピー\n② AIアプリに画像と一緒に渡す\n③ 返ってきたJSONを貼り付ける",
+                title = stringResource(R.string.dl1_aiSetupTitleFlow),
+                description = stringResource(R.string.dl1_aiSetupDescFlow),
                 illustration = { colors -> AiFlowIllustration(colors) },
             ),
             TutorialPage(
-                title = "プレビューと登録",
-                description = "解析結果はチェックボックスで選択できます。\nチェックした予定だけが登録されます。",
+                title = stringResource(R.string.dl1_aiSetupTitlePreview),
+                description = stringResource(R.string.dl1_aiSetupDescPreview),
                 illustration = { colors -> AiPreviewIllustration(colors) },
             ),
         ),
@@ -84,9 +86,9 @@ private fun AiFlowIllustration(colors: AppColors) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.Start,
         ) {
-            StepRow("1", "プロンプトをコピー", colors)
-            StepRow("2", "AIアプリに渡す", colors)
-            StepRow("3", "JSONを貼り付ける", colors)
+            StepRow("1", stringResource(R.string.dl1_aiSetupStepCopy), colors)
+            StepRow("2", stringResource(R.string.dl1_aiSetupStepPass), colors)
+            StepRow("3", stringResource(R.string.dl1_aiSetupStepPaste), colors)
         }
     }
 }

@@ -7,4 +7,10 @@
     <string name="shortcut_today_long">今日の予定を表示</string>
     <string name="shortcut_search_short">検索</string>
     <string name="shortcut_search_long">予定を検索</string>
+
+    <string name="widget_day_label">1日の予定</string>
+    <string name="widget_week_label">週間カレンダー</string>
+    <string name="widget_month_label">月間カレンダー</string>
+
+    <string name="default_calendar_name">マイカレンダー</string>
 </resources>

@@ -17,6 +17,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.LocalCalendar
 import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.ui.theme.calendarColorPalette
@@ -30,21 +32,26 @@ fun LocalCalendarEditDialog(
     onSave: (LocalCalendar) -> Unit,
     onDelete: (Long) -> Unit,
 ) {
-    // 編集中の名前（既定カレンダーは変更不可だが、初期値として保持する）
-    var name by remember { mutableStateOf(calendar.name) }
+    // 編集中の名前。既定カレンダーの空文字センチネルは locale 名に展開した初期値を用いる
+    // stringResource は非 Composable ラムダ（remember の計算内）から呼べないため外で解決する
+    // （既定カレンダーは onValueChange で書き換わらないため、保存時にはセンチネルへ戻す）。
+    val displayedDefaultName = stringResource(R.string.default_calendar_name)
+    // 既定カレンダーの場合、locale 名を初期表示に使うが、DB へはセンチネル（空文字）を維持する
+    val keepSentinel = calendar.isDefault && calendar.name.isEmpty()
+    var name by remember(calendar.name) { mutableStateOf(if (keepSentinel) displayedDefaultName else calendar.name) }
     // 編集中の色。0 はテーマ連動（アクセント色）を意味する。
     var colorArgb by remember { mutableStateOf(calendar.colorArgb) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
-        title = { Text("カレンダーの編集", color = colors.text, fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.dl2_editCalendarTitle), color = colors.text, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { if (!calendar.isDefault) name = it },
-                    label = { Text("名前") },
+                    label = { Text(stringResource(R.string.dl2_nameLabel)) },
                     singleLine = true,
                     enabled = !calendar.isDefault,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -58,12 +65,12 @@ fun LocalCalendarEditDialog(
                 )
                 if (calendar.isDefault) {
                     Text(
-                        "マイカレンダーは名前を変更できません（色のみ変更できます）。",
+                        stringResource(R.string.dl2_defaultCalendarNameLocked),
                         color = colors.textGray,
                         fontSize = 12.sp,
                     )
                 }
-                Text("色", color = colors.textGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.dl2_colorLabel), color = colors.textGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 // 既定色（colorArgb = 0）を選ぶ行。
                 // ここが無いと、既定色（テーマ連動）のカレンダーを編集した際に
                 // どのスウォッチも選択されておらず、ユーザーが既定色へ戻せなくなる。
@@ -88,10 +95,10 @@ fun LocalCalendarEditDialog(
                                 .background(colors.primaryAccent)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Text("カレンダーの色（既定）", color = colors.text, fontSize = 15.sp)
+                        Text(stringResource(R.string.dl2_calendarColorDefault), color = colors.text, fontSize = 15.sp)
                     }
                     if (colorArgb == 0) {
-                        Text("✓ 選択中", color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.dl2_selectedMark), color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
                 Spacer(Modifier.height(16.dp))
@@ -129,18 +136,20 @@ fun LocalCalendarEditDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                if (name.isNotBlank()) {
-                    onSave(calendar.copy(name = name.trim(), colorArgb = colorArgb))
+                //既定カレンダーは名前をセンチネル（空文字）のまま保持する
+                val savedName = if (keepSentinel) calendar.name else name.trim()
+                if (savedName.isNotBlank() || keepSentinel) {
+                    onSave(calendar.copy(name = savedName, colorArgb = colorArgb))
                 }
-            }) { Text("保存", color = colors.primaryAccent, fontWeight = FontWeight.Bold) }
+            }) { Text(stringResource(R.string.dl2_save), color = colors.primaryAccent, fontWeight = FontWeight.Bold) }
         },
         dismissButton = {
             Row {
                 if (!calendar.isDefault) {
-                    TextButton(onClick = { onDelete(calendar.id) }) { Text("削除", color = colors.sunRed) }
+                    TextButton(onClick = { onDelete(calendar.id) }) { Text(stringResource(R.string.dl2_delete), color = colors.sunRed) }
                     Spacer(Modifier.width(8.dp))
                 }
-                TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.dl2_cancel), color = colors.textGray) }
             }
         }
     )

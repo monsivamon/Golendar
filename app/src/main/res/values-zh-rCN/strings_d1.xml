@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 通用标签（负责模块：ui/dialogs 的教程・设置对话框） -->
+    <string name="dl1_close">关闭</string>
+    <string name="dl1_allow">允许</string>
+    <string name="dl1_later">稍后</string>
+    <string name="dl1_openSettings">打开设置</string>
+    <string name="dl1_next">下一步</string>
+    <string name="dl1_prev">上一步</string>
+    <string name="dl1_skip">跳过</string>
+    <string name="dl1_back">返回</string>
+    <string name="dl1_start">开始</string>
+    <string name="dl1_today">今天</string>
+    <string name="dl1_save">保存</string>
+    <string name="dl1_share">分享</string>
+    <string name="dl1_tabDay">日</string>
+    <string name="dl1_tabWeek">周</string>
+    <string name="dl1_tabMonth">月</string>
+
+    <!-- AiSetupDialog -->
+    <string name="dl1_aiSetupTitleOverview">什么是 AI 识别</string>
+    <string name="dl1_aiSetupDescOverview">将日历的图片或文本交给 AI，\n即可把日程批量登记到日历中。</string>
+    <string name="dl1_aiSetupTitleFlow">使用流程</string>
+    <string name="dl1_aiSetupDescFlow">① 复制提示词\n② 与图片一起交给 AI 应用\n③ 粘贴返回的 JSON</string>
+    <string name="dl1_aiSetupTitlePreview">预览与登记</string>
+    <string name="dl1_aiSetupDescPreview">解析结果可以通过复选框选择。\n只有勾选的日程才会被登记。</string>
+    <string name="dl1_aiSetupStepCopy">复制提示词</string>
+    <string name="dl1_aiSetupStepPass">交给 AI 应用</string>
+    <string name="dl1_aiSetupStepPaste">粘贴 JSON</string>
+
+    <!-- BackupTutorialDialog -->
+    <string name="dl1_backupTitleFormat">保存格式</string>
+    <string name="dl1_backupDescFormat">“备份照片”开关为 OFF 时保存为 JSON，\n为 ON 时保存为包含照片的 ZIP。\nZIP 仅限 Golendar 模式使用。</string>
+    <string name="dl1_backupTitleOperations">保存・追加・还原的区别</string>
+    <string name="dl1_backupDescOperations">“保存”用于导出日程，\n“追加”是保留原有内容并添加，\n“还原”会覆盖原有内容。\nGoogle 模式下无法使用“还原”。</string>
+    <string name="dl1_backupTitleTarget">还原目标的选择</string>
+    <string name="dl1_backupDescTarget">在 Google 模式下使用“追加”时，\n可以选择一个可写入的日历\n作为保存目标。</string>
+    <string name="dl1_append">追加</string>
+    <string name="dl1_restore">还原</string>
+    <string name="dl1_backupLegendThin">浅色＝原有 / 深色＝新增</string>
+
+    <!-- CalendarModeTutorialDialog -->
+    <string name="dl1_calModeTitleDifference">Golendar 与 Google 的区别</string>
+    <string name="dl1_calModeDescDifference">Golendar 是无需外部同步、在应用内即可完成的模式，\nGoogle 会与 Google 日历同步。\n可以根据用途切换使用。</string>
+    <string name="dl1_calModeTitleGoogleOps">Google 模式的操作</string>
+    <string name="dl1_calModeDescGoogleOps">通过勾选来开关日程的显示，\n点击色点可以更改显示颜色。\n在设备端添加或删除日历后，\n请点击“重新获取日历列表”。</string>
+    <string name="dl1_calModeTitleGolendarOps">Golendar 模式的操作</string>
+    <string name="dl1_calModeDescGolendarOps">勾选即可开关显示，点击色点可更改颜色，\n点击名称即可重命名。\n我的日历无法删除，\n但可以设为隐藏。</string>
+    <string name="dl1_calModeTitleHidden">隐藏之后…</string>
+    <string name="dl1_calModeDescHidden">该日历的日程将不再显示在\n日历、小部件和通知中。\n节假日常驻显示。</string>
+    <string name="dl1_calModeSubInApp">仅应用内</string>
+    <string name="dl1_calModeSubSync">日历同步</string>
+    <string name="dl1_calModeEditHint">← 点击名称可编辑</string>
+    <string name="dl1_calModeHolidaysAlways">节假日常驻显示</string>
+
+    <!-- CalendarPermissionDialog -->
+    <string name="dl1_permDeniedCalendarTitle">未获得日历访问权限</string>
+    <string name="dl1_permDeniedCalendarMessage">由于日历权限已被永久拒绝，无法显示系统权限对话框。\n\n请依次选择“打开设置”→“权限”→“日历”→“允许”。</string>
+
+    <!-- GestureSetupDialog -->
+    <string name="dl1_gestureTitleVertical">上下滑动切换前后时段</string>
+    <string name="dl1_gestureDescVertical">在月、周、日任一视图下，沿同一方向快速滑动两次，即可移动到前后的时段。</string>
+    <string name="dl1_gestureTitleHorizontal">左右滑动切换视图</string>
+    <string name="dl1_gestureDescHorizontal">左右滑动即可切换日、周、月视图。</string>
+    <string name="dl1_gestureTitleReady">准备就绪</string>
+    <string name="dl1_gestureDescReady">现在就来添加一个日程吧。\n长按主屏幕图标也能使用快捷方式。</string>
+    <string name="dl1_gestureSwipeHint">左右滑动</string>
+
+    <!-- MapSetupDialog -->
+    <string name="dl1_mapTitlePin">用图钉选择地点</string>
+    <string name="dl1_mapDescPin">拖动地图，让中央的图钉对准地点，\n点击“确定”即可保存地点。</string>
+    <string name="dl1_mapTitleLocationButton">当前位置按钮</string>
+    <string name="dl1_mapDescLocationButton">每点击一次右下角的按钮，\n就会在“跟随 → 罗盘跟随 → 关闭”之间切换。</string>
+    <string name="dl1_mapTitleSaveFormat">地点的保存格式</string>
+    <string name="dl1_mapDescSaveFormat">将以“POI 名称, 地址”的格式保存，\n可与 Google 地图等互相通用。</string>
+    <string name="dl1_mapSampleLocationName">东京站</string>
+    <string name="dl1_mapSampleAddress">东京都千代田区丸之内1丁目</string>
+
+    <!-- MonthViewToggleTutorialDialog -->
+    <string name="dl1_monthToggleTitleList">底部列表的显示切换</string>
+    <string name="dl1_monthToggleDescList">通过月视图头部左侧的图标，\n可以开关日历下方的日程列表。\n设为 OFF 后，月格网格会放大显示。</string>
+    <string name="dl1_monthToggleTitlePopup">点击日期弹出弹窗</string>
+    <string name="dl1_monthToggleDescPopup">在底部列表为 OFF 时，\n点击日期即可通过弹窗查看\n当天的日程。</string>
+    <string name="dl1_monthToggleGridLabel">月格网格</string>
+    <string name="dl1_monthToggleListLabel">日程列表</string>
+    <string name="dl1_monthToggleGridLarge">月格网格（放大）</string>
+    <string name="dl1_monthToggleTapHint">↓ 点击</string>
+    <string name="dl1_monthToggleDayEvents">当天的日程</string>
+
+    <!-- NotificationSetupDialog -->
+    <string name="dl1_notifSetupTitlePermission">通知权限</string>
+    <string name="dl1_notifSetupDescPermission">请在日程开始时或10分钟前\n接收通知，为此需要您的许可。</string>
+    <string name="dl1_notifSetupTitleAlarm">精确闹钟权限</string>
+    <string name="dl1_notifSetupDescAlarm">为了让通知恰好在日程时间送达，\n需要“精确闹钟”权限。</string>
+    <string name="dl1_notifSetupTitleBattery">取消电池优化</string>
+    <string name="dl1_notifSetupDescBattery">为了防止休眠时通知延迟，\n建议取消电池优化。</string>
+    <string name="dl1_notifSetupDeniedTitle">未获得通知权限</string>
+    <string name="dl1_notifSetupDeniedMessage">由于通知权限已被永久拒绝，无法显示系统权限对话框。\n\n请依次选择“打开设置”→“通知”→“允许”。</string>
+
+    <!-- NotificationTutorialDialog -->
+    <string name="dl1_notifTutTitleTiming">通知的时机</string>
+    <string name="dl1_notifTutDescTiming">“准点”和“10分钟前”两种通知\n可以分别开关。\n节假日与文化活动不在通知范围内。</string>
+    <string name="dl1_notifTutTitleAlarm">精确闹钟</string>
+    <string name="dl1_notifTutDescAlarm">为了让通知恰好在日程时间送达，\n建议授予“精确闹钟”权限。</string>
+    <string name="dl1_notifTutTitleBattery">电池优化</string>
+    <string name="dl1_notifTutDescBattery">为了防止休眠时通知延迟，\n建议取消电池优化。</string>
+    <string name="dl1_tenMinutesBefore">10分钟前</string>
+    <string name="dl1_scheduledTime">准点</string>
+
+    <!-- PhotoTutorialDialog -->
+    <string name="dl1_photoTutTitleAttach">附加照片</string>
+    <string name="dl1_photoTutDescAttach">在日程编辑界面通过“+”，最多可附加\n5张照片（缩放到长边1920px）。\n仅限 Golendar 模式使用。</string>
+    <string name="dl1_photoTutTitleViewer">放大・保存・分享</string>
+    <string name="dl1_photoTutDescViewer">点击详情的缩略图即可全屏显示。\n“保存”可导出到 Pictures/Golendar，\n“分享”可发送到其他应用。</string>
+    <string name="dl1_photoTutLabelPhoto">照片</string>
+
+    <!-- RecurringTutorialDialog -->
+    <string name="dl1_recurTitleTypes">重复的类型</string>
+    <string name="dl1_recurDescTypes">可以从 每天 / 工作日 / 每周 / 每月 / 每年 中选择。\n“工作日”只在周一至周五重复。</string>
+    <string name="dl1_recurTitleEnd">“结束”与“重复结束日期”</string>
+    <string name="dl1_recurDescEnd">“结束”是单次日程的时长，\n“重复结束日期”是整个重复的结束日期。</string>
+    <string name="dl1_recurTitleDelete">删除重复</string>
+    <string name="dl1_recurDescDelete">重复日程无法“仅删除这一天”。\n如果只想修改其中一项，请先取消重复，\n再将其拆分为单独的日程。</string>
+    <string name="dl1_recurChipEveryDay">每天</string>
+    <string name="dl1_recurChipWeekdays">工作日</string>
+    <string name="dl1_recurChipEveryWeek">每周</string>
+    <string name="dl1_recurChipEveryMonth">每月</string>
+    <string name="dl1_recurChipEveryYear">每年</string>
+    <string name="dl1_recurLabelStart">开始</string>
+    <string name="dl1_recurLabelFirst">首次</string>
+    <string name="dl1_recurHintEnd">←“结束”</string>
+    <string name="dl1_recurHintEndDate">←结束日期</string>
+    <string name="dl1_recurringEvent">重复日程</string>
+    <string name="dl1_recurCantDeleteOnlyThisDay">× 无法仅删除这一天</string>
+
+    <!-- ScheduleAddTutorialDialog -->
+    <string name="dl1_schedAddTitleFab">从 FAB 添加</string>
+    <string name="dl1_schedAddDescFab">点击月视图右下角的“+”按钮，\n可以选择日期并添加日程。</string>
+    <string name="dl1_schedAddTitleEachDay">从各天添加</string>
+    <string name="dl1_schedAddDescEachDay">在周视图中，可以通过各日期下方的\n“+ 添加日程”按钮创建当天的日程。</string>
+    <string name="dl1_schedAddTitleShortcut">快捷方式</string>
+    <string name="dl1_schedAddDescShortcut">长按主屏幕的图标，\n即可直接启动“添加日程”。</string>
+    <string name="dl1_schedAddFabHint">右下角的 + 按钮</string>
+    <string name="dl1_schedAddWeekButton">+ 添加日程</string>
+    <string name="dl1_schedAddLongPress">长按</string>
+
+    <!-- ScheduleEditTutorialDialog -->
+    <string name="dl1_schedEditTitleEdit">编辑日程</string>
+    <string name="dl1_schedEditDescEdit">点击日程卡片即可打开详情，\n通过“编辑”按钮可以修改内容。</string>
+    <string name="dl1_schedEditTitleDelete">删除日程</string>
+    <string name="dl1_schedEditDescDelete">通过编辑界面的“删除”按钮，\n会彻底删除该日程。</string>
+    <string name="dl1_schedEditTitleDeleteOnly">仅删除这一天</string>
+    <string name="dl1_schedEditDescDeleteOnly">对于跨越多天的日程，\n可以用“仅删除这一天”保留其他日期。\n※日程将被拆分为两个。</string>
+    <string name="dl1_schedEditSampleMeeting">会议</string>
+    <string name="dl1_schedEditLabelEdit">编辑</string>
+    <string name="dl1_schedEditLabelDelete">删除</string>
+    <string name="dl1_schedEditLabelBefore">前</string>
+    <string name="dl1_schedEditLabelAfter">后</string>
+
+    <!-- SearchTutorialDialog -->
+    <string name="dl1_searchTitleSearch">搜索日程</string>
+    <string name="dl1_searchDescSearch">通过头部的搜索图标，\n可以搜索日程的标题。</string>
+    <string name="dl1_searchTitleRange">范围与排除</string>
+    <string name="dl1_searchDescRange">范围为过去2年至未来2年。\n节假日、文化活动、生日会被排除。\n点击结果即可跳转到相应日期。</string>
+    <string name="dl1_searchPlaceholder">搜索日程...</string>
+    <string name="dl1_searchTwoYearsAgo">2年前</string>
+    <string name="dl1_searchTwoYearsLater">2年后</string>
+    <string name="dl1_searchExcluded">节假日・文化・生日会被排除</string>
+
+    <!-- WelcomeDialog -->
+    <string name="dl1_welcomeUpdateSubtitle">已更新到 v%1$s</string>
+    <string name="dl1_welcomeStartButton">开始使用</string>
+
+    <!-- WidgetTutorialDialog -->
+    <string name="dl1_widgetTitleTypes">3种小部件</string>
+    <string name="dl1_widgetDescTypes">日、周、月3种小部件，\n可以自由布置到主屏幕。\n与主题和背景色联动。</string>
+    <string name="dl1_widgetTitleShortcuts">应用快捷方式</string>
+    <string name="dl1_widgetDescShortcuts">长按主屏幕的图标，\n即可直接启动“添加日程”“今天”“搜索”。</string>
+    <string name="dl1_widgetShortcutAdd">添加日程</string>
+    <string name="dl1_widgetShortcutSearch">搜索</string>
+</resources>

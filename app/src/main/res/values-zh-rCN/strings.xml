@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Golendar</string>
+
+    <string name="shortcut_add_event_short">添加日程</string>
+    <string name="shortcut_add_event_long">添加新日程</string>
+    <string name="shortcut_today_short">今天</string>
+    <string name="shortcut_today_long">查看今天的日程</string>
+    <string name="shortcut_search_short">搜索</string>
+    <string name="shortcut_search_long">搜索日程</string>
+
+    <string name="widget_day_label">单日日程</string>
+    <string name="widget_week_label">周视图日历</string>
+    <string name="widget_month_label">月视图日历</string>
+
+    <string name="default_calendar_name">我的日历</string>
+</resources>

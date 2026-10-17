@@ -10,6 +10,7 @@ import com.monsivamon.golender.data.source.SystemCalendarSource
 import com.monsivamon.golender.data.source.CalendarMeta
 import com.monsivamon.golender.data.util.PhotoStorage
 import com.monsivamon.golender.data.util.RruleExpander
+import androidx.room.withTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.ZoneId
@@ -23,6 +24,11 @@ class CalendarRepository(context: Context) {
     private val photoSource = EventPhotoSource(db.eventPhotoDao())
     private val localCalendarSource = LocalCalendarSource(db.localCalendarDao())
     private val holidaySource = HolidaySource()
+
+    // 複数のローカル DB 書き込みを 1 つのトランザクションで実行する。
+    // 復元処理のように「既存削除 → 一括挿入」を行う処理で、
+    // 途中で失敗した場合に全体をロールバックできるようにする。
+    suspend fun <T> withTransaction(block: suspend () -> T): T = db.withTransaction { block() }
 
     // ---------- ローカルカレンダー CRUD ----------
     // 全ローカルカレンダーを取得する
@@ -202,5 +208,4 @@ class CalendarRepository(context: Context) {
     }
 
     // 全写真レコードを削除する
-    suspend fun deleteAllPhotoRecords() = photoSource.deleteAll()
 }

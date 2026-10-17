@@ -1,0 +1,66 @@
+<resources>
+    <!-- BackupCoordinator.kt -->
+    <string name="vm_progress_recreating_holidays">祝日データを再取得中</string>
+
+    <!-- BackupManager.kt -->
+    <string name="vm_progress_creating_backup">バックアップを作成中</string>
+    <string name="vm_backup_failed">バックアップに失敗しました: %1$s</string>
+    <string name="vm_unknown_error">不明なエラー</string>
+    <string name="vm_backup_complete_calendars">バックアップが完了しました（%1$d カレンダー / %2$d 件）</string>
+    <string name="vm_backup_zip_google_only_export">写真付きバックアップは Golendar モードでのみ利用できます</string>
+    <string name="vm_progress_preparing_manifest">マニフェストを準備中</string>
+    <string name="vm_progress_writing_manifest">マニフェストを書き込み中</string>
+    <string name="vm_progress_writing_data">データを書き込み中</string>
+    <string name="vm_progress_writing_photos">写真を書き出し中</string>
+    <string name="vm_backup_complete_calendars_photos">バックアップが完了しました（%1$d カレンダー / %2$d 件 / 写真 %3$d 枚）</string>
+    <string name="vm_unnamed_calendar">名称未設定</string>
+    <string name="vm_my_calendar">マイカレンダー</string>
+    <string name="vm_progress_importing">インポート中</string>
+    <string name="vm_restore_failed">復元に失敗しました: %1$s</string>
+    <string name="vm_select_restore_target_google">Googleモードでは復元先カレンダーを選択してください</string>
+    <string name="vm_file_not_opened">ファイルが開けませんでした</string>
+    <string name="vm_backup_zip_google_only_restore">写真付きバックアップは Golendar モードでのみ復元できます</string>
+    <string name="vm_select_restore_target">復元先カレンダーを選択してください</string>
+    <string name="vm_progress_preparing_file">ファイルを準備中</string>
+    <string name="vm_not_golendar_backup">このファイルは Golendar のバックアップではありません</string>
+    <string name="vm_progress_extracting_photos">写真を展開中</string>
+    <string name="vm_backup_data_corrupted">バックアップデータが破損しています</string>
+    <string name="vm_my_calendar_not_found">マイカレンダーが見つかりません</string>
+    <string name="vm_msg_new_calendars">"/ 新規カレンダー %1$d 件"</string>
+    <string name="vm_append_complete_calendars_photos_msg">追記しました（%1$d 件 / 写真 %2$d 枚%3$s）</string>
+    <string name="vm_restore_complete_calendars_photos_msg">復元しました（%1$d 件 / 写真 %2$d 枚%3$s）</string>
+    <string name="vm_restore_target_not_selected">復元先カレンダーが選択されていません</string>
+    <string name="vm_append_complete_calendars_photos">追記しました（%1$d 件 / 写真 %2$d 枚）</string>
+    <string name="vm_restore_complete_calendars_photos">復元しました（%1$d 件 / 写真 %2$d 枚）</string>
+    <string name="vm_append_complete_skipped_duplicates">追記しました（%1$d 件 / 重複スキップ %2$d 件）</string>
+    <string name="vm_restore_complete_count">復元しました（%1$d 件）</string>
+    <string name="vm_append_complete_msg">追記しました（%1$d 件%2$s）</string>
+    <string name="vm_restore_complete_msg">復元しました（%1$d 件%2$s）</string>
+
+    <!-- CalendarEventLoader.kt -->
+    <string name="vm_birthday_keyword">誕生日</string>
+    <string name="vm_emperor_birthday_keyword">天皇誕生日</string>
+    <string name="vm_cultural_tanabata">七夕</string>
+    <string name="vm_cultural_valentine">バレンタイン</string>
+    <string name="vm_cultural_setsubun">節分</string>
+    <string name="vm_cultural_hinamatsuri">ひな祭り</string>
+    <string name="vm_cultural_mothers_day">母の日</string>
+    <string name="vm_cultural_fathers_day">父の日</string>
+    <string name="vm_cultural_halloween">ハロウィン</string>
+    <string name="vm_cultural_christmas">クリスマス</string>
+    <string name="vm_cultural_omisoka">大晦日</string>
+    <string name="vm_cultural_ganjitsu">元日</string>
+    <string name="vm_holiday_display_name">祝日</string>
+
+    <!-- CalendarViewModel.kt -->
+    <string name="vm_keep_one_calendar_visible">最低1つのカレンダーを表示してください</string>
+    <string name="vm_nothing_selected_fallback_golendar">何も選択されなかったため Golendar モードに切り替えました</string>
+    <string name="vm_progress_preparing_backup">バックアップを準備中</string>
+    <string name="vm_progress_preparing_import">読み込みを準備中</string>
+
+    <!-- NotificationConfig.kt / NotificationReceiver.kt / NotificationScheduler.kt -->
+    <string name="vm_channel_name">予定の通知</string>
+    <string name="vm_channel_description">カレンダーの予定時刻や10分前にお知らせします</string>
+    <string name="vm_notification_default_title">予定の時間です</string>
+    <string name="vm_notification_prefix_10min">"[10分前] "</string>
+</resources>

@@ -22,7 +22,7 @@ object AiJsonConverter {
             val json = JSONObject(cleaned)
             val eventsArray = json.optJSONArray("events") ?: JSONArray()
             val warningsArray = json.optJSONArray("warnings") ?: JSONArray()
-            val warnings = (0 until warningsArray.length()).map { warningsArray.getString(it) }
+            val warnings = (0 until warningsArray.length()).map { warningsArray.getString(it) }.toMutableList()
 
             // 各イベント要素を LocalEvent に変換する（失敗要素はスキップ）
             val events = (0 until eventsArray.length()).mapNotNull { i ->
@@ -58,10 +58,23 @@ object AiJsonConverter {
                     // 繰り返し設定を RRULE 文字列に変換する
                     val recObj = o.optJSONObject("recurrence")
                     val rrule = if (recObj != null && !recObj.isNull("freq")) {
-                        val freq = recObj.getString("freq")
+                        // 大小文字の揺れ・前後空白を正規化する（AI 出力の表記揺れ対策）
+                        val freq = recObj.getString("freq").trim().uppercase()
                         val bydayArr = recObj.optJSONArray("byday")
-                        val bydayList = if (bydayArr != null) (0 until bydayArr.length()).map { bydayArr.getString(it) } else emptyList()
-                        val untilStr = if (recObj.isNull("until")) "" else recObj.optString("until").replace("-", "")
+                        // BYDAY の有効コードのみを受け付け、表記揺れを正規化する
+                        val validByday = setOf("MO", "TU", "WE", "TH", "FR", "SA", "SU")
+                        val bydayList = if (bydayArr != null) (0 until bydayArr.length())
+                            .map { bydayArr.getString(it).trim().uppercase() }
+                            .filter { it in validByday }
+                        else emptyList()
+                        // UNTIL は日付 (YYYY-MM-DD / YYYY/MM/DD) として検証する
+                        val untilStr = if (recObj.isNull("until")) "" else recObj.optString("until").trim()
+                        val untilDate: LocalDate? = if (untilStr.isNotBlank() && untilStr != "null") {
+                            try { LocalDate.parse(untilStr.replace("/", "-").take(10)) } catch (_: Exception) { null }
+                        } else null
+                        if (untilStr.isNotBlank() && untilStr != "null" && untilDate == null) {
+                            warnings.add("IGNORED invalid UNTIL: $untilStr")
+                        }
 
                         // freq に応じた基本ルールを構築する
                         val base = when (freq) {
@@ -74,10 +87,13 @@ object AiJsonConverter {
                             }
                             "MONTHLY" -> "FREQ=MONTHLY"
                             "YEARLY" -> "FREQ=YEARLY"
-                            else -> null
+                            else -> {
+                                warnings.add("IGNORED invalid freq: $freq")
+                                null
+                            }
                         }
                         // UNTIL 指定があれば付与する
-                        if (base != null && untilStr.isNotBlank() && untilStr != "null") "$base;UNTIL=${untilStr}T235959Z" else base
+                        if (base != null && untilDate != null) "$base;UNTIL=${untilStr.replace("/", "-").replace("-", "")}T235959Z" else base
                     } else null
 
                     // 終日／時間指定それぞれの方式でミリ秒へ変換する
@@ -103,7 +119,7 @@ object AiJsonConverter {
                     null
                 }
             }
-            Result(events, warnings)
+            Result(events, warnings.toList())
         } catch (e: Exception) {
             // JSON 全体の解析に失敗した場合
             Result(emptyList(), listOf("JSON parse error: ${e.message}"))

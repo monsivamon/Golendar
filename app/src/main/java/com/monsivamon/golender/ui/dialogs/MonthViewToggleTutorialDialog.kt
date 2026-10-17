@@ -22,9 +22,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -36,19 +38,19 @@ fun MonthViewToggleTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "下部リストの表示切替",
-                description = "月表示のヘッダー左のアイコンで、\nカレンダー下の予定リストを ON/OFF できます。\nOFF にすると月グリッドが大きく表示されます。",
+                title = stringResource(R.string.dl1_monthToggleTitleList),
+                description = stringResource(R.string.dl1_monthToggleDescList),
                 illustration = { c -> ToggleIllustration(c) },
             ),
             TutorialPage(
-                title = "日付タップでポップアップ",
-                description = "下部リストを OFF にしているとき、\n日付をタップするとその日の予定が\nポップアップで確認できます。",
+                title = stringResource(R.string.dl1_monthToggleTitlePopup),
+                description = stringResource(R.string.dl1_monthToggleDescPopup),
                 illustration = { c -> PopupIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -88,7 +90,7 @@ private fun ToggleIllustration(colors: AppColors) {
                             .border(1.dp, colors.divider, RoundedCornerShape(4.dp)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("月グリッド", color = colors.textGray, fontSize = 9.sp)
+                        Text(stringResource(R.string.dl1_monthToggleGridLabel), color = colors.textGray, fontSize = 9.sp)
                     }
                     Box(
                         modifier = Modifier
@@ -98,7 +100,7 @@ private fun ToggleIllustration(colors: AppColors) {
                             .background(colors.primaryAccent.copy(alpha = 0.45f)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("予定リスト", color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.dl1_monthToggleListLabel), color = Color.White, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -130,7 +132,7 @@ private fun ToggleIllustration(colors: AppColors) {
                         .border(1.dp, colors.divider, RoundedCornerShape(4.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("月グリッド（拡大）", color = colors.textGray, fontSize = 9.sp)
+                    Text(stringResource(R.string.dl1_monthToggleGridLarge), color = colors.textGray, fontSize = 9.sp)
                 }
             }
         }
@@ -161,7 +163,7 @@ private fun PopupIllustration(colors: AppColors) {
                     }
                 }
             }
-            Text("↓ タップ", color = colors.textGray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dl1_monthToggleTapHint), color = colors.textGray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             // ポップアップ風の枠
             Box(
                 modifier = Modifier
@@ -172,7 +174,7 @@ private fun PopupIllustration(colors: AppColors) {
                     .border(1.5.dp, colors.primaryAccent, RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("その日の予定", color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.dl1_monthToggleDayEvents), color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

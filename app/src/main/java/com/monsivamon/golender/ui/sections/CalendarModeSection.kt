@@ -13,10 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.ui.SettingsSection
 import com.monsivamon.golender.ui.theme.AppColors
@@ -41,7 +43,7 @@ fun CalendarModeSection(
     // 「最低1つは表示」ルール用: 現在の可視カレンダー数
     val visibleGoogleCalendarCount = selectedCalendars.count { it.isVisible }
 
-    SettingsSection("カレンダーモード", colors, onExpand = { viewModel.onCalendarModeSectionExpanded() }) {
+    SettingsSection(stringResource(R.string.sc_calendarModeSection), colors, onExpand = { viewModel.onCalendarModeSectionExpanded() }) {
         // Golendar / Google の切替ボタン（セグメント風）
         Row(
             modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
@@ -106,8 +108,8 @@ fun CalendarModeSection(
         }
         // モードの説明文（短く）
         Text(
-            if (calendarMode == CalendarMode.GOLENDAR) "アプリ内のみで完結します。"
-            else "Googleカレンダーと同期します。",
+            if (calendarMode == CalendarMode.GOLENDAR) stringResource(R.string.sc_golendarModeDesc)
+            else stringResource(R.string.sc_googleModeDesc),
             fontSize = 13.sp, color = colors.textGray,
             modifier = Modifier.padding(top = 8.dp),
         )
@@ -121,7 +123,7 @@ fun CalendarModeSection(
             val grouped = selectedCalendars.groupBy { it.accountName }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                 TextButton(onClick = { viewModel.setAllCalendarsVisible(true) }) {
-                    Text("全て表示", color = colors.primaryAccent)
+                    Text(stringResource(R.string.sc_showAll), color = colors.primaryAccent)
                 }
             }
             grouped.forEach { (account, cals) ->
@@ -138,7 +140,7 @@ fun CalendarModeSection(
                             checked = cal.isVisible,
                             onCheckedChange = { checked ->
                                 if (!checked && cal.isVisible && visibleGoogleCalendarCount <= 1) {
-                                    Toast.makeText(context, "最低1つのカレンダーを表示してください", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.sc_minOneCalendar), Toast.LENGTH_SHORT).show()
                                 } else {
                                     viewModel.setCalendarVisibility(cal.calendarId, checked)
                                 }
@@ -153,7 +155,7 @@ fun CalendarModeSection(
                                 .clickable { onColorPickerRequested(cal) },
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(cal.displayName.ifBlank { "名称未設定" }, color = colors.text, fontSize = 15.sp)
+                        Text(cal.displayName.ifBlank { stringResource(R.string.sc_unnamed) }, color = colors.text, fontSize = 15.sp)
                     }
                 }
             }
@@ -165,7 +167,7 @@ fun CalendarModeSection(
                     contentColor = colors.primaryAccent,
                 ),
             ) {
-                Text("カレンダー一覧を再取得")
+                Text(stringResource(R.string.sc_refreshCalendarList))
             }
         } else {
             // ---------- Golendar モード: ローカルカレンダー管理 ----------

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ui/AboutAppDialog.kt -->
+    <string name="co_about_dialog_title">このアプリについて</string>
+    <string name="co_close">閉じる</string>
+    <string name="co_about_card_title">アプリについて</string>
+    <string name="co_about_app_description">月・週・日表示を備えた Android カレンダーアプリ。\nプライバシー重視の Golendarモード と、\nGoogleカレンダー同期の Googleモード を搭載しています。</string>
+    <string name="co_about_credits_title">データ提供・ライブラリ</string>
+    <string name="co_credit_gsi">国土地理院</string>
+    <string name="co_credit_gsi_license">公共データ</string>
+    <string name="co_license_link">ライセンス</string>
+
+    <!-- ui/AppNavigation.kt -->
+    <string name="co_header_month_title">%1$d年 %2$d月</string>
+    <string name="co_header_daily_title">%1$d年%2$d月%3$d日</string>
+    <string name="co_calendar_access_title">Googleカレンダーへのアクセス</string>
+    <string name="co_calendar_access_message">Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\nGolendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。</string>
+
+    <!-- ui/common/CalendarHeader.kt -->
+    <string name="co_search_cd">検索</string>
+    <string name="co_sync_cd">同期</string>
+    <string name="co_settings_cd">設定</string>
+    <string name="co_search_placeholder">予定を検索...</string>
+    <string name="co_select_cd">選択</string>
+    <string name="co_bottom_list_hide_cd">下部リストを非表示</string>
+    <string name="co_bottom_list_show_cd">下部リストを表示</string>
+
+    <!-- ui/common/CalendarTabRow.kt -->
+    <string name="co_prev">前へ</string>
+    <string name="co_next">次へ</string>
+    <string name="co_tab_daily">日</string>
+    <string name="co_tab_weekly">週</string>
+    <string name="co_tab_monthly">月</string>
+
+    <!-- ui/common/DatePickerWrappers.kt -->
+    <string name="co_cancel">キャンセル</string>
+    <string name="co_year_month_jump_title">年月へジャンプ</string>
+    <string name="co_prev_year_cd">前年</string>
+    <string name="co_next_year_cd">翌年</string>
+    <string name="co_year_header">%1$d 年</string>
+    <string name="co_month_label">%1$d月</string>
+
+    <!-- ui/common/PermissionUtils.kt -->
+    <string name="co_open_settings">設定を開く</string>
+    <string name="co_later">あとで</string>
+
+    <!-- ui/common/SetupTutorialScaffold.kt -->
+    <string name="co_tutorial_start">始める</string>
+    <string name="co_tutorial_skip">スキップ</string>
+    <string name="co_tutorial_back">戻る</string>
+
+    <!-- ui/components/AiPreviewList.kt -->
+    <string name="co_all_day">終日</string>
+
+    <!-- ui/components/MonthGridView.kt -->
+    <string name="co_weekday_sun">日</string>
+    <string name="co_weekday_mon">月</string>
+    <string name="co_weekday_tue">火</string>
+    <string name="co_weekday_wed">水</string>
+    <string name="co_weekday_thu">木</string>
+    <string name="co_weekday_fri">金</string>
+    <string name="co_weekday_sat">土</string>
+
+    <!-- ui/components/SearchResultsList.kt -->
+    <string name="co_search_no_results">該当する予定はありません</string>
+    <string name="co_search_results_count">検索結果: %1$d件</string>
+</resources>

@@ -1,0 +1,32 @@
+<resources>
+    <!-- widget / data util 系の UI 文字列（日本語原文を維持） -->
+
+    <!-- 予定なし -->
+    <string name="wd_widgetNoEvents">无日程</string>
+    <string name="wd_calendarFallbackTitle">无日程</string>
+
+    <!-- ウィジェットタイトル・曜日ラベル -->
+    <string name="wd_widgetMonthTitle">%1$d年 %2$d月</string>
+    <string name="wd_weekDaySun">日</string>
+    <string name="wd_weekDayMon">一</string>
+    <string name="wd_weekDayTue">二</string>
+    <string name="wd_weekDayWed">三</string>
+    <string name="wd_weekDayThu">四</string>
+    <string name="wd_weekDayFri">五</string>
+    <string name="wd_weekDaySat">六</string>
+
+    <!-- ウィジェットボタンの contentDescription -->
+    <string name="wd_widgetRefreshContentDesc">刷新</string>
+    <string name="wd_widgetSettingsContentDesc">设置</string>
+
+    <!-- 地図アプリ共有 -->
+    <string name="wd_mapChooserTitle">选择地图应用</string>
+
+    <!-- 写真保存（MediaSaver） -->
+    <string name="wd_mediaOriginalNotFound">找不到原始文件</string>
+    <string name="wd_mediaSaveFailedWithReason">保存失败: %1$s</string>
+    <string name="wd_mediaStoreRegisterFailed">注册到 MediaStore 失败</string>
+    <string name="wd_mediaStreamOpenFailed">无法打开输出流</string>
+    <string name="wd_mediaSavedToPictures">已保存到 Pictures/Golendar</string>
+    <string name="wd_mediaMkdirFailed">无法创建保存目标文件夹</string>
+</resources>

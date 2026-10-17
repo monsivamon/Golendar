@@ -3,6 +3,7 @@ package com.monsivamon.golender.data.util
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import com.monsivamon.golender.R
 
 // 住所文字列を使って外部の地図アプリで場所を開くユーティリティ
 object MapUtils {
@@ -16,7 +17,7 @@ object MapUtils {
 
         val uri = Uri.parse("geo:0,0?q=${Uri.encode(query)}")
         val intent = Intent(Intent.ACTION_VIEW, uri)
-        context.startActivity(Intent.createChooser(intent, "地図アプリを選択"))
+        context.startActivity(Intent.createChooser(intent, context.getString(R.string.wd_mapChooserTitle)))
     }
 
     // 保存された位置文字列から地図検索用のクエリを組み立てる

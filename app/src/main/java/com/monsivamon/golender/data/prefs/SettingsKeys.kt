@@ -54,6 +54,9 @@ object SettingsKeys {
     // 登録済み通知アラームの要求コード台帳（プロセス死対策）
     val SCHEDULED_ALARM_IDS = stringPreferencesKey("scheduled_alarm_ids")
 
+    // アプリ内言語選択（"system" / "ja" / "en" / "zh-CN" / "ko"）
+    val APP_LANGUAGE = stringPreferencesKey("app_language")
+
     // 曜日ごとの色キーを動的に生成する
     fun dayColor(day: DayOfWeek) = stringPreferencesKey("day_color_${day.name}")
 

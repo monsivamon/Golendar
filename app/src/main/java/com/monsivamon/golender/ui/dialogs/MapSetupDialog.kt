@@ -23,9 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -40,18 +42,18 @@ fun MapSetupDialog(
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "ピンで場所を選ぶ",
-                description = "地図を動かして中央のピンを場所に合わせ、\n「決定」で場所を保存します。",
+                title = stringResource(R.string.dl1_mapTitlePin),
+                description = stringResource(R.string.dl1_mapDescPin),
                 illustration = { c -> MapPinIllustration(c) },
             ),
             TutorialPage(
-                title = "現在地ボタン",
-                description = "右下のボタンをタップするたびに\n「追従 → コンパス追従 → OFF」と切り替わります。",
+                title = stringResource(R.string.dl1_mapTitleLocationButton),
+                description = stringResource(R.string.dl1_mapDescLocationButton),
                 illustration = { c -> LocationButtonIllustration(c) },
             ),
             TutorialPage(
-                title = "場所の保存形式",
-                description = "「POI名, 住所」の形式で保存され、\nGoogleマップなどと相互運用できます。",
+                title = stringResource(R.string.dl1_mapTitleSaveFormat),
+                description = stringResource(R.string.dl1_mapDescSaveFormat),
                 illustration = { c -> SavedLocationIllustration(c) },
             ),
         ),
@@ -198,8 +200,8 @@ private fun SavedLocationIllustration(colors: AppColors) {
             verticalArrangement = Arrangement.spacedBy(10.dp),
             modifier = Modifier.padding(horizontal = 12.dp),
         ) {
-            LocationRow("📍", "東京駅", colors, emphasized = true)
-            LocationRow("", "東京都千代田区丸の内1丁目", colors, emphasized = false)
+            LocationRow("📍", stringResource(R.string.dl1_mapSampleLocationName), colors, emphasized = true)
+            LocationRow("", stringResource(R.string.dl1_mapSampleAddress), colors, emphasized = false)
         }
     }
 }

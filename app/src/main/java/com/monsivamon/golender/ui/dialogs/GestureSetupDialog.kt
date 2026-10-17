@@ -29,10 +29,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.theme.AppColors
 import kotlinx.coroutines.launch
 
@@ -57,20 +59,20 @@ fun GestureSetupDialog(
     // 3 ページ分の内容を定義する
     val pages = listOf(
         GesturePage(
-            title = "上下スワイプで前後の期間へ",
-            description = "月・週・日どの表示でも、同じ方向に素早く2回スワイプすると前後の期間に移動します。",
+            title = stringResource(R.string.dl1_gestureTitleVertical),
+            description = stringResource(R.string.dl1_gestureDescVertical),
             overlayName = "gesture_overlay_vertical",
             baseIllustration = { c -> VerticalSwipeBase(c) },
         ),
         GesturePage(
-            title = "左右スワイプで表示切替",
-            description = "左右にスワイプすると、日・週・月の表示を切り替えられます。",
+            title = stringResource(R.string.dl1_gestureTitleHorizontal),
+            description = stringResource(R.string.dl1_gestureDescHorizontal),
             overlayName = "gesture_overlay_horizontal",
             baseIllustration = { c -> HorizontalSwipeBase(c) },
         ),
         GesturePage(
-            title = "準備完了",
-            description = "さっそく予定を追加してみましょう。\nホーム画面のアイコン長押しでショートカットも使えます。",
+            title = stringResource(R.string.dl1_gestureTitleReady),
+            description = stringResource(R.string.dl1_gestureDescReady),
             overlayName = "gesture_overlay_ready",
             baseIllustration = { c -> ReadyBase(c) },
         ),
@@ -162,7 +164,7 @@ fun GestureSetupDialog(
                 }
             }) {
                 Text(
-                    text = if (isLastPage) "始める" else "次へ",
+                    text = if (isLastPage) stringResource(R.string.dl1_start) else stringResource(R.string.dl1_next),
                     color = colors.primaryAccent,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp,
@@ -173,7 +175,7 @@ fun GestureSetupDialog(
             // スキップ／戻るボタン
             if (!isLastPage) {
                 TextButton(onClick = onComplete) {
-                    Text("スキップ", color = colors.textGray)
+                    Text(stringResource(R.string.dl1_skip), color = colors.textGray)
                 }
             } else {
                 TextButton(onClick = {
@@ -181,7 +183,7 @@ fun GestureSetupDialog(
                         pagerState.animateScrollToPage(pagerState.currentPage - 1)
                     }
                 }) {
-                    Text("戻る", color = colors.textGray)
+                    Text(stringResource(R.string.dl1_back), color = colors.textGray)
                 }
             }
         },
@@ -272,7 +274,7 @@ private fun VerticalSwipeBase(colors: AppColors) {
 
         // 左右の「前へ／次へ」ラベル
         Text(
-            "前へ",
+            stringResource(R.string.dl1_prev),
             color = colors.textGray,
             fontSize = 12.sp,
             modifier = Modifier
@@ -280,7 +282,7 @@ private fun VerticalSwipeBase(colors: AppColors) {
                 .padding(start = 16.dp),
         )
         Text(
-            "次へ",
+            stringResource(R.string.dl1_next),
             color = colors.textGray,
             fontSize = 12.sp,
             modifier = Modifier
@@ -306,9 +308,9 @@ private fun HorizontalSwipeBase(colors: AppColors) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            TabPill("日", colors)
-            TabPill("週", colors)
-            TabPill("月", colors, selected = true)
+            TabPill(stringResource(R.string.dl1_tabDay), colors)
+            TabPill(stringResource(R.string.dl1_tabWeek), colors)
+            TabPill(stringResource(R.string.dl1_tabMonth), colors, selected = true)
         }
 
         // 左方向の矢印
@@ -335,7 +337,7 @@ private fun HorizontalSwipeBase(colors: AppColors) {
 
         // 下部の説明テキスト
         Text(
-            "左右にスワイプ",
+            stringResource(R.string.dl1_gestureSwipeHint),
             color = colors.textGray,
             fontSize = 12.sp,
             modifier = Modifier

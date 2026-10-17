@@ -35,10 +35,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.PermissionSettingsDialog
@@ -92,22 +94,27 @@ fun NotificationSetupDialog(
     }
     if (steps.isEmpty()) return
 
+    // confirmLabelProvider は Composable でないラムダのため、ボタンラベルは先に解決しておく
+    val confirmAllowLabel = stringResource(R.string.dl1_allow)
+    val confirmNextLabel = stringResource(R.string.dl1_next)
+    val openSettingsLabel = stringResource(R.string.dl1_openSettings)
+
     // 各ステップをチュートリアルページに変換する
     val pages = steps.map { step ->
         when (step) {
             NotifStep.INTRO -> TutorialPage(
-                title = "通知の許可",
-                description = "予定の開始時刻や10分前に\n通知を受け取るための許可をお願いします。",
+                title = stringResource(R.string.dl1_notifSetupTitlePermission),
+                description = stringResource(R.string.dl1_notifSetupDescPermission),
                 illustration = { colors -> NotificationIllustration(colors) },
             )
             NotifStep.EXACT_ALARM -> TutorialPage(
-                title = "正確なアラームの許可",
-                description = "予定時刻ぴったりに通知を届けるために、\n「正確なアラーム」の許可が必要です。",
+                title = stringResource(R.string.dl1_notifSetupTitleAlarm),
+                description = stringResource(R.string.dl1_notifSetupDescAlarm),
                 illustration = { colors -> AlarmIllustration(colors) },
             )
             NotifStep.BATTERY -> TutorialPage(
-                title = "バッテリー最適化の無効化",
-                description = "スリープ中の通知遅延を防ぐために、\nバッテリー最適化を無効化することをおすすめします。",
+                title = stringResource(R.string.dl1_notifSetupTitleBattery),
+                description = stringResource(R.string.dl1_notifSetupDescBattery),
                 illustration = { colors -> BatteryIllustration(colors) },
             )
         }
@@ -137,12 +144,12 @@ fun NotificationSetupDialog(
         confirmLabelProvider = { pageIndex, _ ->
             when (steps[pageIndex]) {
                 NotifStep.INTRO ->
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) "許可する" else "次へ"
-                NotifStep.EXACT_ALARM -> "設定を開く"
-                NotifStep.BATTERY -> "設定を開く"
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) confirmAllowLabel else confirmNextLabel
+                NotifStep.EXACT_ALARM -> openSettingsLabel
+                NotifStep.BATTERY -> openSettingsLabel
             }
         },
-        dismissLabel = "あとで",
+        dismissLabel = stringResource(R.string.dl1_later),
         onConfirmOverride = { pageIndex, advance ->
             when (steps[pageIndex]) {
                 NotifStep.INTRO -> {
@@ -180,9 +187,8 @@ fun NotificationSetupDialog(
     if (showNotificationPermanentDenied) {
         PermissionSettingsDialog(
             colors = colors,
-            title = "通知が許可されていません",
-            message = "通知権限が恒久的に拒否されているため、システムの権限ダイアログを表示できません。\n\n" +
-                "「設定を開く」→「通知」→「許可」を選択してください。",
+            title = stringResource(R.string.dl1_notifSetupDeniedTitle),
+            message = stringResource(R.string.dl1_notifSetupDeniedMessage),
             onOpenSettings = { openAppSettings(context) },
             onDismiss = { showNotificationPermanentDenied = false },
         )

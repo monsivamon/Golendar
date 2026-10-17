@@ -3,17 +3,19 @@ package com.monsivamon.golender.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.unit.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -28,16 +30,24 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import com.monsivamon.golender.MainActivity
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.ui.Routes
 import java.time.format.TextStyle.FULL
-import java.util.Locale
 
 // 週次表示ウィジェット（週間予定を表示）
 class WeekWidget : GlanceAppWidget() {
     // ウィジェットの表示内容を構築する
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = WidgetDataManager.getWeekWidgetData(context)
-        provideContent { WeekWidgetContent(data) }
+        // Glance の描画は WorkManager 内部 Context（システムロケール）で行われるため、
+        // アプリ内言語設定を反映した Context をローカルで差し込む
+        val localized = LanguageSetting.wrap(context)
+        val data = WidgetDataManager.getWeekWidgetData(localized)
+        provideContent {
+            CompositionLocalProvider(LocalWidgetLocalizedContext provides localized) {
+                WeekWidgetContent(data)
+            }
+        }
     }
 }
 
@@ -45,7 +55,7 @@ class WeekWidget : GlanceAppWidget() {
 @Composable
 fun WeekWidgetContent(data: WeekWidgetData) {
     // 表示に必要なパラメータを取得する
-    val context = LocalContext.current
+    val context = LocalWidgetLocalizedContext.current
     val weekStart = data.weekStart
     val weekEnd = data.weekEnd
     val events = data.events
@@ -81,17 +91,22 @@ fun WeekWidgetContent(data: WeekWidgetData) {
 
         if (!hasEvents) {
             // 週全体で予定なしの場合
-            Text(text = "予定なし", style = TextStyle(color = wc.textGray, fontSize = 14.sp))
+            Text(text = context.getString(R.string.wd_widgetNoEvents), style = TextStyle(color = wc.textGray, fontSize = 14.sp))
         } else {
             // 週の各日ごとに最初の予定を 1 件表示
             weekDays.forEach { date ->
                 // その日の予定と曜日 1 文字を取得する
                 val dayEvents = events[date] ?: emptyList()
-                val dayOfWeek = date.dayOfWeek.getDisplayName(FULL, Locale.JAPANESE).take(1)
+                val dayOfWeek = date.dayOfWeek.getDisplayName(FULL, context.resources.configuration.locales[0]).take(1)
 
                 // 予定有無に応じた表示内容を決める
                 val hasEvent = dayEvents.isNotEmpty()
                 val eventTitle = if (hasEvent) dayEvents.first().title else "―"
+
+                // 日付ラベルの色。曜日別文字色設定があればそれを優先する
+                //（アプリ内週間画面と同じ挙動）。未設定時は予定有無で通常/グレー。
+                val dateLabelColor = dayColorProvider(data.dayColors[date.dayOfWeek])
+                    ?: if (hasEvent) wc.text else wc.textGray
 
                 // 1 日分の行を描画する（日付＋アクセントライン＋タイトル）
                 Row(
@@ -107,7 +122,7 @@ fun WeekWidgetContent(data: WeekWidgetData) {
                     Text(
                         text = "${date.monthValue}/${date.dayOfMonth}($dayOfWeek)",
                         style = TextStyle(
-                            color = if (hasEvent) wc.text else wc.textGray,
+                            color = dateLabelColor,
                             fontSize = 12.sp,
                             fontWeight = if (hasEvent) FontWeight.Bold else FontWeight.Normal,
                         ),

@@ -62,6 +62,10 @@ private fun provider(themeMode: ThemeMode, lightColor: Color, darkColor: Color):
     }
 }
 
+// 曜日別設定色（Int は ARGB、null は「標準」を明示選択）から Glance 用 ColorProvider を生成する。
+// ユーザーが選んだ絶対色はアプリ内と同じくライト・ダーク共通で使う。
+fun dayColorProvider(argb: Int?): ColorProvider? = argb?.let { ColorProvider(Color(it)) }
+
 // ウィジェット表示用の予定データ（軽量版）
 data class WidgetEvent(
     val id: Long,
@@ -87,6 +91,8 @@ data class WeekWidgetData(
     val weekStartDay: DayOfWeek,
     val bgColor: Int? = null,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    // 曜日別文字色（ARGB / null=「標準」）。アプリ内カレンダーの dayColors 設定と同じ値。
+    val dayColors: Map<DayOfWeek, Int?> = emptyMap(),
 )
 
 // 月次ウィジェットの表示データ
@@ -96,4 +102,6 @@ data class MonthWidgetData(
     val weekStartDay: DayOfWeek,
     val bgColor: Int? = null,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    // 曜日別文字色（ARGB / null=「標準」）。アプリ内カレンダーの dayColors 設定と同じ値。
+    val dayColors: Map<DayOfWeek, Int?> = emptyMap(),
 )

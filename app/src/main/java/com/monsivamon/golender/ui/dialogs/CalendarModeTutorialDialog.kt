@@ -20,9 +20,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -34,40 +36,29 @@ fun CalendarModeTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "Golendar と Google の違い",
-                description = "Golendar は外部同期なしのアプリ内完結、\n" +
-                    "Google は Google カレンダーと同期します。\n" +
-                    "用途に応じて切り替えられます。",
+                title = stringResource(R.string.dl1_calModeTitleDifference),
+                description = stringResource(R.string.dl1_calModeDescDifference),
                 illustration = { c -> ModeCompareIllustration(c) },
             ),
             TutorialPage(
-                title = "Google モードの操作",
-                description = "チェックで予定の表示 ON/OFF、\n" +
-                    "色丸タップで表示色を変更できます。\n" +
-                    "端末側でカレンダーを追加・削除した後は\n" +
-                    "「カレンダー一覧を再取得」をタップしてください。",
+                title = stringResource(R.string.dl1_calModeTitleGoogleOps),
+                description = stringResource(R.string.dl1_calModeDescGoogleOps),
                 illustration = { c -> CalendarListIllustration(c, showEditHint = false) },
             ),
             TutorialPage(
-                title = "Golendar モードの操作",
-                description = "チェックで表示 ON/OFF、色丸で色変更、\n" +
-                    "名前タップで名前を変更できます。\n" +
-                    "マイカレンダーは削除できませんが、\n" +
-                    "非表示にはできます。",
+                title = stringResource(R.string.dl1_calModeTitleGolendarOps),
+                description = stringResource(R.string.dl1_calModeDescGolendarOps),
                 illustration = { c -> CalendarListIllustration(c, showEditHint = true) },
             ),
             TutorialPage(
-                title = "非表示にすると…",
-                description = "そのカレンダーの予定は、\n" +
-                    "カレンダー・ウィジェット・通知から\n" +
-                    "表示されなくなります。\n" +
-                    "祝日は常に表示されます。",
+                title = stringResource(R.string.dl1_calModeTitleHidden),
+                description = stringResource(R.string.dl1_calModeDescHidden),
                 illustration = { c -> EffectIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -81,13 +72,13 @@ private fun ModeCompareIllustration(colors: AppColors) {
         ) {
             ModeCard(
                 label = "Golendar",
-                sub = "アプリ内のみ",
+                sub = stringResource(R.string.dl1_calModeSubInApp),
                 colors = colors,
                 accent = colors.primaryAccent,
             )
             ModeCard(
                 label = "Google",
-                sub = "カレンダー同期",
+                sub = stringResource(R.string.dl1_calModeSubSync),
                 colors = colors,
                 accent = colors.satBlue,
             )
@@ -155,7 +146,7 @@ private fun CalendarListIllustration(colors: AppColors, showEditHint: Boolean) {
             if (showEditHint) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "← 名前タップで編集",
+                    stringResource(R.string.dl1_calModeEditHint),
                     color = colors.textGray,
                     fontSize = 10.sp,
                 )
@@ -216,7 +207,7 @@ private fun EffectIllustration(colors: AppColors) {
                     .border(1.dp, colors.divider, RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("祝日は常に表示", color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.dl1_calModeHolidaysAlways), color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

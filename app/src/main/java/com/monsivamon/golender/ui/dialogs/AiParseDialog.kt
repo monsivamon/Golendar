@@ -17,8 +17,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.LocalEvent
 import com.monsivamon.golender.data.util.AiJsonConverter
 import com.monsivamon.golender.data.util.AiPromptTemplate
@@ -57,7 +59,7 @@ fun AiParseDialog(
     var pendingWarnings by remember { mutableStateOf<List<String>>(emptyList()) }
     var showWarningDialog by remember { mutableStateOf(false) }
     // プロンプトのプレースホルダを今日の日付・TZ に置換する
-    val prompt = AiPromptTemplate.PROMPT_TEMPLATE
+    val prompt = AiPromptTemplate.promptTemplate(context)
         .replace("{{TODAY}}", LocalDate.now().toString())
         .replace("{{TZ}}", ZoneId.systemDefault().id)
     // 全件選択済みかどうかを判定する
@@ -69,7 +71,7 @@ fun AiParseDialog(
             containerColor = colors.surface,
             title = {
                 Text(
-                    "解析結果に警告があります",
+                    stringResource(R.string.dl2_aiParseWarningTitle),
                     color = colors.text,
                     fontWeight = FontWeight.Bold,
                 )
@@ -82,7 +84,7 @@ fun AiParseDialog(
                     // 警告を 1 件ずつ列挙する
                     pendingWarnings.forEach { warning ->
                         Text(
-                            "・$warning",
+                            stringResource(R.string.dl2_aiParseWarningItem, warning),
                             color = colors.textGray,
                             fontSize = 13.sp,
                             lineHeight = 18.sp,
@@ -92,7 +94,7 @@ fun AiParseDialog(
             },
             confirmButton = {
                 TextButton(onClick = { showWarningDialog = false }) {
-                    Text("確認しました", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl2_aiParseAcknowledge), color = colors.primaryAccent, fontWeight = FontWeight.Bold)
                 }
             },
         )
@@ -118,11 +120,9 @@ fun AiParseDialog(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     // タイトルと説明文（Golendar モード専用を明示）
-                    Text("AIに読み取らせる (BETA)", style = MaterialTheme.typography.titleLarge, color = colors.text)
+                    Text(stringResource(R.string.dl2_aiParseTitle), style = MaterialTheme.typography.titleLarge, color = colors.text)
                     Text(
-                        "Golendarモード専用機能です。\n" +
-                        "画像認識が可能なAI（ChatGPT / Gemini / Qwen / DeepSeek など）に、\n" +
-                        "画像とプロンプトを渡してください。返ってきたJSONを貼り付けてください。",
+                        stringResource(R.string.dl2_aiParseDescription),
                         color = colors.textGray,
                         fontSize = 14.sp
                     )
@@ -131,23 +131,23 @@ fun AiParseDialog(
                         Button(onClick = {
                             val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                             cm.setPrimaryClip(ClipData.newPlainText("Golendar AI Prompt", prompt))
-                            Toast.makeText(context, "コピーしました", Toast.LENGTH_SHORT).show()
-                        }) { Text("コピー") }
+                            Toast.makeText(context, context.getString(R.string.dl2_copied), Toast.LENGTH_SHORT).show()
+                        }) { Text(stringResource(R.string.dl2_copy)) }
                         Button(onClick = {
                             val intent = Intent(Intent.ACTION_SEND).apply {
                                 type = "text/plain"
                                 putExtra(Intent.EXTRA_TEXT, prompt)
-                                putExtra(Intent.EXTRA_SUBJECT, "Golendar 予定解析プロンプト")
+                                putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.dl2_aiPromptSubject))
                             }
-                            context.startActivity(Intent.createChooser(intent, "解析するAIを選択"))
-                            Toast.makeText(context, "AIに画像と一緒に渡してください", Toast.LENGTH_LONG).show()
-                        }) { Text("AIアプリを開く") }
+                            context.startActivity(Intent.createChooser(intent, context.getString(R.string.dl2_chooseAiApp)))
+                            Toast.makeText(context, context.getString(R.string.dl2_passWithPhoto), Toast.LENGTH_LONG).show()
+                        }) { Text(stringResource(R.string.dl2_openAiApp)) }
                     }
                     // AI の回答 JSON を貼り付ける入力欄
                     OutlinedTextField(
                         value = rawText,
                         onValueChange = { rawText = it },
-                        label = { Text("AIの回答JSONを貼り付け") },
+                        label = { Text(stringResource(R.string.dl2_aiParseInputLabel)) },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 4,
                         maxLines = 8,
@@ -174,11 +174,11 @@ fun AiParseDialog(
                                     showWarningDialog = true
                                 }
                             } else {
-                                Toast.makeText(context, "AI出力を解析できませんでした", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.dl2_parseFailed), Toast.LENGTH_SHORT).show()
                             }
                         },
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text("解析して登録") }
+                    ) { Text(stringResource(R.string.dl2_parseAndAdd)) }
                     // 中部: プレビューリスト（スクロール可）
                     if (previewEvents.isNotEmpty()) {
                         HorizontalDivider(color = colors.divider)
@@ -202,13 +202,13 @@ fun AiParseDialog(
                                 ),
                             )
                             Text(
-                                "すべて選択",
+                                stringResource(R.string.dl2_selectAllKana),
                                 color = colors.text,
                                 fontSize = 14.sp,
                             )
                             Spacer(Modifier.weight(1f))
                             Text(
-                                "選択中: ${selectedIndices.size}件",
+                                stringResource(R.string.dl2_selectionCount, selectedIndices.size),
                                 color = colors.textGray,
                                 fontSize = 13.sp,
                             )
@@ -227,7 +227,7 @@ fun AiParseDialog(
                         )
                         // チェックと追加の関係を示す注記
                         Text(
-                            "※ チェックした予定のみ追加されます",
+                            stringResource(R.string.dl2_aiParseCheckboxNote),
                             color = colors.textGray,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(top = 4.dp),
@@ -245,14 +245,14 @@ fun AiParseDialog(
                     // 左: 選択件数のステータス表示
                     if (previewEvents.isNotEmpty()) {
                         Text(
-                            "${previewEvents.size}件中 ${selectedIndices.size}件を選択中",
+                            stringResource(R.string.dl2_footerSelectionStatus, previewEvents.size, selectedIndices.size),
                             color = colors.textGray,
                             fontSize = 13.sp,
                         )
                     }
                     Spacer(Modifier.weight(1f))
                     // 右: キャンセルと追加ボタン
-                    TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.dl2_cancel), color = colors.textGray) }
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
@@ -263,7 +263,7 @@ fun AiParseDialog(
                         },
                         enabled = selectedIndices.isNotEmpty(),
                     ) {
-                        Text("追加")
+                        Text(stringResource(R.string.dl2_add))
                     }
                 }
             }

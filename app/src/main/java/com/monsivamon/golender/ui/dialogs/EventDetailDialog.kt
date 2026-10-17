@@ -17,10 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.data.util.*
@@ -43,11 +45,11 @@ fun EventDetailDialog(
     var viewerIndex by remember { mutableStateOf<Int?>(null) }
     // 繰り返しの種類に応じた接尾辞を用意する
     val recurringText = when (event.rrule) {
-        "FREQ=DAILY" -> "（毎日）"
-        "FREQ=WEEKLY" -> "（毎週）"
-        "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR" -> "（平日）"
-        "FREQ=MONTHLY" -> "（毎月）"
-        "FREQ=YEARLY" -> "（毎年）"
+        "FREQ=DAILY" -> stringResource(R.string.dl2_recurringDaily)
+        "FREQ=WEEKLY" -> stringResource(R.string.dl2_recurringWeekly)
+        "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR" -> stringResource(R.string.dl2_recurringWeekdays)
+        "FREQ=MONTHLY" -> stringResource(R.string.dl2_recurringMonthly)
+        "FREQ=YEARLY" -> stringResource(R.string.dl2_recurringYearly)
         else -> ""
     }
 
@@ -63,8 +65,8 @@ fun EventDetailDialog(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("🕒", fontSize = 16.sp, modifier = Modifier.padding(end = 8.dp))
                     Column {
-                        Text(event.dateRangeString(), color = colors.text, fontSize = 14.sp)
-                        Text(event.timeRangeString(), color = colors.textGray, fontSize = 14.sp)
+                        Text(event.dateRangeString(context), color = colors.text, fontSize = 14.sp)
+                        Text(event.timeRangeString(context), color = colors.textGray, fontSize = 14.sp)
                     }
                 }
                 // 場所（地図アプリで開くボタン付き）
@@ -74,7 +76,7 @@ fun EventDetailDialog(
                         Text(event.location, color = colors.text, fontSize = 14.sp,
                             modifier = Modifier.weight(1f))
                         TextButton(onClick = { MapUtils.openInMapApp(context, event.location) }) {
-                            Text("地図で見る", color = colors.primaryAccent, fontSize = 13.sp)
+                            Text(stringResource(R.string.dl2_viewOnMap), color = colors.primaryAccent, fontSize = 13.sp)
                         }
                     }
                 }
@@ -82,7 +84,7 @@ fun EventDetailDialog(
                 if (event.description.isNotBlank()) {
                     HorizontalDivider(color = colors.divider)
                     Column {
-                        Text("メモ", color = colors.textGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.dl2_memo), color = colors.textGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(4.dp))
                         Text(event.description, color = colors.text, fontSize = 14.sp)
                     }
@@ -91,7 +93,7 @@ fun EventDetailDialog(
                 if (photos.isNotEmpty()) {
                     HorizontalDivider(color = colors.divider)
                     Column {
-                        Text("写真 (${photos.size})", color = colors.textGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.dl2_photoCount, photos.size), color = colors.textGray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(6.dp))
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             itemsIndexed(photos, key = { _, p -> p.id }) { index, photo ->
@@ -112,8 +114,8 @@ fun EventDetailDialog(
                 TextButton(onClick = {
                     val shareText = buildString {
                         appendLine(event.title + recurringText)
-                        appendLine(event.dateRangeString())
-                        appendLine(event.timeRangeString())
+                        appendLine(event.dateRangeString(context))
+                        appendLine(event.timeRangeString(context))
                         if (event.location.isNotBlank()) appendLine("📍 ${event.location}")
                         if (event.description.isNotBlank()) {
                             appendLine()
@@ -125,11 +127,11 @@ fun EventDetailDialog(
                         putExtra(Intent.EXTRA_SUBJECT, event.title)
                         putExtra(Intent.EXTRA_TEXT, shareText)
                     }
-                    context.startActivity(Intent.createChooser(intent, "予定を共有"))
-                }) { Text("共有", color = colors.primaryAccent) }
+                    context.startActivity(Intent.createChooser(intent, context.getString(R.string.dl2_shareEventChooser)))
+                }) { Text(stringResource(R.string.dl2_share), color = colors.primaryAccent) }
                 // 編集（読み取り専用でなければ表示）
                 if (!event.isReadOnly) TextButton(onClick = onEdit) {
-                    Text("編集", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl2_edit), color = colors.primaryAccent, fontWeight = FontWeight.Bold)
                 }
             }
         },
@@ -137,10 +139,10 @@ fun EventDetailDialog(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // 複数日かつ繰り返しでない場合のみ「この日だけ削除」を表示
                 if (!event.isReadOnly && multiDay && currentDate in s..e && event.rrule == null) {
-                    TextButton(onClick = onSplitDelete) { Text("この日だけ削除", color = colors.sunRed) }
+                    TextButton(onClick = onSplitDelete) { Text(stringResource(R.string.dl2_deleteThisDay), color = colors.sunRed) }
                     Spacer(Modifier.weight(1f))
                 }
-                TextButton(onClick = onDismiss) { Text("閉じる", color = colors.textGray) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.dl2_close), color = colors.textGray) }
             }
         },
     )

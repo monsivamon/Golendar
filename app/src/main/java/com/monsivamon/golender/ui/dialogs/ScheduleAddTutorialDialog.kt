@@ -19,9 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -33,24 +35,24 @@ fun ScheduleAddTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "FAB から追加",
-                description = "月表示の右下にある「+」ボタンをタップすると、\n日付を選んで予定を追加できます。",
+                title = stringResource(R.string.dl1_schedAddTitleFab),
+                description = stringResource(R.string.dl1_schedAddDescFab),
                 illustration = { c -> FabIllustration(c) },
             ),
             TutorialPage(
-                title = "各日から追加",
-                description = "週表示では、各日付の下の「+ 予定を追加」\nボタンからその日の予定を作成できます。",
+                title = stringResource(R.string.dl1_schedAddTitleEachDay),
+                description = stringResource(R.string.dl1_schedAddDescEachDay),
                 illustration = { c -> WeekAddIllustration(c) },
             ),
             TutorialPage(
-                title = "ショートカット",
-                description = "ホーム画面のアイコンを長押しすると、\n「予定追加」を直接起動できます。",
+                title = stringResource(R.string.dl1_schedAddTitleShortcut),
+                description = stringResource(R.string.dl1_schedAddDescShortcut),
                 illustration = { c -> ShortcutIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -68,7 +70,7 @@ private fun FabIllustration(colors: AppColors) {
                 Text("+", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(Modifier.height(10.dp))
-            Text("右下の + ボタン", color = colors.textGray, fontSize = 12.sp)
+            Text(stringResource(R.string.dl1_schedAddFabHint), color = colors.textGray, fontSize = 12.sp)
         }
     }
 }
@@ -100,7 +102,7 @@ private fun WeekAddIllustration(colors: AppColors) {
                             .background(colors.primaryAccent.copy(alpha = 0.18f)),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text("+ 予定を追加", color = colors.primaryAccent, fontSize = 10.sp, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.dl1_schedAddWeekButton), color = colors.primaryAccent, fontSize = 10.sp, fontWeight = FontWeight.Medium)
                     }
                 }
             }
@@ -124,7 +126,7 @@ private fun ShortcutIllustration(colors: AppColors) {
                 Text("📅", fontSize = 26.sp)
             }
             Spacer(Modifier.height(8.dp))
-            Text("長押し", color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dl1_schedAddLongPress), color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.provider.CalendarContract
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.Event
 import java.util.TimeZone
 
@@ -141,7 +142,7 @@ class SystemCalendarSource(private val context: Context) {
                 events.add(
                     Event(
                         id = cursor.getLong(idIdx),
-                        title = cursor.getString(titleIdx) ?: "予定なし",
+                        title = cursor.getString(titleIdx) ?: context.getString(R.string.wd_calendarFallbackTitle),
                         startTime = cursor.getLong(startIdx),
                         endTime = cursor.getLong(endIdx),
                         isAllDay = cursor.getInt(allDayIdx) == 1,
@@ -225,7 +226,7 @@ class SystemCalendarSource(private val context: Context) {
                 events.add(
                     Event(
                         id = cursor.getLong(idIdx),
-                        title = cursor.getString(titleIdx) ?: "予定なし",
+                        title = cursor.getString(titleIdx) ?: context.getString(R.string.wd_calendarFallbackTitle),
                         startTime = start,
                         endTime = end,
                         isAllDay = cursor.getInt(allDayIdx) == 1,

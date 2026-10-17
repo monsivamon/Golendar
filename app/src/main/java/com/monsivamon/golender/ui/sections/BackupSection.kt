@@ -13,9 +13,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.LocalCalendarNames
 import com.monsivamon.golender.ui.SettingsSection
 import com.monsivamon.golender.ui.dialogs.RestoreOptionsDialog
 import com.monsivamon.golender.ui.dialogs.RestoreTargetCalendar
@@ -39,12 +42,19 @@ fun BackupSection(
     val backupPhotos by viewModel.backupPhotos.collectAsState()
     val localCalendars by viewModel.localCalendars.collectAsState()
     val selectedCalendars by viewModel.selectedCalendars.collectAsState()
+    // バックアップ／復元の進行状況（null = 実行中なし）
+    val backupProgress by viewModel.backupProgress.collectAsState()
 
     // バックアップ対象となる可視カレンダー一覧（モードに応じて切替）
     val visibleCalendars: List<Pair<Long, String>> = if (calendarMode == CalendarMode.GOOGLE) {
         selectedCalendars.filter { it.isVisible }.map { it.calendarId to it.displayName }
     } else {
-        localCalendars.filter { it.isVisible }.map { it.id to it.name }
+        // 既定カレンダーの空文字センチネルは locale 名に展開して表示する
+        localCalendars.filter { it.isVisible }.map {
+            it.id to if (it.isDefault && it.name.isEmpty()) {
+                context.getString(R.string.default_calendar_name)
+            } else it.name
+        }
     }
     val visibleCount = visibleCalendars.size
 
@@ -89,7 +99,7 @@ fun BackupSection(
         scope.launch {
             val meta = viewModel.peekBackup(uri)
             if (meta == null) {
-                Toast.makeText(context, "このファイルは復元できません", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.sc_restoreNotAvailableInFile), Toast.LENGTH_SHORT).show()
                 return@launch
             }
             // 旧形式バックアップ:
@@ -99,15 +109,22 @@ fun BackupSection(
             if (meta.isLegacyFormat) {
                 if (isAppend) {
                     if (calendarMode == CalendarMode.GOOGLE && meta.isZip) {
-                        Toast.makeText(context, "写真付きバックアップは Golendar モードでのみ追記できます", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.sc_zipAppendGolendarOnly), Toast.LENGTH_LONG).show()
                         return@launch
                     }
                     val targets: List<RestoreTargetCalendar> = if (calendarMode == CalendarMode.GOOGLE) {
                         viewModel.loadAllCalendarMetas()
                             .filter { it.accessLevel >= 500 && !it.isHoliday && !it.isBirthday && it.accountName.contains("@") }
-                            .map { RestoreTargetCalendar(it.id, it.displayName.ifBlank { "名称未設定" }, it.defaultColor) }
+                            .map { RestoreTargetCalendar(it.id, it.displayName.ifBlank { context.getString(R.string.sc_unnamed) }, it.defaultColor) }
                     } else {
-                        localCalendars.map { RestoreTargetCalendar(it.id, it.name, it.colorArgb) }
+                        localCalendars.map {
+                            // 既定カレンダーの空文字センチネルは locale 名に展開する
+                            val name = it.name.ifEmpty {
+                                if (it.isDefault) context.getString(R.string.default_calendar_name)
+                                else context.getString(R.string.sc_unnamed)
+                            }
+                            RestoreTargetCalendar(it.id, name, it.colorArgb)
+                        }
                     }
                     pendingUri = uri
                     pendingIsAppend = true
@@ -116,7 +133,7 @@ fun BackupSection(
                     return@launch
                 }
                 if (calendarMode == CalendarMode.GOOGLE) {
-                    Toast.makeText(context, "旧形式のバックアップは Google モードでは復元できません。追記をご利用ください。", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, context.getString(R.string.sc_legacyRestoreUnavailable), Toast.LENGTH_LONG).show()
                     return@launch
                 }
                 viewModel.importBackup(uri = uri, isAppend = false, selectedSourceIds = setOf(0L), autoCreateMissingCalendars = true)
@@ -125,9 +142,16 @@ fun BackupSection(
             val targets: List<RestoreTargetCalendar> = if (calendarMode == CalendarMode.GOOGLE) {
                 viewModel.loadAllCalendarMetas()
                     .filter { it.accessLevel >= 500 && !it.isHoliday && !it.isBirthday && it.accountName.contains("@") }
-                    .map { RestoreTargetCalendar(it.id, it.displayName.ifBlank { "名称未設定" }, it.defaultColor) }
+                    .map { RestoreTargetCalendar(it.id, it.displayName.ifBlank { context.getString(R.string.sc_unnamed) }, it.defaultColor) }
             } else {
-                localCalendars.map { RestoreTargetCalendar(it.id, it.name, it.colorArgb) }
+                localCalendars.map {
+                    // 既定カレンダーの空文字センチネルは locale 名に展開して表示する
+                    val name = it.name.ifEmpty {
+                        if (it.isDefault) context.getString(R.string.default_calendar_name)
+                        else context.getString(R.string.sc_unnamed)
+                    }
+                    RestoreTargetCalendar(it.id, name, it.colorArgb)
+                }
             }
             pendingUri = uri
             pendingIsAppend = isAppend
@@ -143,11 +167,9 @@ fun BackupSection(
         ActivityResultContracts.OpenDocument(),
     ) { uri: Uri? -> uri?.let { beginRestore(it, isAppend = false) } }
 
-    SettingsSection("バックアップと復元", colors) {
+    SettingsSection(stringResource(R.string.sc_backupRestoreSection), colors) {
         Text(
-            "保存: 可視カレンダーの予定をまとめて書き出します。\n" +
-                "復元: 同名カレンダーを上書きします（Golendarモードのみ）。\n" +
-                "追記: 既存の予定を残したまま追加します。",
+            stringResource(R.string.sc_backupSaveDescription),
             fontSize = 13.sp, color = colors.textGray, modifier = Modifier.padding(bottom = 12.dp),
         )
 
@@ -170,14 +192,14 @@ fun BackupSection(
                 Spacer(Modifier.width(8.dp))
                 Column {
                     Text(
-                        "写真もバックアップ",
+                        stringResource(R.string.sc_backupPhotosLabel),
                         fontSize = 15.sp, color = colors.text, fontWeight = FontWeight.Medium,
                     )
                     Text(
                         if (backupPhotos)
-                            "予定に添付した写真も ZIP ファイルに含めます（Golendarモードのみ）"
+                            stringResource(R.string.sc_backupPhotosZipDesc)
                         else
-                            "OFF の場合は従来通り JSON で保存されます",
+                            stringResource(R.string.sc_backupPhotosOffDesc),
                         fontSize = 12.sp, color = colors.textGray,
                     )
                 }
@@ -206,7 +228,7 @@ fun BackupSection(
                 ),
                 modifier = Modifier.weight(1f).border(1.dp, colors.divider, RoundedCornerShape(24.dp)),
                 contentPadding = PaddingValues(0.dp),
-            ) { Text("保存", fontSize = 14.sp) }
+            ) { Text(stringResource(R.string.sc_save), fontSize = 14.sp) }
 
             // 追記ボタン
             Button(
@@ -219,7 +241,7 @@ fun BackupSection(
                 ),
                 modifier = Modifier.weight(1f).border(1.dp, colors.divider, RoundedCornerShape(24.dp)),
                 contentPadding = PaddingValues(0.dp),
-            ) { Text("追記", fontSize = 14.sp) }
+            ) { Text(stringResource(R.string.sc_append), fontSize = 14.sp) }
 
             // 復元ボタン
             Button(
@@ -229,7 +251,7 @@ fun BackupSection(
                     } else {
                         Toast.makeText(
                             context,
-                            "Googleモードでは復元できません。追記をご利用ください。",
+                            context.getString(R.string.sc_restoreGoogleModeUnavailable),
                             Toast.LENGTH_SHORT,
                         ).show()
                     }
@@ -240,7 +262,7 @@ fun BackupSection(
                 ),
                 modifier = Modifier.weight(1f).border(1.dp, colors.divider, RoundedCornerShape(24.dp)),
                 contentPadding = PaddingValues(0.dp),
-            ) { Text("復元", fontSize = 14.sp) }
+            ) { Text(stringResource(R.string.sc_restore), fontSize = 14.sp) }
         }
     }
 
@@ -253,27 +275,26 @@ fun BackupSection(
             containerColor = colors.surface,
             title = {
                 Text(
-                    "複数のカレンダーをまとめてバックアップ",
+                    stringResource(R.string.sc_multiCalendarBackupTitle),
                     color = colors.text, fontWeight = FontWeight.Bold,
                 )
             },
             text = {
                 Column {
                     Text(
-                        "複数のカレンダーが表示されています。\n" +
-                            "まとめてバックアップしてよろしいですか？",
+                        stringResource(R.string.sc_multiCalendarBackupMessage),
                         color = colors.text, fontSize = 14.sp,
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "対象: ${visibleCount} 件",
+                        stringResource(R.string.sc_multiCalendarTargetCount, visibleCount),
                         color = colors.textGray, fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                     )
                     Spacer(Modifier.height(4.dp))
                     visibleCalendars.forEach { (_, name) ->
                         Text(
-                            "・${name.ifBlank { "名称未設定" }}",
+                            stringResource(R.string.sc_bulletItemName, name.ifBlank { stringResource(R.string.sc_unnamed) }),
                             color = colors.textGray, fontSize = 12.sp,
                         )
                     }
@@ -289,7 +310,7 @@ fun BackupSection(
             },
             dismissButton = {
                 TextButton(onClick = { showMultiCalendarConfirm = false }) {
-                    Text("キャンセル", color = colors.textGray)
+                    Text(stringResource(R.string.sc_cancel), color = colors.textGray)
                 }
             },
         )
@@ -320,7 +341,13 @@ fun BackupSection(
                     val sourceNames = meta.sourceCalendars
                         .filter { it.id in selectedSourceIds && it.id != 0L }
                         .map { it.name }
-                    val localNames = localCalendars.map { it.name }.toSet()
+                    // 既定カレンダーの空文字センチネルは全ロケールの既定名で照合する
+                    // （他 locale 端末で書き出したバックアップ対応）
+                    val localNames = localCalendars.flatMap {
+                        if (it.isDefault && it.name.isEmpty()) {
+                            LocalCalendarNames.allDefaultNames(context)
+                        } else listOf(it.name)
+                    }.toSet()
                     sourceNames.filter { it in localNames }.distinct()
                 } else emptyList()
 
@@ -364,7 +391,7 @@ fun BackupSection(
             containerColor = colors.surface,
             title = {
                 Text(
-                    "同名カレンダーが存在します",
+                    stringResource(R.string.sc_overwriteTitle),
                     color = colors.text,
                     fontWeight = FontWeight.Bold,
                 )
@@ -372,16 +399,14 @@ fun BackupSection(
             text = {
                 Column {
                     Text(
-                        "以下のカレンダーは既に存在します。\n" +
-                            "復元すると、もとのカレンダーの予定は上書きされます。\n" +
-                            "よろしいですか？",
+                        stringResource(R.string.sc_overwriteMessage),
                         color = colors.text,
                         fontSize = 14.sp,
                     )
                     Spacer(Modifier.height(10.dp))
                     pendingOverwriteNames.forEach { name ->
                         Text(
-                            "・$name",
+                            stringResource(R.string.sc_bulletItemName, name),
                             color = colors.sunRed,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
@@ -389,7 +414,7 @@ fun BackupSection(
                     }
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        "※ バックアップに含まれないカレンダーはそのまま残ります。",
+                        stringResource(R.string.sc_overwriteNote),
                         color = colors.textGray,
                         fontSize = 12.sp,
                     )
@@ -411,7 +436,7 @@ fun BackupSection(
                     pendingOverwriteNames = emptyList()
                     pendingImportSelectedSources = emptySet()
                 }) {
-                    Text("上書きする", color = colors.sunRed, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.sc_overwriteConfirm), color = colors.sunRed, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -421,9 +446,38 @@ fun BackupSection(
                     pendingOverwriteNames = emptyList()
                     pendingImportSelectedSources = emptySet()
                 }) {
-                    Text("キャンセル", color = colors.textGray)
+                    Text(stringResource(R.string.sc_cancel), color = colors.textGray)
                 }
             },
+        )
+    }
+
+    // バックアップ／復元の進行状況ダイアログ。
+    // エクスポート・インポート中のみ表示し、完了で自動的に消える。
+    // 操作途中で閉じられるとデータ整合性が崩れるため、閉じる手段は用意しない。
+    backupProgress?.let { p ->
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(p.phase, color = colors.text) },
+            text = {
+                Column {
+                    if (p.total > 0) {
+                        LinearProgressIndicator(
+                            progress = { p.current.toFloat() / p.total },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Text(
+                            "${p.current} / ${p.total}",
+                            color = colors.textGray,
+                            fontSize = 12.sp,
+                        )
+                    } else {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                }
+            },
+            confirmButton = { },
         )
     }
 }

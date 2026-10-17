@@ -12,6 +12,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.dialogs.LABEL_WIDTH
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
@@ -58,7 +60,12 @@ internal fun DateTimeRow(
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Text(
-                    "${date.year}年${date.monthValue}月${date.dayOfMonth}日",
+                    stringResource(
+                        R.string.dl2_dateYmd,
+                        date.year,
+                        date.monthValue,
+                        date.dayOfMonth,
+                    ),
                     color = dateText,
                     maxLines = 1,
                     softWrap = false,

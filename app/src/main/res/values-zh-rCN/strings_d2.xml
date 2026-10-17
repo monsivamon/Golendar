@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AiParseDialog -->
+    <string name="dl2_aiParseWarningTitle">解析结果中存在警告</string>
+    <string name="dl2_aiParseWarningItem">・%1$s</string>
+    <string name="dl2_aiParseAcknowledge">已确认</string>
+    <string name="dl2_aiParseTitle">AI 识别 (BETA)</string>
+    <string name="dl2_aiParseDescription">这是 Golendar 模式的专属功能。\n请将图片和提示词一起交给支持图像识别的 AI（ChatGPT / Gemini / Qwen / DeepSeek 等）。\n请粘贴返回的 JSON。</string>
+    <string name="dl2_copied">已复制</string>
+    <string name="dl2_copy">复制</string>
+    <string name="dl2_aiPromptSubject">Golendar 日程解析提示词</string>
+    <string name="dl2_chooseAiApp">选择用于解析的 AI</string>
+    <string name="dl2_passWithPhoto">请与图片一起交给 AI</string>
+    <string name="dl2_openAiApp">打开 AI 应用</string>
+    <string name="dl2_aiParseInputLabel">粘贴 AI 的回答 JSON</string>
+    <string name="dl2_parseFailed">无法解析 AI 输出</string>
+    <string name="dl2_parseAndAdd">解析并登记</string>
+    <string name="dl2_selectAllKana">全选</string>
+    <string name="dl2_selectionCount">已选择: %1$d 条</string>
+    <string name="dl2_aiParseCheckboxNote">※ 仅会添加勾选的日程</string>
+    <string name="dl2_footerSelectionStatus">共 %1$d 条，已选择 %2$d 条</string>
+    <string name="dl2_cancel">取消</string>
+    <string name="dl2_add">添加</string>
+
+    <!-- CalendarColorPickerDialog -->
+    <string name="dl2_calendarColorTitle">%1$s 的颜色</string>
+    <string name="dl2_calendarColorDefault">日历颜色（默认）</string>
+    <string name="dl2_selectedMark">✓ 已选中</string>
+    <string name="dl2_close">关闭</string>
+
+    <!-- CalendarSelectionDialog -->
+    <string name="dl2_warning">警告</string>
+    <string name="dl2_calendarSelectionEmptyWarning">未选择任何日历。这样日程将不会显示。要继续吗？</string>
+    <string name="dl2_proceed">继续</string>
+    <string name="dl2_goBack">返回</string>
+    <string name="dl2_calendarSelectionTitle">选择要显示的日历</string>
+    <string name="dl2_calendarSelectionDesc">请勾选要显示的日历。之后可以在设置界面中更改。</string>
+    <string name="dl2_selectAllCalendar">全选</string>
+    <string name="dl2_deselectAll">全部取消</string>
+    <string name="dl2_unnamedCalendar">未命名</string>
+    <string name="dl2_confirmDecision">确定</string>
+
+    <!-- ColorPickerDialogs -->
+    <string name="dl2_bgColorPickerTitle">选择应用背景色</string>
+    <string name="dl2_bgColorDarkNote">深色模式下，所选颜色会自动变暗显示。</string>
+    <string name="dl2_bgColorLightNote">保持相同色相，深色模式下使用较暗的背景。</string>
+    <string name="dl2_dayColorTitle">%1$s的颜色</string>
+    <string name="dl2_colorStandard">标准（无自定义）</string>
+
+    <!-- DayEventsDialog -->
+    <string name="dl2_dayEventsTitle">%1$d月%2$d日 (%3$s)</string>
+    <string name="dl2_eventCount">%1$d 条</string>
+    <string name="dl2_noEvents">无日程</string>
+    <string name="dl2_addEvent">+ 添加日程</string>
+
+    <!-- EventDetailDialog -->
+    <string name="dl2_recurringDaily">（每天）</string>
+    <string name="dl2_recurringWeekly">（每周）</string>
+    <string name="dl2_recurringWeekdays">（工作日）</string>
+    <string name="dl2_recurringMonthly">（每月）</string>
+    <string name="dl2_recurringYearly">（每年）</string>
+    <string name="dl2_viewOnMap">在地图上查看</string>
+    <string name="dl2_memo">备忘</string>
+    <string name="dl2_photoCount">照片 (%1$d)</string>
+    <string name="dl2_shareEventChooser">分享日程</string>
+    <string name="dl2_share">分享</string>
+    <string name="dl2_edit">编辑</string>
+    <string name="dl2_deleteThisDay">仅删除这一天</string>
+
+    <!-- EventDialog -->
+    <string name="dl2_addEventTitle">添加日程</string>
+    <string name="dl2_editEventTitle">编辑日程</string>
+    <string name="dl2_titleLabel">标题</string>
+    <string name="dl2_allDay">全天</string>
+    <string name="dl2_recurring">重复</string>
+    <string name="dl2_dateLockedNote">※将添加到在日历上选择的日期（无法更改日期）</string>
+    <string name="dl2_startLabel">开始</string>
+    <string name="dl2_endLabel">结束</string>
+    <string name="dl2_recurringDurationNote">※“结束”是单次日程的时长。重复的结束日期在下方指定。</string>
+    <string name="dl2_specifyRecurrenceEnd">指定重复的结束日期</string>
+    <string name="dl2_recurrenceEndDate">结束日期</string>
+    <string name="dl2_dateYmd">%1$d年%2$d月%3$d日</string>
+    <string name="dl2_locationLabel">地点</string>
+    <string name="dl2_pickFromMap">从地图中选择</string>
+    <string name="dl2_memoLabel">备忘 / 内容</string>
+    <string name="dl2_save">保存</string>
+    <string name="dl2_delete">删除</string>
+
+    <!-- EventPhotoViewerDialog -->
+    <string name="dl2_storagePermissionRequired">保存需要存储访问权限</string>
+    <string name="dl2_photoFileNotFound">找不到照片文件</string>
+    <string name="dl2_sharePhotoChooser">分享照片</string>
+    <string name="dl2_shareFailed">分享失败: %1$s</string>
+
+    <!-- ExitConfirmDialog -->
+    <string name="dl2_exitTitle">要退出吗？</string>
+    <string name="dl2_exitMessage">将退出 Golendar。</string>
+    <string name="dl2_exit">退出</string>
+
+    <!-- LocalCalendarEditDialog -->
+    <string name="dl2_editCalendarTitle">编辑日历</string>
+    <string name="dl2_nameLabel">名称</string>
+    <string name="dl2_defaultCalendarNameLocked">我的日历无法更改名称（仅能更改颜色）。</string>
+    <string name="dl2_colorLabel">颜色</string>
+
+    <!-- PlacePickerDialog -->
+    <string name="dl2_locationIntroTitle">关于当前位置的使用</string>
+    <string name="dl2_locationIntroMessage">将当前位置作为初始位置显示在地图上。\n即使不授权也可以使用地图（初始位置为东京站附近）。</string>
+    <string name="dl2_allow">允许</string>
+    <string name="dl2_deny">不允许</string>
+    <string name="dl2_showCurrentLocation">显示当前位置</string>
+    <string name="dl2_locationButtonIntroMessage">要在地图上显示当前位置，\n需要位置信息权限。</string>
+    <string name="dl2_locationDeniedTitle">未获得位置信息权限</string>
+    <string name="dl2_locationDeniedMessage">要显示当前位置，请在设备的设置中允许位置信息。\n\n点击“打开设置”会打开 Golendar 的权限设置界面。\n请依次选择“权限”→“位置信息”→“允许”。</string>
+    <string name="dl2_openSettings">打开设置</string>
+    <string name="dl2_placePickerTitle">选择地点</string>
+    <string name="dl2_currentLocation">当前位置</string>
+    <string name="dl2_locating">正在获取当前位置...</string>
+    <string name="dl2_geocoding">正在获取地址...</string>
+    <string name="dl2_unknownAddress">地址未知</string>
+    <string name="dl2_pinInstruction">请拖动地图，让中央的图钉对准地点。</string>
+
+    <!-- RestoreOptionsDialog -->
+    <string name="dl2_backupAppend">追加备份</string>
+    <string name="dl2_backupRestore">还原备份</string>
+    <string name="dl2_backupSummary">%1$d 个日历 / %2$d 条</string>
+    <string name="dl2_backupPhotoSuffix">" / 照片 %1$d 张"</string>
+    <string name="dl2_autoCreateExplanation">将按备份中的日历名称进行分配。\n若没有同名日历则新建，\n若已有同名日历则会显示覆盖确认。\n旧格式的日程将还原到我的日历。</string>
+    <string name="dl2_appendTargetLabel">追加目标日历</string>
+    <string name="dl2_restoreTargetLabel">还原目标日历</string>
+    <string name="dl2_noRestoreTargets">没有可指定为还原目标的日历。\n请在设置中添加日历。</string>
+    <string name="dl2_restoreSources">要还原的日历</string>
+    <string name="dl2_restoreSourcesNote">仅将勾选日历的日程添加到还原目标。</string>
+    <string name="dl2_append">追加</string>
+    <string name="dl2_restore">还原</string>
+
+    <!-- SyncConfirmDialog -->
+    <string name="dl2_syncTitle">同步确认</string>
+    <string name="dl2_syncMessage">将与设备内账户的日历信息同步。\n确定吗？</string>
+    <string name="dl2_syncConfirm">同步</string>
+
+    <!-- event/CalendarSelector・LocalCalendarSelector -->
+    <string name="dl2_targetCalendarLabel">添加目标日历</string>
+    <string name="dl2_selectCalendarPlaceholder">选择日历</string>
+
+    <!-- event/PhotoAttachmentSection -->
+    <string name="dl2_photoSection">照片</string>
+    <string name="dl2_photoResizeNote">照片会保存在应用内（缩放到长边 %1$dpx）</string>
+
+    <!-- event/RecurrenceChips -->
+    <string name="dl2_chipDaily">每天</string>
+    <string name="dl2_chipWeekdays">工作日</string>
+    <string name="dl2_chipWeekly">每周</string>
+    <string name="dl2_chipMonthly">每月</string>
+    <string name="dl2_chipYearly">每年</string>
+</resources>

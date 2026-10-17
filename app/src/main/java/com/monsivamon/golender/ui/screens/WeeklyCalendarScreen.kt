@@ -10,6 +10,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -17,7 +19,8 @@ import androidx.navigation.NavController
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.viewmodel.CalendarMode
-import com.monsivamon.golender.data.util.getJpDayOfWeek
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.util.dayShort
 import com.monsivamon.golender.data.util.localEndDate
 import com.monsivamon.golender.data.util.localStartDate
 import com.monsivamon.golender.data.util.occursOn
@@ -95,12 +98,21 @@ fun WeeklyCalendarScreen(
             return@LaunchedEffect
         }
         editingPhotosLoaded = false
-        editingPhotos = try {
-            viewModel.getPhotosForEvent(ev.id)
-        } catch (_: Exception) {
-            emptyList()
+        // DB 読み込みが一時的に失敗しただけで「写真0枚」と確定させない。
+        // 空リストのまま確定すると保存時に既存写真がすべて消去されるため、
+        // 数回リトライし、それでも失敗したらローディングのまま（保存不可）にして
+        // 誤データでの保存を防ぐ。
+        var loaded = false
+        for (attempt in 1..3) {
+            try {
+                editingPhotos = viewModel.getPhotosForEvent(ev.id)
+                loaded = true
+                break
+            } catch (_: Exception) {
+                if (attempt < 3) kotlinx.coroutines.delay(300L * attempt)
+            }
         }
-        editingPhotosLoaded = true
+        editingPhotosLoaded = loaded
     }
 
     // editingEvent が null に戻った瞬間に写真状態をクリアする。
@@ -149,7 +161,7 @@ fun WeeklyCalendarScreen(
                         val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
                         val dayColor = if (c == Color.Unspecified) colors.text else c
                         Text(
-                            "${date.monthValue}月${date.dayOfMonth}日 (${getJpDayOfWeek(date.dayOfWeek)})  ${dayEvents.size}件",
+                            stringResource(R.string.sc_weekDateWithCount, date.monthValue, date.dayOfMonth, date.dayOfWeek.dayShort(LocalContext.current), dayEvents.size),
                             fontSize = 18.sp, fontWeight = FontWeight.Bold, color = dayColor,
                             modifier = Modifier.padding(bottom = 8.dp, top = 16.dp),
                         )
@@ -162,7 +174,7 @@ fun WeeklyCalendarScreen(
                                     }
                                     .padding(vertical = 8.dp),
                             ) {
-                                Text("予定なし", color = colors.textGray, modifier = Modifier.padding(vertical = 4.dp))
+                                Text(stringResource(R.string.sc_noEvents), color = colors.textGray, modifier = Modifier.padding(vertical = 4.dp))
                             }
                         } else {
                             dayEvents.forEach { event: Event ->
@@ -184,7 +196,7 @@ fun WeeklyCalendarScreen(
                                 contentColor = colors.primaryAccent,
                             ),
                             shape = RoundedCornerShape(12.dp),
-                        ) { Text("+ 予定を追加", fontSize = 14.sp, fontWeight = FontWeight.Medium) }
+                        ) { Text(stringResource(R.string.sc_addEvent), fontSize = 14.sp, fontWeight = FontWeight.Medium) }
                     }
                 }
             }

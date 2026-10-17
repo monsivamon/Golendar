@@ -9,8 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.LocalEvent
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.Instant
@@ -35,7 +37,8 @@ fun AiPreviewList(
             val startDt = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone)
             val endDt = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), zone)
             val dateStr = startDt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
-            val timeStr = if (event.isAllDay) "終日" else "${startDt.format(DateTimeFormatter.ofPattern("HH:mm"))}-${endDt.format(DateTimeFormatter.ofPattern("HH:mm"))}"
+            val allDayLabel = stringResource(R.string.co_all_day)
+            val timeStr = if (event.isAllDay) allDayLabel else "${startDt.format(DateTimeFormatter.ofPattern("HH:mm"))}-${endDt.format(DateTimeFormatter.ofPattern("HH:mm"))}"
 
             // 1 件分の行（チェックボックス＋日付・タイトル・時刻）
             Row(

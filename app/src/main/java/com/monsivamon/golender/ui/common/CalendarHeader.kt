@@ -16,10 +16,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
 
@@ -67,15 +69,15 @@ fun CalendarHeader(
                 TodayButton(onTodayClick, colors)
                 Spacer(Modifier.width(2.dp))
                 CompactIconButton(onClick = onSearchStart) {
-                    Icon(Icons.Default.Search, "検索", tint = colors.text)
+                    Icon(Icons.Default.Search, stringResource(R.string.co_search_cd), tint = colors.text)
                 }
                 Spacer(Modifier.width(2.dp))
                 CompactIconButton(onClick = onSyncClick) {
-                    Icon(Icons.Default.Refresh, "同期", tint = colors.text)
+                    Icon(Icons.Default.Refresh, stringResource(R.string.co_sync_cd), tint = colors.text)
                 }
                 Spacer(Modifier.width(2.dp))
                 CompactIconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, "設定", tint = colors.text)
+                    Icon(Icons.Default.Settings, stringResource(R.string.co_settings_cd), tint = colors.text)
                 }
             }
         }
@@ -96,7 +98,7 @@ private fun SearchBox(
                 .padding(horizontal = 12.dp),
             contentAlignment = Alignment.CenterStart,
         ) {
-            if (query.isEmpty()) Text("予定を検索...", color = colors.textGray, fontSize = 14.sp)
+            if (query.isEmpty()) Text(stringResource(R.string.co_search_placeholder), color = colors.textGray, fontSize = 14.sp)
             BasicTextField(
                 value = query, onValueChange = onQueryChange, singleLine = true,
                 textStyle = TextStyle(color = colors.text, fontSize = 14.sp),
@@ -106,7 +108,7 @@ private fun SearchBox(
         Spacer(Modifier.width(4.dp))
         // 検索モードを閉じるボタン
         CompactIconButton(onClick = onClose) {
-            Icon(Icons.Default.Close, "閉じる", tint = colors.textGray)
+            Icon(Icons.Default.Close, stringResource(R.string.co_close), tint = colors.textGray)
         }
     }
 }
@@ -122,7 +124,7 @@ fun DateTitleWithPicker(title: String, colors: AppColors, onClick: () -> Unit) {
             .padding(4.dp),
     ) {
         Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
-        Icon(Icons.Default.ArrowDropDown, "選択", tint = colors.primaryAccent)
+        Icon(Icons.Default.ArrowDropDown, stringResource(R.string.co_select_cd), tint = colors.primaryAccent)
     }
 }
 
@@ -174,7 +176,7 @@ private fun BottomListToggleButton(
         // ON 時はアクセント色、OFF 時はグレー表示
         Icon(
             imageVector = Icons.AutoMirrored.Filled.List,
-            contentDescription = if (isOn) "下部リストを非表示" else "下部リストを表示",
+            contentDescription = if (isOn) stringResource(R.string.co_bottom_list_hide_cd) else stringResource(R.string.co_bottom_list_show_cd),
             tint = if (isOn) colors.primaryAccent else colors.textGray,
             modifier = Modifier.size(24.dp),
         )

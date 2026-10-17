@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.ui.theme.AppColors
 
@@ -37,7 +39,7 @@ internal fun CalendarSelector(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "追加先カレンダー",
+            stringResource(R.string.dl2_targetCalendarLabel),
             color = colors.textGray,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -63,7 +65,7 @@ internal fun CalendarSelector(
                     Spacer(Modifier.width(8.dp))
                 }
                 Text(
-                    selected?.displayName ?: "カレンダーを選択",
+                    selected?.displayName ?: stringResource(R.string.dl2_selectCalendarPlaceholder),
                     color = colors.text,
                     fontSize = 14.sp,
                     modifier = Modifier.weight(1f),
@@ -98,7 +100,7 @@ internal fun CalendarSelector(
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
-                                    cal.displayName.ifBlank { "名称未設定" },
+                                    cal.displayName.ifBlank { stringResource(R.string.dl2_unnamedCalendar) },
                                     color = colors.text,
                                     fontSize = 14.sp,
                                 )

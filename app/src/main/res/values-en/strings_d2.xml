@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AiParseDialog -->
+    <string name="dl2_aiParseWarningTitle">Warnings in parsing results</string>
+    <string name="dl2_aiParseWarningItem">• %1$s</string>
+    <string name="dl2_aiParseAcknowledge">Acknowledged</string>
+    <string name="dl2_aiParseTitle">Have AI read it (BETA)</string>
+    <string name="dl2_aiParseDescription">This feature is for Golendar mode only.\nPass the image and the prompt to an AI capable of image recognition\n(ChatGPT / Gemini / Qwen / DeepSeek, etc.), then paste back the returned JSON.</string>
+    <string name="dl2_copied">Copied</string>
+    <string name="dl2_copy">Copy</string>
+    <string name="dl2_aiPromptSubject">Golendar Event Parsing Prompt</string>
+    <string name="dl2_chooseAiApp">Choose an AI app for parsing</string>
+    <string name="dl2_passWithPhoto">Pass it to the AI along with the image</string>
+    <string name="dl2_openAiApp">Open AI app</string>
+    <string name="dl2_aiParseInputLabel">Paste the AI\'s answer JSON</string>
+    <string name="dl2_parseFailed">Could not parse the AI output</string>
+    <string name="dl2_parseAndAdd">Parse &amp; add</string>
+    <string name="dl2_selectAllKana">Select all</string>
+    <string name="dl2_selectionCount">Selected: %1$d</string>
+    <string name="dl2_aiParseCheckboxNote">* Only checked events are added</string>
+    <string name="dl2_footerSelectionStatus">%2$d of %1$d selected</string>
+    <string name="dl2_cancel">Cancel</string>
+    <string name="dl2_add">Add</string>
+
+    <!-- CalendarColorPickerDialog -->
+    <string name="dl2_calendarColorTitle">Color of %1$s</string>
+    <string name="dl2_calendarColorDefault">Calendar color (default)</string>
+    <string name="dl2_selectedMark">✓ Selected</string>
+    <string name="dl2_close">Close</string>
+
+    <!-- CalendarSelectionDialog -->
+    <string name="dl2_warning">Warning</string>
+    <string name="dl2_calendarSelectionEmptyWarning">No calendars are selected. No events will be shown like this. Continue?</string>
+    <string name="dl2_proceed">Continue</string>
+    <string name="dl2_goBack">Go back</string>
+    <string name="dl2_calendarSelectionTitle">Select calendars to show</string>
+    <string name="dl2_calendarSelectionDesc">Check the calendars you want to show. This can be changed later in settings.</string>
+    <string name="dl2_selectAllCalendar">Select all</string>
+    <string name="dl2_deselectAll">Deselect all</string>
+    <string name="dl2_unnamedCalendar">Untitled</string>
+    <string name="dl2_confirmDecision">OK</string>
+
+    <!-- ColorPickerDialogs -->
+    <string name="dl2_bgColorPickerTitle">Select app background color</string>
+    <string name="dl2_bgColorDarkNote">In dark mode, the selected color is automatically darkened.</string>
+    <string name="dl2_bgColorLightNote">Keeping the same hue, dark mode uses a darker background.</string>
+    <string name="dl2_dayColorTitle">%1$s color</string>
+    <string name="dl2_colorStandard">Standard (no custom color)</string>
+
+    <!-- DayEventsDialog -->
+    <string name="dl2_dayEventsTitle">%2$d/%1$d (%3$s)</string>
+    <string name="dl2_eventCount">%1$d events</string>
+    <string name="dl2_noEvents">No events</string>
+    <string name="dl2_addEvent">+ Add event</string>
+
+    <!-- EventDetailDialog -->
+    <string name="dl2_recurringDaily">(Daily)</string>
+    <string name="dl2_recurringWeekly">(Weekly)</string>
+    <string name="dl2_recurringWeekdays">(Weekdays)</string>
+    <string name="dl2_recurringMonthly">(Monthly)</string>
+    <string name="dl2_recurringYearly">(Yearly)</string>
+    <string name="dl2_viewOnMap">View on map</string>
+    <string name="dl2_memo">Memo</string>
+    <string name="dl2_photoCount">Photos (%1$d)</string>
+    <string name="dl2_shareEventChooser">Share event</string>
+    <string name="dl2_share">Share</string>
+    <string name="dl2_edit">Edit</string>
+    <string name="dl2_deleteThisDay">Delete only this day</string>
+
+    <!-- EventDialog -->
+    <string name="dl2_addEventTitle">Add event</string>
+    <string name="dl2_editEventTitle">Edit event</string>
+    <string name="dl2_titleLabel">Title</string>
+    <string name="dl2_allDay">All day</string>
+    <string name="dl2_recurring">Repeat</string>
+    <string name="dl2_dateLockedNote">* The event is added to the date selected on the calendar (the date cannot be changed)</string>
+    <string name="dl2_startLabel">Start</string>
+    <string name="dl2_endLabel">End</string>
+    <string name="dl2_recurringDurationNote">* "End" is the duration of a single occurrence. Specify the repeat end date below.</string>
+    <string name="dl2_specifyRecurrenceEnd">Specify repeat end date</string>
+    <string name="dl2_recurrenceEndDate">End date</string>
+    <string name="dl2_dateYmd">%2$d/%3$d/%1$d</string>
+    <string name="dl2_locationLabel">Location</string>
+    <string name="dl2_pickFromMap">Pick from map</string>
+    <string name="dl2_memoLabel">Memo / Description</string>
+    <string name="dl2_save">Save</string>
+    <string name="dl2_delete">Delete</string>
+
+    <!-- EventPhotoViewerDialog -->
+    <string name="dl2_storagePermissionRequired">Storage access permission is required to save</string>
+    <string name="dl2_photoFileNotFound">Photo file not found</string>
+    <string name="dl2_sharePhotoChooser">Share photo</string>
+    <string name="dl2_shareFailed">Share failed: %1$s</string>
+
+    <!-- ExitConfirmDialog -->
+    <string name="dl2_exitTitle">Exit the app?</string>
+    <string name="dl2_exitMessage">Exiting Golendar.</string>
+    <string name="dl2_exit">Exit</string>
+
+    <!-- LocalCalendarEditDialog -->
+    <string name="dl2_editCalendarTitle">Edit calendar</string>
+    <string name="dl2_nameLabel">Name</string>
+    <string name="dl2_defaultCalendarNameLocked">My Calendar cannot be renamed (only its color can be changed).</string>
+    <string name="dl2_colorLabel">Color</string>
+
+    <!-- PlacePickerDialog -->
+    <string name="dl2_locationIntroTitle">About using your current location</string>
+    <string name="dl2_locationIntroMessage">Your current location is shown as the map\'s initial position.\nYou can use the map without granting permission (the initial position will be around Tokyo Station).</string>
+    <string name="dl2_allow">Allow</string>
+    <string name="dl2_deny">Don\'t allow</string>
+    <string name="dl2_showCurrentLocation">Show current location</string>
+    <string name="dl2_locationButtonIntroMessage">Location permission is required\nto show your current location on the map.</string>
+    <string name="dl2_locationDeniedTitle">Location permission not granted</string>
+    <string name="dl2_locationDeniedMessage">To show your current location, allow location access from the device settings.\n\nTapping "Open settings" opens Golendar\'s permission settings screen.\nOpen "Permissions" → "Location" → "Allow".</string>
+    <string name="dl2_openSettings">Open settings</string>
+    <string name="dl2_placePickerTitle">Select location</string>
+    <string name="dl2_currentLocation">Current location</string>
+    <string name="dl2_locating">Getting current location...</string>
+    <string name="dl2_geocoding">Getting address...</string>
+    <string name="dl2_unknownAddress">Unknown address</string>
+    <string name="dl2_pinInstruction">Move the map to place the center pin on the location.</string>
+
+    <!-- RestoreOptionsDialog -->
+    <string name="dl2_backupAppend">Append from backup</string>
+    <string name="dl2_backupRestore">Restore from backup</string>
+    <string name="dl2_backupSummary">%1$d calendars / %2$d events</string>
+    <string name="dl2_backupPhotoSuffix">" / Photos: %1$d"</string>
+    <string name="dl2_autoCreateExplanation">Calendars are routed by the calendar names in the backup.\nIf no calendar with the same name exists, a new one is created;\nif one already exists, an overwrite confirmation is shown.\nEvents in the legacy format are restored to My Calendar.</string>
+    <string name="dl2_appendTargetLabel">Append target calendar</string>
+    <string name="dl2_restoreTargetLabel">Restore target calendar</string>
+    <string name="dl2_noRestoreTargets">There are no calendars that can be specified as restore targets.\nAdd a calendar from settings.</string>
+    <string name="dl2_restoreSources">Calendars to restore</string>
+    <string name="dl2_restoreSourcesNote">Only events from checked calendars are appended to the restore target.</string>
+    <string name="dl2_append">Append</string>
+    <string name="dl2_restore">Restore</string>
+
+    <!-- SyncConfirmDialog -->
+    <string name="dl2_syncTitle">Confirm sync</string>
+    <string name="dl2_syncMessage">Sync with calendar account information on the device.\nContinue?</string>
+    <string name="dl2_syncConfirm">Sync</string>
+
+    <!-- event/CalendarSelector・LocalCalendarSelector -->
+    <string name="dl2_targetCalendarLabel">Target calendar</string>
+    <string name="dl2_selectCalendarPlaceholder">Select a calendar</string>
+
+    <!-- event/PhotoAttachmentSection -->
+    <string name="dl2_photoSection">Photos</string>
+    <string name="dl2_photoResizeNote">Photos are stored in the app (downscaled to %1$dpx on the long side)</string>
+
+    <!-- event/RecurrenceChips -->
+    <string name="dl2_chipDaily">Daily</string>
+    <string name="dl2_chipWeekdays">Weekdays</string>
+    <string name="dl2_chipWeekly">Weekly</string>
+    <string name="dl2_chipMonthly">Monthly</string>
+    <string name="dl2_chipYearly">Yearly</string>
+</resources>

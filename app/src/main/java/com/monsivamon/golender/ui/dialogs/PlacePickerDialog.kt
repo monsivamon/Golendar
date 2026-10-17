@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -289,11 +290,10 @@ fun PlacePickerDialog(
     if (showPermissionIntro) {
         MapPermissionIntroDialog(
             colors = colors,
-            title = "現在地の利用について",
-            message = "現在地を初期位置として地図に表示します。\n" +
-                    "許可しなくても地図は使えます（初期位置は東京駅付近になります）。",
-            confirmLabel = "許可する",
-            dismissLabel = "許可しない",
+            title = stringResource(R.string.dl2_locationIntroTitle),
+            message = stringResource(R.string.dl2_locationIntroMessage),
+            confirmLabel = stringResource(R.string.dl2_allow),
+            dismissLabel = stringResource(R.string.dl2_deny),
             onConfirm = {
                 showPermissionIntro = false
                 markLocationSetupDone()
@@ -312,10 +312,10 @@ fun PlacePickerDialog(
     if (showButtonIntro) {
         MapPermissionIntroDialog(
             colors = colors,
-            title = "現在地を表示",
-            message = "地図に現在地を表示するには、\n位置情報の許可が必要です。",
-            confirmLabel = "許可する",
-            dismissLabel = "キャンセル",
+            title = stringResource(R.string.dl2_showCurrentLocation),
+            message = stringResource(R.string.dl2_locationButtonIntroMessage),
+            confirmLabel = stringResource(R.string.dl2_allow),
+            dismissLabel = stringResource(R.string.dl2_cancel),
             onConfirm = {
                 showButtonIntro = false
                 launchPermissionRequest()
@@ -329,12 +329,10 @@ fun PlacePickerDialog(
         AlertDialog(
             onDismissRequest = { showPermanentlyDenied = false },
             containerColor = colors.surface,
-            title = { Text("位置情報が許可されていません", color = colors.text, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.dl2_locationDeniedTitle), color = colors.text, fontWeight = FontWeight.Bold) },
             text = {
                 Text(
-                    "現在地を表示するには、端末の設定から位置情報を許可してください。\n\n" +
-                            "「設定を開く」をタップすると、Golendar の権限設定画面が開きます。\n" +
-                            "「権限」→「位置情報」→「許可」を選択してください。",
+                    stringResource(R.string.dl2_locationDeniedMessage),
                     color = colors.text,
                     fontSize = 14.sp,
                 )
@@ -344,12 +342,12 @@ fun PlacePickerDialog(
                     showPermanentlyDenied = false
                     openAppSettings(context)
                 }) {
-                    Text("設定を開く", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl2_openSettings), color = colors.primaryAccent, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showPermanentlyDenied = false }) {
-                    Text("閉じる", color = colors.textGray)
+                    Text(stringResource(R.string.dl2_close), color = colors.textGray)
                 }
             },
         )
@@ -381,7 +379,7 @@ fun PlacePickerDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        "場所を選択",
+                        stringResource(R.string.dl2_placePickerTitle),
                         color = colors.text,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
@@ -502,7 +500,7 @@ fun PlacePickerDialog(
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_my_location),
-                                contentDescription = "現在地",
+                                contentDescription = stringResource(R.string.dl2_currentLocation),
                             )
                         }
                     }
@@ -516,12 +514,12 @@ fun PlacePickerDialog(
                 ) {
                     when {
                         resolvedLat == null -> Text(
-                            "現在地を取得中...",
+                            stringResource(R.string.dl2_locating),
                             color = colors.textGray,
                             fontSize = 14.sp,
                         )
                         isLoading -> Text(
-                            "住所を取得中...",
+                            stringResource(R.string.dl2_geocoding),
                             color = colors.textGray,
                             fontSize = 14.sp,
                         )
@@ -540,7 +538,7 @@ fun PlacePickerDialog(
                             }
                             // 住所本体（POI の有無で文字サイズ・色を切り替える）
                             Text(
-                                text = addressText.ifBlank { "住所不明" },
+                                text = addressText.ifBlank { stringResource(R.string.dl2_unknownAddress) },
                                 color = if (poiText.isNullOrBlank()) colors.text else colors.textGray,
                                 fontSize = if (poiText.isNullOrBlank()) 15.sp else 13.sp,
                                 maxLines = 2,
@@ -552,7 +550,7 @@ fun PlacePickerDialog(
                     Spacer(Modifier.height(4.dp))
 
                     Text(
-                        "地図を動かして中央のピンを場所に合わせてください。",
+                        stringResource(R.string.dl2_pinInstruction),
                         color = colors.textGray,
                         fontSize = 12.sp,
                     )
@@ -567,7 +565,7 @@ fun PlacePickerDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("キャンセル", color = colors.textGray)
+                        Text(stringResource(R.string.dl2_cancel), color = colors.textGray)
                     }
                     Spacer(Modifier.width(4.dp))
                     // 「POI 名, 住所」形式に整形する
@@ -583,7 +581,7 @@ fun PlacePickerDialog(
                         enabled = canConfirm,
                     ) {
                         Text(
-                            "決定",
+                            stringResource(R.string.dl2_confirmDecision),
                             color = if (canConfirm) colors.primaryAccent else colors.textGray,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,

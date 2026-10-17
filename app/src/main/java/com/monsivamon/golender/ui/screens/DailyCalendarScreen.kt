@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,7 +20,8 @@ import androidx.navigation.NavController
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.viewmodel.CalendarMode
-import com.monsivamon.golender.data.util.getJpDayOfWeek
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.util.dayShort
 import com.monsivamon.golender.data.util.localStartDate
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.slideVertical
@@ -93,12 +96,21 @@ fun DailyCalendarScreen(
             return@LaunchedEffect
         }
         editingPhotosLoaded = false
-        editingPhotos = try {
-            viewModel.getPhotosForEvent(ev.id)
-        } catch (_: Exception) {
-            emptyList()
+        // DB 読み込みが一時的に失敗しただけで「写真0枚」と確定させない。
+        // 空リストのまま確定すると保存時に既存写真がすべて消去されるため、
+        // 数回リトライし、それでも失敗したらローディングのまま（保存不可）にして
+        // 誤データでの保存を防ぐ。
+        var loaded = false
+        for (attempt in 1..3) {
+            try {
+                editingPhotos = viewModel.getPhotosForEvent(ev.id)
+                loaded = true
+                break
+            } catch (_: Exception) {
+                if (attempt < 3) kotlinx.coroutines.delay(300L * attempt)
+            }
         }
-        editingPhotosLoaded = true
+        editingPhotosLoaded = loaded
     }
 
     // editingEvent が null に戻った瞬間に写真状態をクリアする。
@@ -139,10 +151,10 @@ fun DailyCalendarScreen(
                 Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(bottom = 12.dp)) {
                     val c = dayColors[date.dayOfWeek] ?: Color.Unspecified
                     val dayColor = if (c == Color.Unspecified) colors.text else c
-                    Text("${date.monthValue}月${date.dayOfMonth}日 (${getJpDayOfWeek(date.dayOfWeek)})",
+                    Text(stringResource(R.string.sc_dateWithCount, date.monthValue, date.dayOfMonth, date.dayOfWeek.dayShort(LocalContext.current)),
                         fontSize = 18.sp, fontWeight = FontWeight.Bold, color = dayColor)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("${dailyEvents.size}件", fontSize = 14.sp, color = colors.textGray)
+                    Text(stringResource(R.string.sc_eventCount, dailyEvents.size), fontSize = 14.sp, color = colors.textGray)
                 }
                 LazyColumn {
                     if (dailyEvents.isEmpty()) {
@@ -153,7 +165,7 @@ fun DailyCalendarScreen(
                                     .padding(vertical = 16.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Text("予定なし", color = colors.textGray, fontSize = 16.sp)
+                                Text(stringResource(R.string.sc_noEvents), color = colors.textGray, fontSize = 16.sp)
                             }
                         }
                     } else {
@@ -174,7 +186,7 @@ fun DailyCalendarScreen(
                                 contentColor = colors.primaryAccent,
                             ),
                             shape = RoundedCornerShape(12.dp),
-                        ) { Text("+ 予定を追加", fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+                        ) { Text(stringResource(R.string.sc_addEvent), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
                     }
                 }
             }

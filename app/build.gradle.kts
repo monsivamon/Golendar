@@ -27,7 +27,7 @@ android {
         // バージョンコード
         versionCode = 1
         // バージョン名
-        versionName = "1.1.7"
+        versionName = "1.1.8"
 
         // 計装テストのランナー
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -44,8 +44,8 @@ android {
             }
         }
 
-        // 同梱する言語リソースを日本語・英語に限定する
-        resourceConfigurations += listOf("ja", "en")
+        // 同梱する言語リソースを日本語・英語・簡体字中国語・韓国語に限定する
+        resourceConfigurations += listOf("ja", "en", "zh-rCN", "ko")
     }
 
     // リリースビルド用の署名設定

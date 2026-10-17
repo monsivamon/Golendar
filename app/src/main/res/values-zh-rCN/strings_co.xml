@@ -1,0 +1,66 @@
+<resources>
+    <!-- ui/AboutAppDialog.kt -->
+    <string name="co_about_dialog_title">关于此应用</string>
+    <string name="co_close">关闭</string>
+    <string name="co_about_card_title">关于应用</string>
+    <string name="co_about_app_description">具备月 · 周 · 日视图的 Android 日历应用。\n内置重视隐私的 Golendar 模式和\n支持 Google 日历同步的 Google 模式。</string>
+    <string name="co_about_credits_title">数据提供与程序库</string>
+    <string name="co_credit_gsi">国土地理院</string>
+    <string name="co_credit_gsi_license">公共数据</string>
+    <string name="co_license_link">许可证</string>
+
+    <!-- ui/AppNavigation.kt -->
+    <string name="co_header_month_title">%1$d年 %2$d月</string>
+    <string name="co_header_daily_title">%1$d年%2$d月%3$d日</string>
+    <string name="co_calendar_access_title">访问 Google 日历的权限</string>
+    <string name="co_calendar_access_message">要与 Google 日历同步来读取和写入日程，需要日历访问权限。\n如果只使用 Golendar 模式（仅应用内），也可以暂不授权，稍后在设置界面中更改。</string>
+
+    <!-- ui/common/CalendarHeader.kt -->
+    <string name="co_search_cd">搜索</string>
+    <string name="co_sync_cd">同步</string>
+    <string name="co_settings_cd">设置</string>
+    <string name="co_search_placeholder">搜索日程...</string>
+    <string name="co_select_cd">选择</string>
+    <string name="co_bottom_list_hide_cd">隐藏底部列表</string>
+    <string name="co_bottom_list_show_cd">显示底部列表</string>
+
+    <!-- ui/common/CalendarTabRow.kt -->
+    <string name="co_prev">上一页</string>
+    <string name="co_next">下一页</string>
+    <string name="co_tab_daily">日</string>
+    <string name="co_tab_weekly">周</string>
+    <string name="co_tab_monthly">月</string>
+
+    <!-- ui/common/DatePickerWrappers.kt -->
+    <string name="co_cancel">取消</string>
+    <string name="co_year_month_jump_title">跳转到指定年月</string>
+    <string name="co_prev_year_cd">上一年</string>
+    <string name="co_next_year_cd">下一年</string>
+    <string name="co_year_header">%1$d 年</string>
+    <string name="co_month_label">%1$d月</string>
+
+    <!-- ui/common/PermissionUtils.kt -->
+    <string name="co_open_settings">打开设置</string>
+    <string name="co_later">稍后</string>
+
+    <!-- ui/common/SetupTutorialScaffold.kt -->
+    <string name="co_tutorial_start">开始</string>
+    <string name="co_tutorial_skip">跳过</string>
+    <string name="co_tutorial_back">返回</string>
+
+    <!-- ui/components/AiPreviewList.kt -->
+    <string name="co_all_day">全天</string>
+
+    <!-- ui/components/MonthGridView.kt -->
+    <string name="co_weekday_sun">日</string>
+    <string name="co_weekday_mon">一</string>
+    <string name="co_weekday_tue">二</string>
+    <string name="co_weekday_wed">三</string>
+    <string name="co_weekday_thu">四</string>
+    <string name="co_weekday_fri">五</string>
+    <string name="co_weekday_sat">六</string>
+
+    <!-- ui/components/SearchResultsList.kt -->
+    <string name="co_search_no_results">没有符合条件的日程</string>
+    <string name="co_search_results_count">搜索结果: %1$d 条</string>
+</resources>

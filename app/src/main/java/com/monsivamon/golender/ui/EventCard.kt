@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -20,8 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.util.accentColor
-import com.monsivamon.golender.data.util.getJpDayOfWeek
+import com.monsivamon.golender.data.util.dayShort
 import com.monsivamon.golender.data.util.localStartDateTime
+import com.monsivamon.golender.data.util.shortDate
 import com.monsivamon.golender.data.util.timeRangeString
 import com.monsivamon.golender.ui.theme.AppColors
 
@@ -38,7 +40,7 @@ fun EventCard(
 ) = EventCardBase(
     event = event,
     colors = colors,
-    timeLine = event.timeRangeString(),
+    timeLine = event.timeRangeString(LocalContext.current),
     lineHeight = if (compact) 32.dp else 40.dp,
     showCalendarName = showCalendarName,
     compact = compact,
@@ -54,12 +56,13 @@ fun SearchResultCard(
     showCalendarName: Boolean = false,
     onClick: (Event) -> Unit,
 ) {
+    val context = LocalContext.current
     val dt = event.localStartDateTime()
-    val dateLabel = "${dt.year}/${dt.monthValue}/${dt.dayOfMonth}(${getJpDayOfWeek(dt.dayOfWeek)})"
+    val dateLabel = "${dt.toLocalDate().shortDate(context)}(${dt.dayOfWeek.dayShort(context)})"
     EventCardBase(
         event = event,
         colors = colors,
-        timeLine = "$dateLabel  ${event.timeRangeString()}",
+        timeLine = "$dateLabel  ${event.timeRangeString(context)}",
         lineHeight = 50.dp,
         showCalendarName = showCalendarName,
         onClick = onClick,

@@ -13,11 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.Routes
 import com.monsivamon.golender.ui.navigateTab
 import com.monsivamon.golender.ui.navigateToTab
@@ -33,14 +35,14 @@ fun CalendarTabRow(currentRoute: String, colors: AppColors, navController: NavCo
     ) {
         // 前のタブへ循環移動
         CompactIconButton(onClick = { navigateTab(navController, currentRoute, -1) }) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "前へ", tint = colors.text)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.co_prev), tint = colors.text)
         }
-        TabLabel("日", Routes.DAILY, currentRoute, colors, navController)
-        TabLabel("週", Routes.WEEKLY, currentRoute, colors, navController)
-        TabLabel("月", Routes.MONTHLY, currentRoute, colors, navController)
+        TabLabel(stringResource(R.string.co_tab_daily), Routes.DAILY, currentRoute, colors, navController)
+        TabLabel(stringResource(R.string.co_tab_weekly), Routes.WEEKLY, currentRoute, colors, navController)
+        TabLabel(stringResource(R.string.co_tab_monthly), Routes.MONTHLY, currentRoute, colors, navController)
         // 次のタブへ循環移動
         CompactIconButton(onClick = { navigateTab(navController, currentRoute, 1) }) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "次へ", tint = colors.text)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.co_next), tint = colors.text)
         }
     }
 }

@@ -17,9 +17,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -31,19 +33,19 @@ fun WidgetTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "3種類のウィジェット",
-                description = "日間・週間・月間の3種類を、\nホーム画面に自由に配置できます。\nテーマや背景色と連動します。",
+                title = stringResource(R.string.dl1_widgetTitleTypes),
+                description = stringResource(R.string.dl1_widgetDescTypes),
                 illustration = { c -> WidgetsIllustration(c) },
             ),
             TutorialPage(
-                title = "アプリショートカット",
-                description = "ホーム画面のアイコンを長押しすると、\n「予定追加」「今日」「検索」を\n直接起動できます。",
+                title = stringResource(R.string.dl1_widgetTitleShortcuts),
+                description = stringResource(R.string.dl1_widgetDescShortcuts),
                 illustration = { c -> ShortcutWidgetIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -54,9 +56,9 @@ private fun WidgetsIllustration(colors: AppColors) {
             verticalArrangement = Arrangement.spacedBy(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            WidgetMini("日", colors, 140, 20)
-            WidgetMini("週", colors, 140, 24)
-            WidgetMini("月", colors, 140, 30)
+            WidgetMini(stringResource(R.string.dl1_tabDay), colors, 140, 20)
+            WidgetMini(stringResource(R.string.dl1_tabWeek), colors, 140, 24)
+            WidgetMini(stringResource(R.string.dl1_tabMonth), colors, 140, 30)
         }
     }
 }
@@ -102,9 +104,9 @@ private fun ShortcutWidgetIllustration(colors: AppColors) {
             }
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                MiniPill("予定追加", colors)
-                MiniPill("今日", colors)
-                MiniPill("検索", colors)
+                MiniPill(stringResource(R.string.dl1_widgetShortcutAdd), colors)
+                MiniPill(stringResource(R.string.dl1_today), colors)
+                MiniPill(stringResource(R.string.dl1_widgetShortcutSearch), colors)
             }
         }
     }

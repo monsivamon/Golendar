@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.first
 import com.monsivamon.golender.data.dataStore
 import com.monsivamon.golender.data.CalendarRepository
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.notification.NotificationScheduler
 
 // バックグラウンドで定期的にウィジェットを更新し、祝日データも 30 日ごとに更新するワーカー
@@ -38,12 +39,13 @@ class WidgetUpdateWorker(
                 }
 
                 // 全ウィジェット（日・週・月）を強制更新する
+                // （アプリ内言語設定を反映した locale Context を渡す）
                 val widgets = listOf(DayWidget(), WeekWidget(), MonthWidget())
                 widgets.forEach { widget ->
                     val manager = GlanceAppWidgetManager(context)
                     val glanceIds = manager.getGlanceIds(widget::class.java)
                     glanceIds.forEach { id ->
-                        widget.update(context, id)
+                        widget.update(LanguageSetting.wrap(context), id)
                     }
                 }
                 // 祝日データ更新後に古い通知アラームが残り続けないよう、

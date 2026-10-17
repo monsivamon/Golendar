@@ -1,7 +1,9 @@
 package com.monsivamon.golender.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.net.Uri
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.data.LocalCalendar
 import androidx.compose.ui.graphics.Color
@@ -13,6 +15,7 @@ import com.monsivamon.golender.data.LocalEvent
 import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.data.SelectedCalendarJson
 import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.data.prefs.SettingsKeys
 import com.monsivamon.golender.data.source.CalendarMeta
 import com.monsivamon.golender.notification.NotificationScheduler
@@ -32,7 +35,7 @@ import androidx.compose.ui.graphics.toArgb
 class CalendarViewModel(application: Application) : AndroidViewModel(application) {
     private val context = application.applicationContext
     private val repository = CalendarRepository(application)
-    private val eventLoader = CalendarEventLoader(repository)
+    private val eventLoader = CalendarEventLoader(context, repository)
     private val settingsStore = SettingsDataStore(context.dataStore)
     private val setupFlow = SetupFlowManager(settingsStore)
     private val searchCacheMgr = SearchCacheManager()
@@ -42,7 +45,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     private val accountMgr = AccountManager(repository)
     private val widgetMgr = WidgetCoordinator(context)
     private val backupMgr = BackupCoordinator(
-        BackupManager(context, repository), repository, settingsStore
+        context, BackupManager(LanguageSetting.wrap(context), repository), repository, settingsStore
     )
     private val SEARCH_YEARS_PAST = 2L
     private val SEARCH_YEARS_FUTURE = 2L
@@ -296,7 +299,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         if (!calendar.isVisible) {
             val others = _localCalendars.value.filter { it.id != calendar.id && it.isVisible }
             if (others.isEmpty()) {
-                _statusMessage.value = "最低1つのカレンダーを表示してください"
+                _statusMessage.value = LanguageSetting.wrap(context).getString(R.string.vm_keep_one_calendar_visible)
                 return
             }
         }
@@ -535,7 +538,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     // 選択カレンダーを永続化し、予定を再読込する
     fun saveSelectedCalendars(list: List<SelectedCalendar>) {
         if (list.isEmpty() && _calendarMode.value == CalendarMode.GOOGLE) {
-            fallbackToGolendar("何も選択されなかったため Golendar モードに切り替えました")
+            fallbackToGolendar(LanguageSetting.wrap(context).getString(R.string.vm_nothing_selected_fallback_golendar))
             return
         }
         _selectedCalendars.value = list
@@ -554,7 +557,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         if (!visible) {
             val others = _selectedCalendars.value.filter { it.calendarId != calendarId && it.isVisible }
             if (others.isEmpty()) {
-                _statusMessage.value = "最低1つのカレンダーを表示してください"
+                _statusMessage.value = LanguageSetting.wrap(context).getString(R.string.vm_keep_one_calendar_visible)
                 return
             }
         }
@@ -700,6 +703,8 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(Dispatchers.IO) {
             val value = if (color == Color.Unspecified) SettingsKeys.COLOR_UNSPECIFIED else color.toArgb().toString()
             try { settingsStore.saveDayColor(day, value) } catch (_: Exception) { }
+            // 曜日色設定をウィジェットにも即時反映する
+            try { widgetMgr.updateAll() } catch (_: Exception) { }
         }
     }
 
@@ -734,7 +739,11 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 } else {
                     val visibleLocalIds = _localCalendars.value.filter { it.isVisible }.map { it.id }
                     val localColorMap = _localCalendars.value.associate { it.id to it.colorArgb }
-                    val localNameMap = _localCalendars.value.associate { it.id to it.name }
+                    // 既定カレンダーの空文字センチネルは locale 名に展開してカード表示に使う
+                    val defaultName = LanguageSetting.wrap(context).getString(R.string.default_calendar_name)
+                    val localNameMap = _localCalendars.value.associate {
+                        it.id to if (it.isDefault && it.name.isEmpty()) defaultName else it.name
+                    }
                     eventLoader.loadLocalEvents(
                         start, end, _showHolidays.value, visibleLocalIds,
                         calendarColorMap = localColorMap,
@@ -906,7 +915,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     // バックアップをエクスポートする
     fun exportBackup(uri: Uri) {
         viewModelScope.launch {
-            _backupProgress.value = BackupProgress("バックアップを準備中", 0, 0)
+            _backupProgress.value = BackupProgress(LanguageSetting.wrap(context).getString(R.string.vm_progress_preparing_backup), 0, 0)
             val result = backupMgr.export(
                 uri, _calendarMode.value, _selectedCalendars.value,
                 includePhotos = _backupPhotos.value,
@@ -932,7 +941,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         autoCreateMissingCalendars: Boolean = false,
     ) {
         viewModelScope.launch {
-            _backupProgress.value = BackupProgress("読み込みを準備中", 0, 0)
+            _backupProgress.value = BackupProgress(LanguageSetting.wrap(context).getString(R.string.vm_progress_preparing_import), 0, 0)
             val result = backupMgr.import(
                 uri, isAppend, _calendarMode.value, _selectedCalendars.value,
                 targetGoogleCalendarId = targetGoogleCalendarId,

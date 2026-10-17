@@ -18,10 +18,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.LIST_ROW_VERTICAL
 import com.monsivamon.golender.ui.SECTION_DIVIDER_VERTICAL
 import com.monsivamon.golender.ui.SECTION_LABEL_BOTTOM
@@ -88,7 +90,7 @@ fun NotificationSection(
     }
     LaunchedEffect(Unit) { refreshPermissions() }
 
-    SettingsSection("通知設定", colors) {
+    SettingsSection(stringResource(R.string.sc_notificationSection), colors) {
         // 定刻通知 ON/OFF
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
             Switch(
@@ -100,7 +102,7 @@ fun NotificationSection(
                 ),
             )
             Spacer(modifier = Modifier.width(16.dp))
-            Text("定刻（開始時間）に通知", fontSize = 16.sp, color = colors.text)
+            Text(stringResource(R.string.sc_notifyAtStart), fontSize = 16.sp, color = colors.text)
         }
         // 10 分前通知 ON/OFF
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
@@ -113,11 +115,11 @@ fun NotificationSection(
                 ),
             )
             Spacer(modifier = Modifier.width(16.dp))
-            Text("10分前に通知", fontSize = 16.sp, color = colors.text)
+            Text(stringResource(R.string.sc_notify10MinBefore), fontSize = 16.sp, color = colors.text)
         }
         HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
         Text(
-            "バックグラウンド通知の確実化",
+            stringResource(R.string.sc_bgNotificationReliability),
             fontSize = 14.sp, fontWeight = FontWeight.Bold,
             color = colors.textGray,
             modifier = Modifier.padding(bottom = SECTION_LABEL_BOTTOM),
@@ -129,18 +131,18 @@ fun NotificationSection(
             modifier = Modifier.fillMaxWidth().padding(vertical = LIST_ROW_VERTICAL),
         ) {
             Text(
-                "バッテリー最適化の無効化\n（スリープ中の通知遅延を防ぎます）",
+                stringResource(R.string.sc_batteryOptimizationOff),
                 fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f),
             )
             if (isIgnoringBatteryOptimizations) {
-                Text("無効化済み", fontSize = 14.sp, color = colors.primaryAccent)
+                Text(stringResource(R.string.sc_batteryOptimizationDone), fontSize = 14.sp, color = colors.primaryAccent)
             } else {
                 TextButton(onClick = {
                     val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                         data = Uri.parse("package:${context.packageName}")
                     }
                     context.startActivity(intent)
-                }) { Text("設定を開く", color = colors.primaryAccent) }
+                }) { Text(stringResource(R.string.sc_openSettings), color = colors.primaryAccent) }
             }
         }
         // 通知権限
@@ -149,13 +151,13 @@ fun NotificationSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth().padding(vertical = LIST_ROW_VERTICAL),
         ) {
-            Text("通知の許可", fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
+            Text(stringResource(R.string.sc_notificationPermission), fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
             if (notificationPermissionGranted) {
-                Text("許可済み", fontSize = 14.sp, color = colors.primaryAccent)
+                Text(stringResource(R.string.sc_permissionGranted), fontSize = 14.sp, color = colors.primaryAccent)
             } else {
                 TextButton(onClick = {
                     notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }) { Text("許可する", color = colors.primaryAccent) }
+                }) { Text(stringResource(R.string.sc_grantPermission), color = colors.primaryAccent) }
             }
         }
         // 正確なアラーム（Android 12+ のみ）
@@ -165,15 +167,15 @@ fun NotificationSection(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth().padding(vertical = LIST_ROW_VERTICAL),
             ) {
-                Text("正確なアラーム機能の許可", fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
+                Text(stringResource(R.string.sc_exactAlarmPermission), fontSize = 14.sp, color = colors.text, modifier = Modifier.weight(1f))
                 if (exactAlarmPermissionGranted) {
-                    Text("許可済み", fontSize = 14.sp, color = colors.primaryAccent)
+                    Text(stringResource(R.string.sc_permissionGranted), fontSize = 14.sp, color = colors.primaryAccent)
                 } else {
                     TextButton(onClick = {
                         context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
                             data = Uri.parse("package:${context.packageName}")
                         })
-                    }) { Text("許可する", color = colors.primaryAccent) }
+                    }) { Text(stringResource(R.string.sc_grantPermission), color = colors.primaryAccent) }
                 }
             }
         }
@@ -187,16 +189,15 @@ fun NotificationSection(
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
                 .border(1.dp, colors.divider, RoundedCornerShape(12.dp)),
         ) {
-            Text("設定状況を再チェックする", fontSize = 12.sp)
+            Text(stringResource(R.string.sc_recheckSettings), fontSize = 12.sp)
         }
     }
 
     if (showNotificationPermanentDenied) {
         PermissionSettingsDialog(
             colors = colors,
-            title = "通知が許可されていません",
-            message = "通知権限が恒久的に拒否されているため、システムの権限ダイアログを表示できません。\n\n" +
-                "「設定を開く」→「通知」→「許可」を選択してください。",
+            title = stringResource(R.string.sc_notificationDeniedTitle),
+            message = stringResource(R.string.sc_notificationDeniedMessage),
             onOpenSettings = { openAppSettings(context) },
             onDismiss = { showNotificationPermanentDenied = false },
         )

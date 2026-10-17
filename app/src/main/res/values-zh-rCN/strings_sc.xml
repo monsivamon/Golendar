@@ -1,0 +1,131 @@
+<resources>
+    <!-- ============================================================
+         ui/sections/BackupSection.kt
+         ============================================================ -->
+    <string name="sc_backupRestoreSection">备份与还原</string>
+    <string name="sc_backupSaveDescription">保存: 将可见日历的日程统一导出。\n还原: 覆盖同名日历（仅限 Golendar 模式）。\n追加: 保留原有日程并添加。</string>
+    <string name="sc_backupPhotosLabel">同时备份照片</string>
+    <string name="sc_backupPhotosZipDesc">日程附加的照片也会包含在 ZIP 文件中（仅限 Golendar 模式）</string>
+    <string name="sc_backupPhotosOffDesc">为 OFF 时将按以往方式保存为 JSON</string>
+    <string name="sc_save">保存</string>
+    <string name="sc_append">追加</string>
+    <string name="sc_restore">还原</string>
+    <string name="sc_multiCalendarBackupTitle">一次备份多个日历</string>
+    <string name="sc_multiCalendarBackupMessage">当前显示了多个日历。\n要一并备份吗？</string>
+    <string name="sc_multiCalendarTargetCount">对象: %1$d 条</string>
+    <string name="sc_bulletItemName">・%1$s</string>
+    <string name="sc_unnamed">未命名</string>
+    <string name="sc_cancel">取消</string>
+    <string name="sc_overwriteTitle">存在同名日历</string>
+    <string name="sc_overwriteMessage">以下日历已存在。\n还原后，原日历中的日程将被覆盖。\n确定吗？</string>
+    <string name="sc_overwriteNote">※ 备份中未包含的日历将保持不变。</string>
+    <string name="sc_overwriteConfirm">覆盖</string>
+    <string name="sc_restoreNotAvailableInFile">无法还原此文件</string>
+    <string name="sc_zipAppendGolendarOnly">包含照片的备份仅可在 Golendar 模式下追加</string>
+    <string name="sc_legacyRestoreUnavailable">旧格式的备份在 Google 模式下无法还原。请使用追加。</string>
+    <string name="sc_restoreGoogleModeUnavailable">Google 模式下无法还原。请使用追加。</string>
+
+    <!-- ============================================================
+         ui/sections/CalendarModeSection.kt
+         ============================================================ -->
+    <string name="sc_calendarModeSection">日历模式</string>
+    <string name="sc_golendarModeDesc">仅在应用内即可完成。</string>
+    <string name="sc_googleModeDesc">与 Google 日历同步。</string>
+    <string name="sc_showAll">全部显示</string>
+    <string name="sc_minOneCalendar">请至少显示1个日历</string>
+    <string name="sc_refreshCalendarList">重新获取日历列表</string>
+
+    <!-- ============================================================
+         ui/sections/CustomSettingsSection.kt
+         ============================================================ -->
+    <string name="sc_customSettingsSection">自定义设置</string>
+    <string name="sc_showHolidays">显示节假日</string>
+    <string name="sc_appBgColor">应用背景色</string>
+    <string name="sc_appBgColorSelect">选择应用背景色</string>
+    <string name="sc_dayColors">星期的颜色</string>
+    <string name="sc_dayOfWeekRow">%1$s</string>
+    <string name="sc_displayTheme">显示主题</string>
+    <string name="sc_themeSystem">跟随设备设置</string>
+    <string name="sc_themeLight">浅色模式</string>
+    <string name="sc_themeDark">深色模式</string>
+    <string name="sc_weekStart">一周的开始</string>
+    <string name="sc_weekStartSunday">从星期日开始</string>
+    <string name="sc_weekStartMonday">从星期一开始</string>
+
+    <!-- ============================================================
+         ui/sections/LocalCalendarSection.kt
+         ============================================================ -->
+    <string name="sc_defaultCalendarNotDeletable">我的日历无法删除。</string>
+    <string name="sc_defaultSuffix">" (默认)"</string>
+    <string name="sc_addCalendar">添加日历</string>
+    <string name="sc_name">名称</string>
+    <string name="sc_color">颜色</string>
+    <string name="sc_add">添加</string>
+    <string name="sc_deleteCalendarTitle">要删除日历吗？</string>
+    <string name="sc_deleteCalendarMessage">将删除“%1$s”。</string>
+    <string name="sc_checkingEvents">正在确认所属日程...</string>
+    <string name="sc_noEventsInCalendar">此日历中没有任何日程。</string>
+    <string name="sc_deleteWithEvents">该日历中的 %1$d 条日程也将一并删除。\n无法撤消。</string>
+    <string name="sc_delete">删除</string>
+
+    <!-- ============================================================
+         ui/sections/NotificationSection.kt
+         ============================================================ -->
+    <string name="sc_notificationSection">通知设置</string>
+    <string name="sc_notifyAtStart">准点（开始时间）时通知</string>
+    <string name="sc_notify10MinBefore">10分钟前通知</string>
+    <string name="sc_bgNotificationReliability">提高后台通知的可靠性</string>
+    <string name="sc_batteryOptimizationOff">取消电池优化\n（防止休眠时通知延迟）</string>
+    <string name="sc_batteryOptimizationDone">已禁用</string>
+    <string name="sc_openSettings">打开设置</string>
+    <string name="sc_notificationPermission">通知权限</string>
+    <string name="sc_permissionGranted">已授权</string>
+    <string name="sc_grantPermission">允许</string>
+    <string name="sc_exactAlarmPermission">精确闹钟权限</string>
+    <string name="sc_recheckSettings">重新检查设置状态</string>
+    <string name="sc_notificationDeniedTitle">未获得通知权限</string>
+    <string name="sc_notificationDeniedMessage">由于通知权限已被永久拒绝，无法显示系统权限对话框。\n\n请依次选择“打开设置”→“通知”→“允许”。</string>
+
+    <!-- ============================================================
+         ui/sections/TutorialSection.kt
+         ============================================================ -->
+    <string name="sc_tutorialSection">教程</string>
+    <string name="sc_tutorialCalendarPermission">检查日历访问权限</string>
+    <string name="sc_tutorialGesture">查看手势操作指南</string>
+    <string name="sc_tutorialMap">查看地图用法</string>
+    <string name="sc_tutorialAi">查看 AI 解析用法</string>
+    <string name="sc_tutorialCalendarDisplay">查看日历显示与颜色设置</string>
+    <string name="sc_tutorialMonthList">查看月视图底部列表</string>
+    <string name="sc_tutorialScheduleAdd">查看添加日程</string>
+    <string name="sc_tutorialScheduleEdit">查看日程的编辑与删除</string>
+    <string name="sc_tutorialRecurring">查看重复日程的用法</string>
+    <string name="sc_tutorialPhoto">查看照片功能</string>
+    <string name="sc_tutorialSearch">查看搜索用法</string>
+    <string name="sc_tutorialNotification">查看通知设置</string>
+    <string name="sc_tutorialBackup">查看备份与还原</string>
+    <string name="sc_tutorialWidget">查看小部件与快捷方式</string>
+
+    <!-- ============================================================
+         ui/screens/DailyCalendarScreen.kt / WeeklyCalendarScreen.kt / MonthlyCalendarScreen.kt
+         ============================================================ -->
+    <string name="sc_dateWithCount">%1$d月%2$d日 (%3$s)</string>
+    <string name="sc_weekDateWithCount">%1$d月%2$d日 (%3$s)  %4$d条</string>
+    <string name="sc_eventCount">%1$d 条</string>
+    <string name="sc_noEvents">无日程</string>
+    <string name="sc_addEvent">+ 添加日程</string>
+
+    <!-- ============================================================
+         ui/screens/SettingsScreen.kt
+         ============================================================ -->
+    <string name="sc_back">‹ 返回</string>
+    <string name="sc_settings">设置</string>
+    <string name="sc_aboutApp">关于此应用</string>
+    <string name="sc_googleCalendarAccess">访问 Google 日历的权限</string>
+    <string name="sc_calendarPermissionMessage">要与 Google 日历同步，需要日历访问权限。\n请在下一个界面选择“允许”。</string>
+    <string name="sc_permissionDeniedSwitchMode">由于未获得日历访问权限，已切换到 Golendar 模式</string>
+    <string name="sc_calendarTutorialMessage">要与 Google 日历同步来读取和写入日程，需要日历访问权限。\n\n如果只使用 Golendar 模式（仅应用内），也可以暂不授权，稍后在设置界面中更改。</string>
+    <string name="sc_noGoogleAccountTitle">找不到 Google 账户</string>
+    <string name="sc_noGoogleAccountMessage">设备中未设置 Google 账户，因此无法使用 Google 模式。\n\n请在设备的“设置”→“账户”中添加 Google 账户后再试一次。\n\nGolendar 模式（仅应用内）仍可继续使用。</string>
+    <string name="sc_close">关闭</string>
+    <string name="sc_language">显示语言</string>
+</resources>

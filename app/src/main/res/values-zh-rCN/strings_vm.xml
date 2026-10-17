@@ -1,0 +1,66 @@
+<resources>
+    <!-- BackupCoordinator.kt -->
+    <string name="vm_progress_recreating_holidays">正在重新获取节假日数据</string>
+
+    <!-- BackupManager.kt -->
+    <string name="vm_progress_creating_backup">正在创建备份</string>
+    <string name="vm_backup_failed">备份失败: %1$s</string>
+    <string name="vm_unknown_error">未知错误</string>
+    <string name="vm_backup_complete_calendars">备份完成（%1$d 个日历 / %2$d 条）</string>
+    <string name="vm_backup_zip_google_only_export">包含照片的备份仅限 Golendar 模式使用</string>
+    <string name="vm_progress_preparing_manifest">正在准备清单</string>
+    <string name="vm_progress_writing_manifest">正在写入清单</string>
+    <string name="vm_progress_writing_data">正在写入数据</string>
+    <string name="vm_progress_writing_photos">正在导出照片</string>
+    <string name="vm_backup_complete_calendars_photos">备份完成（%1$d 个日历 / %2$d 条 / 照片 %3$d 张）</string>
+    <string name="vm_unnamed_calendar">未命名</string>
+    <string name="vm_my_calendar">我的日历</string>
+    <string name="vm_progress_importing">正在导入</string>
+    <string name="vm_restore_failed">还原失败: %1$s</string>
+    <string name="vm_select_restore_target_google">Google 模式下请选择还原目标日历</string>
+    <string name="vm_file_not_opened">无法打开文件</string>
+    <string name="vm_backup_zip_google_only_restore">包含照片的备份仅可在 Golendar 模式下还原</string>
+    <string name="vm_select_restore_target">请选择还原目标日历</string>
+    <string name="vm_progress_preparing_file">正在准备文件</string>
+    <string name="vm_not_golendar_backup">此文件不是 Golendar 的备份</string>
+    <string name="vm_progress_extracting_photos">正在解包照片</string>
+    <string name="vm_backup_data_corrupted">备份数据已损坏</string>
+    <string name="vm_my_calendar_not_found">找不到我的日历</string>
+    <string name="vm_msg_new_calendars">"/ 新建日历 %1$d 个"</string>
+    <string name="vm_append_complete_calendars_photos_msg">已追加（%1$d 条 / 照片 %2$d 张%3$s）</string>
+    <string name="vm_restore_complete_calendars_photos_msg">已还原（%1$d 条 / 照片 %2$d 张%3$s）</string>
+    <string name="vm_restore_target_not_selected">未选择还原目标日历</string>
+    <string name="vm_append_complete_calendars_photos">已追加（%1$d 条 / 照片 %2$d 张）</string>
+    <string name="vm_restore_complete_calendars_photos">已还原（%1$d 条 / 照片 %2$d 张）</string>
+    <string name="vm_append_complete_skipped_duplicates">已追加（%1$d 条 / 已跳过重复 %2$d 条）</string>
+    <string name="vm_restore_complete_count">已还原（%1$d 条）</string>
+    <string name="vm_append_complete_msg">已追加（%1$d 条%2$s）</string>
+    <string name="vm_restore_complete_msg">已还原（%1$d 条%2$s）</string>
+
+    <!-- CalendarEventLoader.kt -->
+    <string name="vm_birthday_keyword">誕生日</string>
+    <string name="vm_emperor_birthday_keyword">天皇誕生日</string>
+    <string name="vm_cultural_tanabata">七夕</string>
+    <string name="vm_cultural_valentine">バレンタイン</string>
+    <string name="vm_cultural_setsubun">節分</string>
+    <string name="vm_cultural_hinamatsuri">ひな祭り</string>
+    <string name="vm_cultural_mothers_day">母の日</string>
+    <string name="vm_cultural_fathers_day">父の日</string>
+    <string name="vm_cultural_halloween">ハロウィン</string>
+    <string name="vm_cultural_christmas">クリスマス</string>
+    <string name="vm_cultural_omisoka">大晦日</string>
+    <string name="vm_cultural_ganjitsu">元日</string>
+    <string name="vm_holiday_display_name">节假日</string>
+
+    <!-- CalendarViewModel.kt -->
+    <string name="vm_keep_one_calendar_visible">请至少显示1个日历</string>
+    <string name="vm_nothing_selected_fallback_golendar">由于未选择任何日历，已切换到 Golendar 模式</string>
+    <string name="vm_progress_preparing_backup">正在准备备份</string>
+    <string name="vm_progress_preparing_import">正在准备导入</string>
+
+    <!-- NotificationConfig.kt / NotificationReceiver.kt / NotificationScheduler.kt -->
+    <string name="vm_channel_name">日程通知</string>
+    <string name="vm_channel_description">在日程时间及10分钟前发送提醒</string>
+    <string name="vm_notification_default_title">日程时间到了</string>
+    <string name="vm_notification_prefix_10min">"[10分钟前] "</string>
+</resources>

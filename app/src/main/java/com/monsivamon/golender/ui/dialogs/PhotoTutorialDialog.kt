@@ -19,9 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -33,19 +35,19 @@ fun PhotoTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "写真を添付",
-                description = "予定編集画面の「+」から、最大5枚まで\n写真を添付できます（長辺1920pxに縮小）。\nGolendarモード専用です。",
+                title = stringResource(R.string.dl1_photoTutTitleAttach),
+                description = stringResource(R.string.dl1_photoTutDescAttach),
                 illustration = { c -> AttachIllustration(c) },
             ),
             TutorialPage(
-                title = "拡大・保存・共有",
-                description = "詳細のサムネイルをタップすると全画面表示。\n「保存」でピクチャ/Golendarへ書き出し、\n「共有」で他アプリへ送れます。",
+                title = stringResource(R.string.dl1_photoTutTitleViewer),
+                description = stringResource(R.string.dl1_photoTutDescViewer),
                 illustration = { c -> ViewerIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -91,7 +93,7 @@ private fun ViewerIllustration(colors: AppColors) {
                     .border(1.dp, colors.divider, RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("写真", color = colors.textGray, fontSize = 12.sp)
+                Text(stringResource(R.string.dl1_photoTutLabelPhoto), color = colors.textGray, fontSize = 12.sp)
             }
             Spacer(Modifier.height(10.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -101,7 +103,7 @@ private fun ViewerIllustration(colors: AppColors) {
                         .background(colors.primaryAccent)
                         .padding(horizontal = 14.dp, vertical = 5.dp),
                 ) {
-                    Text("保存", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl1_save), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
                 Box(
                     modifier = Modifier
@@ -109,7 +111,7 @@ private fun ViewerIllustration(colors: AppColors) {
                         .background(colors.primaryAccent)
                         .padding(horizontal = 14.dp, vertical = 5.dp),
                 ) {
-                    Text("共有", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl1_share), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }

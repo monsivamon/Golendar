@@ -1,0 +1,4 @@
+<resources>
+    <!-- 日付・時刻表示用の文字列（data/util/EventDateTimeUtils.kt） -->
+    <string name="dt_all_day">終日</string>
+</resources>

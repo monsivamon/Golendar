@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 공통 라벨(담당: ui/dialogs의 튜토리얼·셋업 다이얼로그) -->
+    <string name="dl1_close">닫기</string>
+    <string name="dl1_allow">허용</string>
+    <string name="dl1_later">나중에</string>
+    <string name="dl1_openSettings">설정 열기</string>
+    <string name="dl1_next">다음</string>
+    <string name="dl1_prev">이전</string>
+    <string name="dl1_skip">건너뛰기</string>
+    <string name="dl1_back">뒤로</string>
+    <string name="dl1_start">시작</string>
+    <string name="dl1_today">오늘</string>
+    <string name="dl1_save">저장</string>
+    <string name="dl1_share">공유</string>
+    <string name="dl1_tabDay">일</string>
+    <string name="dl1_tabWeek">주</string>
+    <string name="dl1_tabMonth">월</string>
+
+    <!-- AiSetupDialog -->
+    <string name="dl1_aiSetupTitleOverview">AI로 읽어들이기란</string>
+    <string name="dl1_aiSetupDescOverview">캘린더 이미지나 텍스트를 AI에 전달하여,\n일정을 한 번에 캘린더에 등록하는 기능입니다.</string>
+    <string name="dl1_aiSetupTitleFlow">사용 방법 흐름</string>
+    <string name="dl1_aiSetupDescFlow">① 프롬프트 복사\n② AI 앱에 이미지와 함께 전달\n③ 돌아온 JSON을 붙여넣기</string>
+    <string name="dl1_aiSetupTitlePreview">미리보기와 등록</string>
+    <string name="dl1_aiSetupDescPreview">분석 결과는 체크박스로 선택할 수 있습니다.\n체크한 일정만 등록됩니다.</string>
+    <string name="dl1_aiSetupStepCopy">프롬프트 복사</string>
+    <string name="dl1_aiSetupStepPass">AI 앱에 전달</string>
+    <string name="dl1_aiSetupStepPaste">JSON을 붙여넣기</string>
+
+    <!-- BackupTutorialDialog -->
+    <string name="dl1_backupTitleFormat">저장 형식</string>
+    <string name="dl1_backupDescFormat">‘사진도 백업’이 OFF이면 JSON,\nON이면 사진 포함 ZIP으로 저장합니다.\nZIP은 Golendar 모드 전용입니다.</string>
+    <string name="dl1_backupTitleOperations">저장·복원·추가의 차이</string>
+    <string name="dl1_backupDescOperations">‘저장’으로 일정을 내보내고,\n‘추가’는 기존을 남겨둔 채 더하며,\n‘복원’은 기존을 덮어씁니다.\nGoogle 모드에서는 ‘복원’을 사용할 수 없습니다.</string>
+    <string name="dl1_backupTitleTarget">복원 대상 선택</string>
+    <string name="dl1_backupDescTarget">Google 모드에서 ‘추가’할 때는,\n쓰기 가능한 캘린더를 하나 골라\n저장 대상으로 지정할 수 있습니다.</string>
+    <string name="dl1_append">추가</string>
+    <string name="dl1_restore">복원</string>
+    <string name="dl1_backupLegendThin">옅은색＝기존 / 진한색＝신규</string>
+
+    <!-- CalendarModeTutorialDialog -->
+    <string name="dl1_calModeTitleDifference">Golendar와 Google의 차이</string>
+    <string name="dl1_calModeDescDifference">Golendar는 외부 동기화 없이 앱 내에서 완결되고,\nGoogle은 Google 캘린더와 동기화합니다.\n용도에 따라 전환할 수 있습니다.</string>
+    <string name="dl1_calModeTitleGoogleOps">Google 모드 사용법</string>
+    <string name="dl1_calModeDescGoogleOps">체크로 일정 표시 ON/OFF,\n색 원을 탭하여 표시 색을 변경할 수 있습니다.\n기기에서 캘린더를 추가·삭제한 후에는\n‘캘린더 목록 다시 가져오기’를 탭해 주세요.</string>
+    <string name="dl1_calModeTitleGolendarOps">Golendar 모드 사용법</string>
+    <string name="dl1_calModeDescGolendarOps">체크로 표시 ON/OFF, 색 원으로 색 변경,\n이름을 탭하여 이름을 변경할 수 있습니다.\n내 캘린더는 삭제할 수 없지만,\n숨김으로 할 수는 있습니다.</string>
+    <string name="dl1_calModeTitleHidden">숨기면 어떻게 될까…?</string>
+    <string name="dl1_calModeDescHidden">해당 캘린더의 일정은,\n캘린더·위젯·알림에서\n표시되지 않게 됩니다.\n공휴일은 항상 표시됩니다.</string>
+    <string name="dl1_calModeSubInApp">앱 내에서만</string>
+    <string name="dl1_calModeSubSync">캘린더 동기화</string>
+    <string name="dl1_calModeEditHint">← 이름 탭으로 편집</string>
+    <string name="dl1_calModeHolidaysAlways">공휴일은 항상 표시</string>
+
+    <!-- CalendarPermissionDialog -->
+    <string name="dl1_permDeniedCalendarTitle">캘린더 접근이 허용되지 않았습니다</string>
+    <string name="dl1_permDeniedCalendarMessage">캘린더 권한이 영구적으로 거부되어 있어 시스템의 권한 다이얼로그를 표시할 수 없습니다.\n\n‘설정 열기’→‘권한’→‘캘린더’→‘허용’을 선택해 주세요.</string>
+
+    <!-- GestureSetupDialog -->
+    <string name="dl1_gestureTitleVertical">위아래 스와이프로 앞뒤 기간 이동</string>
+    <string name="dl1_gestureDescVertical">월·주·일 어느 표시에서든 같은 방향으로 빠르게 2번 스와이프하면 앞뒤 기간으로 이동합니다.</string>
+    <string name="dl1_gestureTitleHorizontal">좌우 스와이프로 표시 전환</string>
+    <string name="dl1_gestureDescHorizontal">좌우로 스와이프하면 일·주·월 표시를 전환할 수 있습니다.</string>
+    <string name="dl1_gestureTitleReady">준비 완료</string>
+    <string name="dl1_gestureDescReady">바로 일정을 추가해 보세요.\n홈 화면 아이콘을 길게 누르면 바로가기도 사용할 수 있습니다.</string>
+    <string name="dl1_gestureSwipeHint">좌우로 스와이프</string>
+
+    <!-- MapSetupDialog -->
+    <string name="dl1_mapTitlePin">핀으로 장소 선택</string>
+    <string name="dl1_mapDescPin">지도를 움직여 가운데 핀을 장소에 맞추고,\n‘결정’으로 장소를 저장합니다.</string>
+    <string name="dl1_mapTitleLocationButton">현재 위치 버튼</string>
+    <string name="dl1_mapDescLocationButton">오른쪽 아래 버튼을 탭할 때마다\n‘추적 → 나침반 추적 → OFF’로 전환됩니다.</string>
+    <string name="dl1_mapTitleSaveFormat">장소 저장 형식</string>
+    <string name="dl1_mapDescSaveFormat">‘POI명, 주소’ 형식으로 저장되며,\nGoogle 지도 등과 상호 운용할 수 있습니다.</string>
+    <string name="dl1_mapSampleLocationName">도쿄역</string>
+    <string name="dl1_mapSampleAddress">도쿄도 지요다구 마루노우치 1초메</string>
+
+    <!-- MonthViewToggleTutorialDialog -->
+    <string name="dl1_monthToggleTitleList">하단 목록 표시 전환</string>
+    <string name="dl1_monthToggleDescList">월 표시 헤더 왼쪽의 아이콘으로,\n캘린더 아래의 일정 목록을 ON/OFF할 수 있습니다.\nOFF로 하면 월 그리드가 크게 표시됩니다.</string>
+    <string name="dl1_monthToggleTitlePopup">날짜 탭으로 팝업</string>
+    <string name="dl1_monthToggleDescPopup">하단 목록을 OFF로 해 둔 상태에서,\n날짜를 탭하면 그날의 일정을\n팝업으로 확인할 수 있습니다.</string>
+    <string name="dl1_monthToggleGridLabel">월 그리드</string>
+    <string name="dl1_monthToggleListLabel">일정 목록</string>
+    <string name="dl1_monthToggleGridLarge">월 그리드(확대)</string>
+    <string name="dl1_monthToggleTapHint">↓ 탭</string>
+    <string name="dl1_monthToggleDayEvents">그날의 일정</string>
+
+    <!-- NotificationSetupDialog -->
+    <string name="dl1_notifSetupTitlePermission">알림 허용</string>
+    <string name="dl1_notifSetupDescPermission">일정 시작 시각이나 10분 전에\n알림을 받기 위한 허용을 부탁드립니다.</string>
+    <string name="dl1_notifSetupTitleAlarm">정확한 알람 허용</string>
+    <string name="dl1_notifSetupDescAlarm">일정 시각에 맞춰 알림을 전달하기 위해,\n‘정확한 알람’ 허용이 필요합니다.</string>
+    <string name="dl1_notifSetupTitleBattery">배터리 최적화 비활성화</string>
+    <string name="dl1_notifSetupDescBattery">절전 중 알림 지연을 막기 위해,\n배터리 최적화를 비활성화하는 것을 권장합니다.</string>
+    <string name="dl1_notifSetupDeniedTitle">알림이 허용되지 않았습니다</string>
+    <string name="dl1_notifSetupDeniedMessage">알림 권한이 영구적으로 거부되어 있어 시스템의 권한 다이얼로그를 표시할 수 없습니다.\n\n‘설정 열기’→‘알림’→‘허용’을 선택해 주세요.</string>
+
+    <!-- NotificationTutorialDialog -->
+    <string name="dl1_notifTutTitleTiming">알림 타이밍</string>
+    <string name="dl1_notifTutDescTiming">‘정시’와 ‘10분 전’ 두 종류를\n개별적으로 ON/OFF할 수 있습니다.\n공휴일·문화 이벤트는 알림 대상이 아닙니다.</string>
+    <string name="dl1_notifTutTitleAlarm">정확한 알람</string>
+    <string name="dl1_notifTutDescAlarm">일정 시각에 맞춰 알림을 전달하기 위해,\n‘정확한 알람’ 허용을 권장합니다.</string>
+    <string name="dl1_notifTutTitleBattery">배터리 최적화</string>
+    <string name="dl1_notifTutDescBattery">절전 중 알림 지연을 막기 위해,\n배터리 최적화 비활성화를 권장합니다.</string>
+    <string name="dl1_tenMinutesBefore">10분 전</string>
+    <string name="dl1_scheduledTime">정시</string>
+
+    <!-- PhotoTutorialDialog -->
+    <string name="dl1_photoTutTitleAttach">사진 첨부</string>
+    <string name="dl1_photoTutDescAttach">일정 편집 화면의 ‘+’에서 최대 5장까지\n사진을 첨부할 수 있습니다(긴 변 1920px로 축소).\nGolendar 모드 전용입니다.</string>
+    <string name="dl1_photoTutTitleViewer">확대·저장·공유</string>
+    <string name="dl1_photoTutDescViewer">상세의 썸네일을 탭하면 전체 화면 표시.\n‘저장’으로 Pictures/Golendar에 내보내고,\n‘공유’로 다른 앱에 보낼 수 있습니다.</string>
+    <string name="dl1_photoTutLabelPhoto">사진</string>
+
+    <!-- RecurringTutorialDialog -->
+    <string name="dl1_recurTitleTypes">반복의 종류</string>
+    <string name="dl1_recurDescTypes">매일 / 평일 / 매주 / 매월 / 매년 중에서 선택할 수 있습니다.\n‘평일’은 월~금만 반복합니다.</string>
+    <string name="dl1_recurTitleEnd">‘종료’와 ‘반복 종료일’</string>
+    <string name="dl1_recurDescEnd">‘종료’는 1회분의 소요 시간이며,\n‘반복 종료일’은 반복 전체의 마지막 날입니다.</string>
+    <string name="dl1_recurTitleDelete">반복 삭제</string>
+    <string name="dl1_recurDescDelete">반복 일정은 ‘이 날만 삭제’할 수 없습니다.\n1건만 변경하고 싶은 경우에는 반복을 해제한 뒤\n개별 일정으로 나눠 주세요.</string>
+    <string name="dl1_recurChipEveryDay">매일</string>
+    <string name="dl1_recurChipWeekdays">평일</string>
+    <string name="dl1_recurChipEveryWeek">매주</string>
+    <string name="dl1_recurChipEveryMonth">매월</string>
+    <string name="dl1_recurChipEveryYear">매년</string>
+    <string name="dl1_recurLabelStart">시작</string>
+    <string name="dl1_recurLabelFirst">최초</string>
+    <string name="dl1_recurHintEnd">← ‘종료’</string>
+    <string name="dl1_recurHintEndDate">←종료일</string>
+    <string name="dl1_recurringEvent">반복 일정</string>
+    <string name="dl1_recurCantDeleteOnlyThisDay">× 이 날만 삭제할 수 없습니다</string>
+
+    <!-- ScheduleAddTutorialDialog -->
+    <string name="dl1_schedAddTitleFab">FAB에서 추가</string>
+    <string name="dl1_schedAddDescFab">월 표시 오른쪽 아래의 ‘+’ 버튼을 탭하면,\n날짜를 골라 일정을 추가할 수 있습니다.</string>
+    <string name="dl1_schedAddTitleEachDay">각 날짜에서 추가</string>
+    <string name="dl1_schedAddDescEachDay">주 표시에서는 각 날짜 아래의 ‘+ 일정 추가’\n버튼으로 그날의 일정을 만들 수 있습니다.</string>
+    <string name="dl1_schedAddTitleShortcut">바로가기</string>
+    <string name="dl1_schedAddDescShortcut">홈 화면 아이콘을 길게 누르면,\n‘일정 추가’를 직접 실행할 수 있습니다.</string>
+    <string name="dl1_schedAddFabHint">오른쪽 아래 + 버튼</string>
+    <string name="dl1_schedAddWeekButton">+ 일정 추가</string>
+    <string name="dl1_schedAddLongPress">길게 누르기</string>
+
+    <!-- ScheduleEditTutorialDialog -->
+    <string name="dl1_schedEditTitleEdit">일정 편집</string>
+    <string name="dl1_schedEditDescEdit">일정 카드를 탭하면 상세가 열리고,\n‘편집’ 버튼에서 내용을 변경할 수 있습니다.</string>
+    <string name="dl1_schedEditTitleDelete">일정 삭제</string>
+    <string name="dl1_schedEditDescDelete">편집 화면의 ‘삭제’ 버튼으로,\n일정을 완전히 삭제합니다.</string>
+    <string name="dl1_schedEditTitleDeleteOnly">이 날만 삭제</string>
+    <string name="dl1_schedEditDescDeleteOnly">여러 날에 걸친 일정에서는,\n‘이 날만 삭제’로 다른 날을 남길 수 있습니다.\n※일정은 2개로 분할됩니다.</string>
+    <string name="dl1_schedEditSampleMeeting">회의</string>
+    <string name="dl1_schedEditLabelEdit">편집</string>
+    <string name="dl1_schedEditLabelDelete">삭제</string>
+    <string name="dl1_schedEditLabelBefore">전</string>
+    <string name="dl1_schedEditLabelAfter">후</string>
+
+    <!-- SearchTutorialDialog -->
+    <string name="dl1_searchTitleSearch">일정 검색</string>
+    <string name="dl1_searchDescSearch">헤더의 검색 아이콘에서,\n일정 제목을 검색할 수 있습니다.</string>
+    <string name="dl1_searchTitleRange">범위와 제외</string>
+    <string name="dl1_searchDescRange">지난 2년~미래 2년이 대상입니다.\n공휴일·문화·생일은 제외됩니다.\n결과를 탭하면 해당 날짜로 이동합니다.</string>
+    <string name="dl1_searchPlaceholder">일정 검색...</string>
+    <string name="dl1_searchTwoYearsAgo">2년 전</string>
+    <string name="dl1_searchTwoYearsLater">2년 후</string>
+    <string name="dl1_searchExcluded">공휴일·문화·생일은 제외</string>
+
+    <!-- WelcomeDialog -->
+    <string name="dl1_welcomeUpdateSubtitle">v%1$s(으)로 업데이트했습니다</string>
+
+    <string name="dl1_welcomeStartButton">시작하기</string>
+
+    <!-- WidgetTutorialDialog -->
+    <string name="dl1_widgetTitleTypes">3가지 위젯</string>
+    <string name="dl1_widgetDescTypes">일간·주간·월간 3가지를,\n홈 화면에 자유롭게 배치할 수 있습니다.\n테마와 배경색에 연동됩니다.</string>
+    <string name="dl1_widgetTitleShortcuts">앱 바로가기</string>
+    <string name="dl1_widgetDescShortcuts">홈 화면 아이콘을 길게 누르면,\n‘일정 추가’ ‘오늘’ ‘검색’을\n직접 실행할 수 있습니다.</string>
+    <string name="dl1_widgetShortcutAdd">일정 추가</string>
+    <string name="dl1_widgetShortcutSearch">검색</string>
+</resources>

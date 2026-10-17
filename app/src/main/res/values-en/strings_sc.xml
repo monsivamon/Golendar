@@ -1,0 +1,131 @@
+<resources>
+    <!-- ============================================================
+         ui/sections/BackupSection.kt
+         ============================================================ -->
+    <string name="sc_backupRestoreSection">Backup &amp; Restore</string>
+    <string name="sc_backupSaveDescription">Save: exports events from visible calendars in one go.\nRestore: overwrites calendars with the same name (Golendar mode only).\nAppend: adds events while keeping existing ones.</string>
+    <string name="sc_backupPhotosLabel">Back up photos too</string>
+    <string name="sc_backupPhotosZipDesc">Photos attached to events are also included in the ZIP file (Golendar mode only)</string>
+    <string name="sc_backupPhotosOffDesc">When OFF, saving works as before with JSON</string>
+    <string name="sc_save">Save</string>
+    <string name="sc_append">Append</string>
+    <string name="sc_restore">Restore</string>
+    <string name="sc_multiCalendarBackupTitle">Back up multiple calendars together</string>
+    <string name="sc_multiCalendarBackupMessage">Multiple calendars are visible.\nBack them all up together?</string>
+    <string name="sc_multiCalendarTargetCount">Target: %1$d calendars</string>
+    <string name="sc_bulletItemName">• %1$s</string>
+    <string name="sc_unnamed">Untitled</string>
+    <string name="sc_cancel">Cancel</string>
+    <string name="sc_overwriteTitle">Calendars with the same name exist</string>
+    <string name="sc_overwriteMessage">The calendars below already exist.\nRestoring will overwrite the events in the original calendars.\nContinue?</string>
+    <string name="sc_overwriteNote">* Calendars not included in the backup will be left as they are.</string>
+    <string name="sc_overwriteConfirm">Overwrite</string>
+    <string name="sc_restoreNotAvailableInFile">This file cannot be restored</string>
+    <string name="sc_zipAppendGolendarOnly">Photo backups can only be appended in Golendar mode</string>
+    <string name="sc_legacyRestoreUnavailable">Backups in the legacy format cannot be restored in Google mode. Use Append instead.</string>
+    <string name="sc_restoreGoogleModeUnavailable">Restore is not available in Google mode. Use Append instead.</string>
+
+    <!-- ============================================================
+         ui/sections/CalendarModeSection.kt
+         ============================================================ -->
+    <string name="sc_calendarModeSection">Calendar mode</string>
+    <string name="sc_golendarModeDesc">Self-contained within the app.</string>
+    <string name="sc_googleModeDesc">Syncs with Google Calendar.</string>
+    <string name="sc_showAll">Show all</string>
+    <string name="sc_minOneCalendar">At least one calendar must be visible</string>
+    <string name="sc_refreshCalendarList">Reload calendar list</string>
+
+    <!-- ============================================================
+         ui/sections/CustomSettingsSection.kt
+         ============================================================ -->
+    <string name="sc_customSettingsSection">Custom settings</string>
+    <string name="sc_showHolidays">Show holidays</string>
+    <string name="sc_appBgColor">App background color</string>
+    <string name="sc_appBgColorSelect">Select app background color</string>
+    <string name="sc_dayColors">Day colors</string>
+    <string name="sc_dayOfWeekRow">%1$s</string>
+    <string name="sc_displayTheme">Display theme</string>
+    <string name="sc_themeSystem">Follow device settings</string>
+    <string name="sc_themeLight">Light mode</string>
+    <string name="sc_themeDark">Dark mode</string>
+    <string name="sc_weekStart">Start of week</string>
+    <string name="sc_weekStartSunday">Start on Sunday</string>
+    <string name="sc_weekStartMonday">Start on Monday</string>
+
+    <!-- ============================================================
+         ui/sections/LocalCalendarSection.kt
+         ============================================================ -->
+    <string name="sc_defaultCalendarNotDeletable">My Calendar cannot be deleted.</string>
+    <string name="sc_defaultSuffix">" (default)"</string>
+    <string name="sc_addCalendar">Add calendar</string>
+    <string name="sc_name">Name</string>
+    <string name="sc_color">Color</string>
+    <string name="sc_add">Add</string>
+    <string name="sc_deleteCalendarTitle">Delete this calendar?</string>
+    <string name="sc_deleteCalendarMessage">Deleting "%1$s".</string>
+    <string name="sc_checkingEvents">Checking events in this calendar...</string>
+    <string name="sc_noEventsInCalendar">No events in this calendar.</string>
+    <string name="sc_deleteWithEvents">%1$d events in this calendar will also be deleted.\nThis cannot be undone.</string>
+    <string name="sc_delete">Delete</string>
+
+    <!-- ============================================================
+         ui/sections/NotificationSection.kt
+         ============================================================ -->
+    <string name="sc_notificationSection">Notification settings</string>
+    <string name="sc_notifyAtStart">Notify at the exact time (start)</string>
+    <string name="sc_notify10MinBefore">Notify 10 minutes before</string>
+    <string name="sc_bgNotificationReliability">Make background notifications reliable</string>
+    <string name="sc_batteryOptimizationOff">Disable battery optimization\n(prevents notification delays during sleep)</string>
+    <string name="sc_batteryOptimizationDone">Disabled</string>
+    <string name="sc_openSettings">Open settings</string>
+    <string name="sc_notificationPermission">Notification permission</string>
+    <string name="sc_permissionGranted">Granted</string>
+    <string name="sc_grantPermission">Allow</string>
+    <string name="sc_exactAlarmPermission">Exact alarm permission</string>
+    <string name="sc_recheckSettings">Re-check current settings</string>
+    <string name="sc_notificationDeniedTitle">Notifications are not allowed</string>
+    <string name="sc_notificationDeniedMessage">The notification permission has been permanently denied, so the system permission dialog cannot be shown.\n\nOpen "Settings" → "Apps" → "Golendar" → "Notifications" and enable them.</string>
+
+    <!-- ============================================================
+         ui/sections/TutorialSection.kt
+         ============================================================ -->
+    <string name="sc_tutorialSection">Tutorials</string>
+    <string name="sc_tutorialCalendarPermission">Check calendar access permissions</string>
+    <string name="sc_tutorialGesture">Learn about gesture controls</string>
+    <string name="sc_tutorialMap">Learn how to use the map</string>
+    <string name="sc_tutorialAi">Learn how AI parsing works</string>
+    <string name="sc_tutorialCalendarDisplay">See calendar display and color settings</string>
+    <string name="sc_tutorialMonthList">See the monthly bottom list</string>
+    <string name="sc_tutorialScheduleAdd">Learn how to add events</string>
+    <string name="sc_tutorialScheduleEdit">Learn how to edit and delete events</string>
+    <string name="sc_tutorialRecurring">Learn how to use recurring events</string>
+    <string name="sc_tutorialPhoto">Learn how to use photos</string>
+    <string name="sc_tutorialSearch">Learn how to use search</string>
+    <string name="sc_tutorialNotification">Check notification settings</string>
+    <string name="sc_tutorialBackup">Learn about backup and restore</string>
+    <string name="sc_tutorialWidget">See widgets and app shortcuts</string>
+
+    <!-- ============================================================
+         ui/screens/DailyCalendarScreen.kt / WeeklyCalendarScreen.kt / MonthlyCalendarScreen.kt
+         ============================================================ -->
+    <string name="sc_dateWithCount">%2$d/%1$d (%3$s)</string>
+    <string name="sc_weekDateWithCount">%2$d/%1$d (%3$s)  %4$d events</string>
+    <string name="sc_eventCount">%1$d events</string>
+    <string name="sc_noEvents">No events</string>
+    <string name="sc_addEvent">+ Add event</string>
+
+    <!-- ============================================================
+         ui/screens/SettingsScreen.kt
+         ============================================================ -->
+    <string name="sc_back">‹ Back</string>
+    <string name="sc_settings">Settings</string>
+    <string name="sc_aboutApp">About this app</string>
+    <string name="sc_googleCalendarAccess">Access to Google Calendar</string>
+    <string name="sc_calendarPermissionMessage">Calendar access permission is required to sync with Google Calendar.\nChoose "Allow" on the next screen.</string>
+    <string name="sc_permissionDeniedSwitchMode">Calendar access was not granted, so switched to Golendar mode</string>
+    <string name="sc_calendarTutorialMessage">Calendar access permission is required to read and write events synced with Google Calendar.\n\nIf you only use Golendar mode (within the app), you can skip the permission and change it later from the settings screen.</string>
+    <string name="sc_noGoogleAccountTitle">No Google account found</string>
+    <string name="sc_noGoogleAccountMessage">No Google account is set up on this device, so Google mode is unavailable.\n\nAdd a Google account under device "Settings" → "Accounts &amp; sync" and try again.\n\nGolendar mode (within the app) remains available.</string>
+    <string name="sc_close">Close</string>
+    <string name="sc_language">Display language</string>
+</resources>

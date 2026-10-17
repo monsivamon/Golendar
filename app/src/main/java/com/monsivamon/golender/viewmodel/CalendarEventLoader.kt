@@ -1,15 +1,23 @@
 package com.monsivamon.golender.viewmodel
 
+import android.content.Context
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.CalendarRepository
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.LocalEvent
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.data.util.localStartDate
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
 // カレンダーイベントの読み込み・マージ・フラグ付けを担当する
-class CalendarEventLoader(private val repository: CalendarRepository) {
+class CalendarEventLoader(private val baseContext: Context, private val repository: CalendarRepository) {
+    // 文字列は取得のたびにアプリ内言語を差し込んで解決する
+    // （データ生成は ViewModel スコープで行われ、Activity 再生成でも破棄されないため）。
+    // matching キーは全ロケールで同一の日本語値のため判定ロジックには影響しない。
+    private val context: Context
+        get() = LanguageSetting.wrap(baseContext)
 
     // Google モードの予定を読み込み、ローカル祝日とマージして返す
     suspend fun loadGoogleEvents(
@@ -28,8 +36,10 @@ class CalendarEventLoader(private val repository: CalendarRepository) {
         }.toSet()
 
         val mappedGoogleEvents = googleEvents.map { event ->
+            val birthdayKeyword = context.getString(R.string.vm_birthday_keyword)
+            val emperorBirthdayKeyword = context.getString(R.string.vm_emperor_birthday_keyword)
             val isBirthday = event.isBirthdayCalendar ||
-                    (event.title.contains("誕生日") && !event.title.contains("天皇誕生日")) ||
+                    (event.title.contains(birthdayKeyword) && !event.title.contains(emperorBirthdayKeyword)) ||
                     event.title.contains("Birthday", ignoreCase = true)
 
             var updatedEvent = event.copy(
@@ -45,8 +55,16 @@ class CalendarEventLoader(private val repository: CalendarRepository) {
                     updatedEvent = updatedEvent.copy(isHolidayCalendar = isOfficial, isCulturalEvent = isOfficial)
                 } else {
                     val isCultural = listOf(
-                        "七夕", "バレンタイン", "節分", "ひな祭り", "母の日",
-                        "父の日", "ハロウィン", "クリスマス", "大晦日", "元日",
+                        context.getString(R.string.vm_cultural_tanabata),
+                        context.getString(R.string.vm_cultural_valentine),
+                        context.getString(R.string.vm_cultural_setsubun),
+                        context.getString(R.string.vm_cultural_hinamatsuri),
+                        context.getString(R.string.vm_cultural_mothers_day),
+                        context.getString(R.string.vm_cultural_fathers_day),
+                        context.getString(R.string.vm_cultural_halloween),
+                        context.getString(R.string.vm_cultural_christmas),
+                        context.getString(R.string.vm_cultural_omisoka),
+                        context.getString(R.string.vm_cultural_ganjitsu),
                     ).any { updatedEvent.title.contains(it) }
                     if (isCultural || updatedEvent.isHolidayCalendar) {
                         updatedEvent = updatedEvent.copy(isCulturalEvent = true)
@@ -80,7 +98,7 @@ class CalendarEventLoader(private val repository: CalendarRepository) {
                     isReadOnly = true,
                     isHolidayCalendar = true,
                     isCulturalEvent = true,
-                    calendarDisplayName = "祝日"
+                    calendarDisplayName = context.getString(R.string.vm_holiday_display_name)
                 )
             }
         } else emptyList()
@@ -106,7 +124,9 @@ class CalendarEventLoader(private val repository: CalendarRepository) {
         calendarNameMap: Map<Long, String> = emptyMap(),
     ): List<Event> {
         return repository.getLocalEventsForMonth(start, end, visibleCalendarIds).map { event ->
-            val isBirthday = (event.title.contains("誕生日") && !event.title.contains("天皇誕生日")) ||
+            val birthdayKeyword = context.getString(R.string.vm_birthday_keyword)
+            val emperorBirthdayKeyword = context.getString(R.string.vm_emperor_birthday_keyword)
+            val isBirthday = (event.title.contains(birthdayKeyword) && !event.title.contains(emperorBirthdayKeyword)) ||
                     event.title.contains("Birthday", ignoreCase = true)
             val isSystemHoliday = event.description == LocalEvent.DESCRIPTION_HOLIDAY
 
@@ -114,7 +134,7 @@ class CalendarEventLoader(private val repository: CalendarRepository) {
             val displayName: String
             val colorArgb: Int?
             if (isSystemHoliday) {
-                displayName = "祝日"
+                displayName = context.getString(R.string.vm_holiday_display_name)
                 colorArgb = null
             } else {
                 displayName = calendarNameMap[event.calendarId] ?: ""
@@ -162,7 +182,9 @@ class CalendarEventLoader(private val repository: CalendarRepository) {
                 .filter { it.description != LocalEvent.DESCRIPTION_HOLIDAY }
                 .filter { ev ->
                     val isBirthday =
-                        (ev.title.contains("誕生日") && !ev.title.contains("天皇誕生日")) ||
+                        (ev.title.contains(
+                            context.getString(R.string.vm_birthday_keyword)
+                        ) && !ev.title.contains(context.getString(R.string.vm_emperor_birthday_keyword))) ||
                         ev.title.contains("Birthday", ignoreCase = true)
                     !isBirthday
                 }

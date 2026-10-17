@@ -17,9 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -31,19 +33,19 @@ fun SearchTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "予定を検索",
-                description = "ヘッダーの検索アイコンから、\n予定のタイトルを検索できます。",
+                title = stringResource(R.string.dl1_searchTitleSearch),
+                description = stringResource(R.string.dl1_searchDescSearch),
                 illustration = { c -> SearchBoxIllustration(c) },
             ),
             TutorialPage(
-                title = "範囲と除外",
-                description = "過去2年〜未来2年が対象です。\n祝日・文化・誕生日は除外されます。\n結果をタップするとその日付へ移動します。",
+                title = stringResource(R.string.dl1_searchTitleRange),
+                description = stringResource(R.string.dl1_searchDescRange),
                 illustration = { c -> SearchRangeIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -65,7 +67,7 @@ private fun SearchBoxIllustration(colors: AppColors) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("🔍", fontSize = 14.sp)
                     Spacer(Modifier.width(6.dp))
-                    Text("予定を検索...", color = colors.textGray, fontSize = 12.sp)
+                    Text(stringResource(R.string.dl1_searchPlaceholder), color = colors.textGray, fontSize = 12.sp)
                 }
             }
             Spacer(Modifier.height(10.dp))
@@ -103,7 +105,7 @@ private fun SearchRangeIllustration(colors: AppColors) {
                         .background(colors.primaryAccent.copy(alpha = 0.25f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("2年前", color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl1_searchTwoYearsAgo), color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(8.dp))
                 Box(
@@ -114,7 +116,7 @@ private fun SearchRangeIllustration(colors: AppColors) {
                         .background(colors.primaryAccent),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("今日", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl1_today), color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(Modifier.width(8.dp))
                 Box(
@@ -125,11 +127,11 @@ private fun SearchRangeIllustration(colors: AppColors) {
                         .background(colors.primaryAccent.copy(alpha = 0.25f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("2年後", color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl1_searchTwoYearsLater), color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
                 Text("→", color = colors.textGray, fontSize = 16.sp)
             }
-            Text("祝日・文化・誕生日は除外", color = colors.textGray, fontSize = 11.sp)
+            Text(stringResource(R.string.dl1_searchExcluded), color = colors.textGray, fontSize = 11.sp)
         }
     }
 }

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AiParseDialog -->
+    <string name="dl2_aiParseWarningTitle">解析結果に警告があります</string>
+    <string name="dl2_aiParseWarningItem">・%1$s</string>
+    <string name="dl2_aiParseAcknowledge">確認しました</string>
+    <string name="dl2_aiParseTitle">AIに読み取らせる (BETA)</string>
+    <string name="dl2_aiParseDescription">Golendarモード専用機能です。\n画像認識が可能なAI（ChatGPT / Gemini / Qwen / DeepSeek など）に、\n画像とプロンプトを渡してください。返ってきたJSONを貼り付けてください。</string>
+    <string name="dl2_copied">コピーしました</string>
+    <string name="dl2_copy">コピー</string>
+    <string name="dl2_aiPromptSubject">Golendar 予定解析プロンプト</string>
+    <string name="dl2_chooseAiApp">解析するAIを選択</string>
+    <string name="dl2_passWithPhoto">AIに画像と一緒に渡してください</string>
+    <string name="dl2_openAiApp">AIアプリを開く</string>
+    <string name="dl2_aiParseInputLabel">AIの回答JSONを貼り付け</string>
+    <string name="dl2_parseFailed">AI出力を解析できませんでした</string>
+    <string name="dl2_parseAndAdd">解析して登録</string>
+    <string name="dl2_selectAllKana">すべて選択</string>
+    <string name="dl2_selectionCount">選択中: %1$d件</string>
+    <string name="dl2_aiParseCheckboxNote">※ チェックした予定のみ追加されます</string>
+    <string name="dl2_footerSelectionStatus">%1$d件中 %2$d件を選択中</string>
+    <string name="dl2_cancel">キャンセル</string>
+    <string name="dl2_add">追加</string>
+
+    <!-- CalendarColorPickerDialog -->
+    <string name="dl2_calendarColorTitle">%1$s の色</string>
+    <string name="dl2_calendarColorDefault">カレンダーの色（既定）</string>
+    <string name="dl2_selectedMark">✓ 選択中</string>
+    <string name="dl2_close">閉じる</string>
+
+    <!-- CalendarSelectionDialog -->
+    <string name="dl2_warning">警告</string>
+    <string name="dl2_calendarSelectionEmptyWarning">カレンダーが1つも選択されていません。このままでは予定が表示されません。続行しますか？</string>
+    <string name="dl2_proceed">続行</string>
+    <string name="dl2_goBack">戻る</string>
+    <string name="dl2_calendarSelectionTitle">表示するカレンダーを選択</string>
+    <string name="dl2_calendarSelectionDesc">表示したいカレンダーにチェックを入れてください。後から設定画面で変更できます。</string>
+    <string name="dl2_selectAllCalendar">全て選択</string>
+    <string name="dl2_deselectAll">全て解除</string>
+    <string name="dl2_unnamedCalendar">名称未設定</string>
+    <string name="dl2_confirmDecision">決定</string>
+
+    <!-- ColorPickerDialogs -->
+    <string name="dl2_bgColorPickerTitle">アプリ背景色を選択</string>
+    <string name="dl2_bgColorDarkNote">ダークモードでは選択した色が自動的に暗く表示されます。</string>
+    <string name="dl2_bgColorLightNote">同じ色相のまま、ダークモード時は暗い背景になります。</string>
+    <string name="dl2_dayColorTitle">%1$s曜日の色</string>
+    <string name="dl2_colorStandard">標準（カスタムなし）</string>
+
+    <!-- DayEventsDialog -->
+    <string name="dl2_dayEventsTitle">%1$d月%2$d日 (%3$s)</string>
+    <string name="dl2_eventCount">%1$d件</string>
+    <string name="dl2_noEvents">予定なし</string>
+    <string name="dl2_addEvent">+ 予定を追加</string>
+
+    <!-- EventDetailDialog -->
+    <string name="dl2_recurringDaily">（毎日）</string>
+    <string name="dl2_recurringWeekly">（毎週）</string>
+    <string name="dl2_recurringWeekdays">（平日）</string>
+    <string name="dl2_recurringMonthly">（毎月）</string>
+    <string name="dl2_recurringYearly">（毎年）</string>
+    <string name="dl2_viewOnMap">地図で見る</string>
+    <string name="dl2_memo">メモ</string>
+    <string name="dl2_photoCount">写真 (%1$d)</string>
+    <string name="dl2_shareEventChooser">予定を共有</string>
+    <string name="dl2_share">共有</string>
+    <string name="dl2_edit">編集</string>
+    <string name="dl2_deleteThisDay">この日だけ削除</string>
+
+    <!-- EventDialog -->
+    <string name="dl2_addEventTitle">予定の追加</string>
+    <string name="dl2_editEventTitle">予定の編集</string>
+    <string name="dl2_titleLabel">タイトル</string>
+    <string name="dl2_allDay">終日</string>
+    <string name="dl2_recurring">繰り返し</string>
+    <string name="dl2_dateLockedNote">※カレンダーで選んだ日付に追加されます（日付は変更できません）</string>
+    <string name="dl2_startLabel">開始</string>
+    <string name="dl2_endLabel">終了</string>
+    <string name="dl2_recurringDurationNote">※「終了」は1回分の所要時間です。繰り返しの終了日は下で指定します。</string>
+    <string name="dl2_specifyRecurrenceEnd">繰り返しの終了日を指定</string>
+    <string name="dl2_recurrenceEndDate">終了日</string>
+    <string name="dl2_dateYmd">%1$d年%2$d月%3$d日</string>
+    <string name="dl2_locationLabel">場所</string>
+    <string name="dl2_pickFromMap">地図から選択</string>
+    <string name="dl2_memoLabel">メモ / 内容</string>
+    <string name="dl2_save">保存</string>
+    <string name="dl2_delete">削除</string>
+
+    <!-- EventPhotoViewerDialog -->
+    <string name="dl2_storagePermissionRequired">保存にはストレージへのアクセス許可が必要です</string>
+    <string name="dl2_photoFileNotFound">写真ファイルが見つかりません</string>
+    <string name="dl2_sharePhotoChooser">写真を共有</string>
+    <string name="dl2_shareFailed">共有に失敗しました: %1$s</string>
+
+    <!-- ExitConfirmDialog -->
+    <string name="dl2_exitTitle">終了しますか？</string>
+    <string name="dl2_exitMessage">Golendarを終了します。</string>
+    <string name="dl2_exit">終了</string>
+
+    <!-- LocalCalendarEditDialog -->
+    <string name="dl2_editCalendarTitle">カレンダーの編集</string>
+    <string name="dl2_nameLabel">名前</string>
+    <string name="dl2_defaultCalendarNameLocked">マイカレンダーは名前を変更できません（色のみ変更できます）。</string>
+    <string name="dl2_colorLabel">色</string>
+
+    <!-- PlacePickerDialog -->
+    <string name="dl2_locationIntroTitle">現在地の利用について</string>
+    <string name="dl2_locationIntroMessage">現在地を初期位置として地図に表示します。\n許可しなくても地図は使えます（初期位置は東京駅付近になります）。</string>
+    <string name="dl2_allow">許可する</string>
+    <string name="dl2_deny">許可しない</string>
+    <string name="dl2_showCurrentLocation">現在地を表示</string>
+    <string name="dl2_locationButtonIntroMessage">地図に現在地を表示するには、\n位置情報の許可が必要です。</string>
+    <string name="dl2_locationDeniedTitle">位置情報が許可されていません</string>
+    <string name="dl2_locationDeniedMessage">現在地を表示するには、端末の設定から位置情報を許可してください。\n\n「設定を開く」をタップすると、Golendar の権限設定画面が開きます。\n「権限」→「位置情報」→「許可」を選択してください。</string>
+    <string name="dl2_openSettings">設定を開く</string>
+    <string name="dl2_placePickerTitle">場所を選択</string>
+    <string name="dl2_currentLocation">現在地</string>
+    <string name="dl2_locating">現在地を取得中...</string>
+    <string name="dl2_geocoding">住所を取得中...</string>
+    <string name="dl2_unknownAddress">住所不明</string>
+    <string name="dl2_pinInstruction">地図を動かして中央のピンを場所に合わせてください。</string>
+
+    <!-- RestoreOptionsDialog -->
+    <string name="dl2_backupAppend">バックアップを追記</string>
+    <string name="dl2_backupRestore">バックアップを復元</string>
+    <string name="dl2_backupSummary">%1$d カレンダー / %2$d 件</string>
+    <string name="dl2_backupPhotoSuffix">" / 写真 %1$d 枚"</string>
+    <string name="dl2_autoCreateExplanation">バックアップ内のカレンダー名で振り分けます。\n同名のカレンダーが無ければ新規作成し、\n同名のカレンダーが既にあれば上書き確認が表示されます。\n旧形式の予定はマイカレンダーへ復元されます。</string>
+    <string name="dl2_appendTargetLabel">追記先カレンダー</string>
+    <string name="dl2_restoreTargetLabel">復元先カレンダー</string>
+    <string name="dl2_noRestoreTargets">復元先に指定できるカレンダーがありません。\n設定からカレンダーを追加してください。</string>
+    <string name="dl2_restoreSources">復元するカレンダー</string>
+    <string name="dl2_restoreSourcesNote">チェックしたカレンダーの予定だけを復元先に追加します。</string>
+    <string name="dl2_append">追記</string>
+    <string name="dl2_restore">復元</string>
+
+    <!-- SyncConfirmDialog -->
+    <string name="dl2_syncTitle">同期の確認</string>
+    <string name="dl2_syncMessage">端末内のアカウントのカレンダー情報と同期します。\nよろしいですか？</string>
+    <string name="dl2_syncConfirm">同期する</string>
+
+    <!-- event/CalendarSelector・LocalCalendarSelector -->
+    <string name="dl2_targetCalendarLabel">追加先カレンダー</string>
+    <string name="dl2_selectCalendarPlaceholder">カレンダーを選択</string>
+
+    <!-- event/PhotoAttachmentSection -->
+    <string name="dl2_photoSection">写真</string>
+    <string name="dl2_photoResizeNote">写真はアプリ内に保存されます（長辺 %1$dpx に縮小）</string>
+
+    <!-- event/RecurrenceChips -->
+    <string name="dl2_chipDaily">毎日</string>
+    <string name="dl2_chipWeekdays">平日</string>
+    <string name="dl2_chipWeekly">毎週</string>
+    <string name="dl2_chipMonthly">毎月</string>
+    <string name="dl2_chipYearly">毎年</string>
+</resources>

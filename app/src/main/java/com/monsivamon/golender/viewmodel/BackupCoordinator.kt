@@ -1,11 +1,15 @@
 package com.monsivamon.golender.viewmodel
 
+import android.content.Context
 import android.net.Uri
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.CalendarRepository
 import com.monsivamon.golender.data.SelectedCalendar
+import com.monsivamon.golender.data.prefs.LanguageSetting
 
 // バックアップ／復元のエクスポート・インポートと復元後の祝日再取得を担当する
 class BackupCoordinator(
+    private val context: Context,
     private val backupManager: BackupManager,
     private val repository: CalendarRepository,
     private val store: SettingsDataStore,
@@ -50,7 +54,8 @@ class BackupCoordinator(
             onProgress = { p, c, t -> onProgress(p, c, t) },
         )
         if (result is BackupManager.Result.Success) {
-            onProgress("祝日データを再取得中", 0, 0)
+            // 進行状況の文言も選択中のアプリ内言語で返す
+            onProgress(LanguageSetting.wrap(context).getString(R.string.vm_progress_recreating_holidays), 0, 0)
             val holidayOk = try { repository.fetchAndSaveHolidays() } catch (_: Exception) { false }
             try {
                 store.updateLastHolidayFetch(

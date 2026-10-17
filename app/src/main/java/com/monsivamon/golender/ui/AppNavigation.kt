@@ -21,12 +21,16 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.core.view.WindowCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.ui.common.CalendarHeader
 import com.monsivamon.golender.ui.common.CalendarTabRow
 import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
@@ -44,6 +48,7 @@ import com.monsivamon.golender.viewmodel.WelcomeInfo
 import com.monsivamon.golender.ui.theme.PressScaleIndication
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 // 背景輝度に応じてステータスバー・ナビゲーションバーのアイコン色を切り替える
@@ -170,8 +175,8 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     }
     // ヘッダーに表示するタイトル文字列を決定する
     val headerTitle = when (currentRoute) {
-        Routes.MONTHLY -> "${currentMonth.year}年 ${currentMonth.monthValue}月"
-        Routes.DAILY -> "${selectedDate.year}年${selectedDate.monthValue}月${selectedDate.dayOfMonth}日"
+        Routes.MONTHLY -> stringResource(R.string.co_header_month_title, currentMonth.year, currentMonth.monthValue)
+        Routes.DAILY -> stringResource(R.string.co_header_daily_title, selectedDate.year, selectedDate.monthValue, selectedDate.dayOfMonth)
         Routes.WEEKLY -> { val offset = (selectedDate.dayOfWeek.value - weekStartDay.value + 7) % 7; val sow = selectedDate.minusDays(offset.toLong()); val eow = sow.plusDays(6); "${sow.year}/${sow.monthValue}/${sow.dayOfMonth}~${eow.monthValue}/${eow.dayOfMonth}" }
         else -> ""
     }
@@ -217,12 +222,28 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     if (showDatePickerDialog) GolendarDatePickerDialog(initialDate = selectedDate, colors = colors, onDismiss = { showDatePickerDialog = false }, onDateSelected = { viewModel.selectDate(it); showDatePickerDialog = false })
     // Welcome 画面（初回起動 or バージョンアップ時）
     welcomeInfo?.let { info ->
-        WelcomeDialog(colors = colors, info = info, onStart = { viewModel.markWelcomeDone() })
+        // 言語選択の保存と「はじめる」後の再生成は、ダイアログ内の Context に依存
+        // させないためここ（呼び出し側）で行う。
+        val langScope = rememberCoroutineScope()
+        WelcomeDialog(
+            colors = colors,
+            info = info,
+            onLanguageSelected = { tag ->
+                // 選択値を DataStore に保存する（文言の即時切替はダイアログ側で実施）
+                langScope.launch { LanguageSetting.set(context, tag) }
+            },
+            onStart = { languageChanged ->
+                viewModel.markWelcomeDone()
+                // Welcome 中に言語が選択されていたら Activity を再生成して
+                // アプリ全体へ新しい言語を反映する
+                if (languageChanged) activity?.recreate()
+            },
+        )
     }
     // 初回通知セットアップ
     if (!isWelcomeShowing && showNotificationSetup) NotificationSetupDialog(colors = colors, onComplete = { viewModel.markNotificationSetupDone() })
     // 初回カレンダー権限セットアップ
-    if (!isWelcomeShowing && showCalendarSetup) CalendarPermissionDialog(colors = colors, title = "Googleカレンダーへのアクセス", message = "Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\nGolendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。", onResult = { _ -> viewModel.markCalendarSetupDone() }, onDismiss = { viewModel.markCalendarSetupDone() })
+    if (!isWelcomeShowing && showCalendarSetup) CalendarPermissionDialog(colors = colors, title = stringResource(R.string.co_calendar_access_title), message = stringResource(R.string.co_calendar_access_message), onResult = { _ -> viewModel.markCalendarSetupDone() }, onDismiss = { viewModel.markCalendarSetupDone() })
 
     // 初回カレンダー選択ダイアログ（Google モード選択時）
     if (!isWelcomeShowing && showCalendarSelection) {

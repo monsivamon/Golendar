@@ -9,10 +9,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.theme.AppColors
 
 // 恒久拒否（Android 11+ の USER_FIXED）を判定するヘルパー。
@@ -57,12 +59,12 @@ fun PermissionSettingsDialog(
                 onOpenSettings()
                 onDismiss()
             }) {
-                Text("設定を開く", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.co_open_settings), color = colors.primaryAccent, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("あとで", color = colors.textGray)
+                Text(stringResource(R.string.co_later), color = colors.textGray)
             }
         },
     )

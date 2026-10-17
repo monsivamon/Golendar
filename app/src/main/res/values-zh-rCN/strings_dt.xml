@@ -1,0 +1,4 @@
+<resources>
+    <!-- 日程与时间显示用字符串（data/util/EventDateTimeUtils.kt） -->
+    <string name="dt_all_day">全天</string>
+</resources>

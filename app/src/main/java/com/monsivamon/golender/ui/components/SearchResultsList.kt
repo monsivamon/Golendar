@@ -8,8 +8,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.ui.SearchResultCard
 import com.monsivamon.golender.ui.theme.AppColors
@@ -29,7 +31,7 @@ fun SearchResultsList(
         query.isBlank() -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    "予定を検索...",
+                    stringResource(R.string.co_search_placeholder),
                     color = colors.textGray,
                     fontSize = 16.sp,
                 )
@@ -47,7 +49,7 @@ fun SearchResultsList(
         results.isEmpty() -> {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    "該当する予定はありません",
+                    stringResource(R.string.co_search_no_results),
                     color = colors.textGray,
                     fontSize = 16.sp,
                 )
@@ -61,7 +63,7 @@ fun SearchResultsList(
             ) {
                 item {
                     Text(
-                        "検索結果: ${results.size}件",
+                        stringResource(R.string.co_search_results_count, results.size),
                         color = colors.textGray,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(bottom = 8.dp),

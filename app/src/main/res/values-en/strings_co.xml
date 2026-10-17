@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ui/AboutAppDialog.kt -->
+    <string name="co_about_dialog_title">About this app</string>
+    <string name="co_close">Close</string>
+    <string name="co_about_card_title">About this app</string>
+    <string name="co_about_app_description">An Android calendar app with month, week, and day views.\nFeatures privacy-focused Golendar mode and\nGoogle mode synced with Google Calendar.</string>
+    <string name="co_about_credits_title">Data sources &amp; libraries</string>
+    <string name="co_credit_gsi">Geospatial Information Authority of Japan</string>
+    <string name="co_credit_gsi_license">Public data</string>
+    <string name="co_license_link">License</string>
+
+    <!-- ui/AppNavigation.kt -->
+    <string name="co_header_month_title">%1$d-%2$d</string>
+    <string name="co_header_daily_title">%2$d/%3$d/%1$d</string>
+    <string name="co_calendar_access_title">Access to Google Calendar</string>
+    <string name="co_calendar_access_message">Calendar access permission is required to read and write events synced with Google Calendar.\nIf you only use Golendar mode (within the app), you can skip the permission and change it later from the settings screen.</string>
+
+    <!-- ui/common/CalendarHeader.kt -->
+    <string name="co_search_cd">Search</string>
+    <string name="co_sync_cd">Sync</string>
+    <string name="co_settings_cd">Settings</string>
+    <string name="co_search_placeholder">Search events...</string>
+    <string name="co_select_cd">Select</string>
+    <string name="co_bottom_list_hide_cd">Hide bottom list</string>
+    <string name="co_bottom_list_show_cd">Show bottom list</string>
+
+    <!-- ui/common/CalendarTabRow.kt -->
+    <string name="co_prev">Previous</string>
+    <string name="co_next">Next</string>
+    <string name="co_tab_daily">Day</string>
+    <string name="co_tab_weekly">Week</string>
+    <string name="co_tab_monthly">Month</string>
+
+    <!-- ui/common/DatePickerWrappers.kt -->
+    <string name="co_cancel">Cancel</string>
+    <string name="co_year_month_jump_title">Jump to date</string>
+    <string name="co_prev_year_cd">Previous year</string>
+    <string name="co_next_year_cd">Next year</string>
+    <string name="co_year_header">%1$d</string>
+    <string name="co_month_label">%1$d</string>
+
+    <!-- ui/common/PermissionUtils.kt -->
+    <string name="co_open_settings">Open settings</string>
+    <string name="co_later">Later</string>
+
+    <!-- ui/common/SetupTutorialScaffold.kt -->
+    <string name="co_tutorial_start">Get started</string>
+    <string name="co_tutorial_skip">Skip</string>
+    <string name="co_tutorial_back">Back</string>
+
+    <!-- ui/components/AiPreviewList.kt -->
+    <string name="co_all_day">All day</string>
+
+    <!-- ui/components/MonthGridView.kt -->
+    <string name="co_weekday_sun">Sun</string>
+    <string name="co_weekday_mon">Mon</string>
+    <string name="co_weekday_tue">Tue</string>
+    <string name="co_weekday_wed">Wed</string>
+    <string name="co_weekday_thu">Thu</string>
+    <string name="co_weekday_fri">Fri</string>
+    <string name="co_weekday_sat">Sat</string>
+
+    <!-- ui/components/SearchResultsList.kt -->
+    <string name="co_search_no_results">No matching events</string>
+    <string name="co_search_results_count">%1$d results</string>
+</resources>

@@ -32,9 +32,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.PermissionSettingsDialog
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
@@ -50,8 +52,8 @@ fun CalendarPermissionDialog(
     colors: AppColors,
     title: String,
     message: String,
-    confirmLabel: String = "許可する",
-    dismissLabel: String = "あとで",
+    confirmLabel: String = stringResource(R.string.dl1_allow),
+    dismissLabel: String = stringResource(R.string.dl1_later),
     onResult: (granted: Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -90,9 +92,8 @@ fun CalendarPermissionDialog(
         showPermanentDenied -> {
             PermissionSettingsDialog(
                 colors = colors,
-                title = "カレンダーへのアクセスが許可されていません",
-                message = "カレンダー権限が恒久的に拒否されているため、システムの権限ダイアログを表示できません。\n\n" +
-                    "「設定を開く」→「権限」→「カレンダー」→「許可」を選択してください。",
+                title = stringResource(R.string.dl1_permDeniedCalendarTitle),
+                message = stringResource(R.string.dl1_permDeniedCalendarMessage),
                 onOpenSettings = { openAppSettings(context) },
                 onDismiss = {
                     showPermanentDenied = false

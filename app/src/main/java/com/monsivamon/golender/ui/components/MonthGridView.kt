@@ -13,8 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.theme.AppColors
@@ -35,21 +37,24 @@ fun MonthGridView(
     maxEventsPerCell: Int = 3,
     onSelectDate: (LocalDate) -> Unit,
 ) {
-    // 曜日文字列から DayOfWeek への変換テーブル
-    val stringToDayOfWeek = mapOf(
-        "日" to DayOfWeek.SUNDAY, "月" to DayOfWeek.MONDAY, "火" to DayOfWeek.TUESDAY,
-        "水" to DayOfWeek.WEDNESDAY, "木" to DayOfWeek.THURSDAY, "金" to DayOfWeek.FRIDAY, "土" to DayOfWeek.SATURDAY
+    // 曜日表示名（日曜始まりの並び）と DayOfWeek の対応テーブル
+    val weekdayPairs = listOf(
+        stringResource(R.string.co_weekday_sun) to DayOfWeek.SUNDAY,
+        stringResource(R.string.co_weekday_mon) to DayOfWeek.MONDAY,
+        stringResource(R.string.co_weekday_tue) to DayOfWeek.TUESDAY,
+        stringResource(R.string.co_weekday_wed) to DayOfWeek.WEDNESDAY,
+        stringResource(R.string.co_weekday_thu) to DayOfWeek.THURSDAY,
+        stringResource(R.string.co_weekday_fri) to DayOfWeek.FRIDAY,
+        stringResource(R.string.co_weekday_sat) to DayOfWeek.SATURDAY,
     )
 
     Column(modifier = Modifier.fillMaxSize()) {
         // 週の開始曜日に合わせて曜日ヘッダーを並び替える
-        val allDays = listOf("日", "月", "火", "水", "木", "金", "土")
         val startIndex = if (weekStartDay == DayOfWeek.MONDAY) 1 else 0
-        val orderedWeekDays = allDays.drop(startIndex) + allDays.take(startIndex)
+        val orderedWeekDays = weekdayPairs.drop(startIndex) + weekdayPairs.take(startIndex)
 
         Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
-            orderedWeekDays.forEach { dayString ->
-                val dayEnum = stringToDayOfWeek[dayString]!!
+            orderedWeekDays.forEach { (dayString, dayEnum) ->
                 val c = dayColors[dayEnum] ?: Color.Unspecified
                 val finalColor = if (c == Color.Unspecified) colors.text else c
                 Text(

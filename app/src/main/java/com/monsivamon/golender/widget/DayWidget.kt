@@ -7,7 +7,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
@@ -27,17 +26,26 @@ import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import androidx.compose.runtime.CompositionLocalProvider
 import com.monsivamon.golender.MainActivity
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.ui.Routes
 import java.time.format.TextStyle.FULL
-import java.util.Locale
 
 // 日次表示ウィジェット（今日の予定を表示）
 class DayWidget : GlanceAppWidget() {
     // ウィジェットの表示内容を構築する
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = WidgetDataManager.getDayWidgetData(context)
-        provideContent { DayWidgetContent(data) }
+        // Glance の描画は WorkManager 内部 Context（システムロケール）で行われるため、
+        // アプリ内言語設定を反映した Context をローカルで差し込む
+        val localized = LanguageSetting.wrap(context)
+        val data = WidgetDataManager.getDayWidgetData(localized)
+        provideContent {
+            CompositionLocalProvider(LocalWidgetLocalizedContext provides localized) {
+                DayWidgetContent(data)
+            }
+        }
     }
 }
 
@@ -45,7 +53,7 @@ class DayWidget : GlanceAppWidget() {
 @Composable
 fun DayWidgetContent(data: DayWidgetData) {
     // 表示に必要なパラメータを取得する（予定は最大 5 件）
-    val context = LocalContext.current
+    val context = LocalWidgetLocalizedContext.current
     val date = data.date
     val events = data.events.take(5)
 
@@ -65,8 +73,8 @@ fun DayWidgetContent(data: DayWidgetData) {
             .clickable(onClick = actionStartActivity(openAppIntent))
             .padding(12.dp),
     ) {
-        // 曜日名（フル）を取得する
-        val dayOfWeek = date.dayOfWeek.getDisplayName(FULL, Locale.JAPANESE)
+        // 曜日名（フル）を取得する（システムロケールでなくアプリ内言語に従う）
+        val dayOfWeek = date.dayOfWeek.getDisplayName(FULL, context.resources.configuration.locales[0])
         // 共通ヘッダー（タイトル＋更新＋設定）
         WidgetHeader(title = "${date.monthValue}/${date.dayOfMonth} ($dayOfWeek)", colors = wc)
 
@@ -74,7 +82,7 @@ fun DayWidgetContent(data: DayWidgetData) {
 
         if (events.isEmpty()) {
             // 予定なしのメッセージ
-            Text(text = "予定なし", style = TextStyle(color = wc.textGray, fontSize = 14.sp))
+            Text(text = context.getString(R.string.wd_widgetNoEvents), style = TextStyle(color = wc.textGray, fontSize = 14.sp))
         } else {
             // 予定を 1 件ずつカード風に表示する
             events.forEach { event ->

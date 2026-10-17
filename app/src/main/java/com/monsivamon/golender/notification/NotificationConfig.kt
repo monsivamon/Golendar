@@ -1,11 +1,15 @@
 package com.monsivamon.golender.notification
 
+import android.content.Context
+import com.monsivamon.golender.R
+
 // 通知・アラーム関連の定数を一元管理するオブジェクト
 object NotificationConfig {
     // 通知チャンネル ID／表示名／説明
     const val CHANNEL_ID = "GOLENDAR_CHANNEL_ID"
-    const val CHANNEL_NAME = "予定の通知"
-    const val CHANNEL_DESCRIPTION = "カレンダーの予定時刻や10分前にお知らせします"
+    // チャンネル表示名・説明はローカライズされるため Context から取得する
+    fun channelName(context: Context): String = context.getString(R.string.vm_channel_name)
+    fun channelDescription(context: Context): String = context.getString(R.string.vm_channel_description)
 
     // BroadcastReceiver に渡す extras のキー
     const val EXTRA_TITLE = "EXTRA_TITLE"

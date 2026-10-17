@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 共通ラベル（担当: ui/dialogs のチュートリアル・セットアップダイアログ） -->
+    <string name="dl1_close">閉じる</string>
+    <string name="dl1_allow">許可する</string>
+    <string name="dl1_later">あとで</string>
+    <string name="dl1_openSettings">設定を開く</string>
+    <string name="dl1_next">次へ</string>
+    <string name="dl1_prev">前へ</string>
+    <string name="dl1_skip">スキップ</string>
+    <string name="dl1_back">戻る</string>
+    <string name="dl1_start">始める</string>
+    <string name="dl1_today">今日</string>
+    <string name="dl1_save">保存</string>
+    <string name="dl1_share">共有</string>
+    <string name="dl1_tabDay">日</string>
+    <string name="dl1_tabWeek">週</string>
+    <string name="dl1_tabMonth">月</string>
+
+    <!-- AiSetupDialog -->
+    <string name="dl1_aiSetupTitleOverview">AIに読み取らせるとは</string>
+    <string name="dl1_aiSetupDescOverview">カレンダーの画像やテキストをAIに渡して、\n予定を一括でカレンダーに登録する機能です。</string>
+    <string name="dl1_aiSetupTitleFlow">使い方の流れ</string>
+    <string name="dl1_aiSetupDescFlow">① プロンプトをコピー\n② AIアプリに画像と一緒に渡す\n③ 返ってきたJSONを貼り付ける</string>
+    <string name="dl1_aiSetupTitlePreview">プレビューと登録</string>
+    <string name="dl1_aiSetupDescPreview">解析結果はチェックボックスで選択できます。\nチェックした予定だけが登録されます。</string>
+    <string name="dl1_aiSetupStepCopy">プロンプトをコピー</string>
+    <string name="dl1_aiSetupStepPass">AIアプリに渡す</string>
+    <string name="dl1_aiSetupStepPaste">JSONを貼り付ける</string>
+
+    <!-- BackupTutorialDialog -->
+    <string name="dl1_backupTitleFormat">保存形式</string>
+    <string name="dl1_backupDescFormat">「写真もバックアップ」OFF なら JSON、\nON なら写真入り ZIP で保存します。\nZIP は Golendar モード専用です。</string>
+    <string name="dl1_backupTitleOperations">保存・復元・追記の違い</string>
+    <string name="dl1_backupDescOperations">「保存」で予定を書き出し、\n「追記」は既存を残して追加、\n「復元」は既存を上書きします。\nGoogleモードでは「復元」は使えません。</string>
+    <string name="dl1_backupTitleTarget">復元先の選択</string>
+    <string name="dl1_backupDescTarget">Googleモードでの「追記」時は、\n書き込み可能なカレンダーを1つ選んで\n保存先にできます。</string>
+    <string name="dl1_append">追記</string>
+    <string name="dl1_restore">復元</string>
+    <string name="dl1_backupLegendThin">薄い＝既存 / 濃い＝新規</string>
+
+    <!-- CalendarModeTutorialDialog -->
+    <string name="dl1_calModeTitleDifference">Golendar と Google の違い</string>
+    <string name="dl1_calModeDescDifference">Golendar は外部同期なしのアプリ内完結、\nGoogle は Google カレンダーと同期します。\n用途に応じて切り替えられます。</string>
+    <string name="dl1_calModeTitleGoogleOps">Google モードの操作</string>
+    <string name="dl1_calModeDescGoogleOps">チェックで予定の表示 ON/OFF、\n色丸タップで表示色を変更できます。\n端末側でカレンダーを追加・削除した後は\n「カレンダー一覧を再取得」をタップしてください。</string>
+    <string name="dl1_calModeTitleGolendarOps">Golendar モードの操作</string>
+    <string name="dl1_calModeDescGolendarOps">チェックで表示 ON/OFF、色丸で色変更、\n名前タップで名前を変更できます。\nマイカレンダーは削除できませんが、\n非表示にはできます。</string>
+    <string name="dl1_calModeTitleHidden">非表示にすると…</string>
+    <string name="dl1_calModeDescHidden">そのカレンダーの予定は、\nカレンダー・ウィジェット・通知から\n表示されなくなります。\n祝日は常に表示されます。</string>
+    <string name="dl1_calModeSubInApp">アプリ内のみ</string>
+    <string name="dl1_calModeSubSync">カレンダー同期</string>
+    <string name="dl1_calModeEditHint">← 名前タップで編集</string>
+    <string name="dl1_calModeHolidaysAlways">祝日は常に表示</string>
+
+    <!-- CalendarPermissionDialog -->
+    <string name="dl1_permDeniedCalendarTitle">カレンダーへのアクセスが許可されていません</string>
+    <string name="dl1_permDeniedCalendarMessage">カレンダー権限が恒久的に拒否されているため、システムの権限ダイアログを表示できません。\n\n「設定を開く」→「権限」→「カレンダー」→「許可」を選択してください。</string>
+
+    <!-- GestureSetupDialog -->
+    <string name="dl1_gestureTitleVertical">上下スワイプで前後の期間へ</string>
+    <string name="dl1_gestureDescVertical">月・週・日どの表示でも、同じ方向に素早く2回スワイプすると前後の期間に移動します。</string>
+    <string name="dl1_gestureTitleHorizontal">左右スワイプで表示切替</string>
+    <string name="dl1_gestureDescHorizontal">左右にスワイプすると、日・週・月の表示を切り替えられます。</string>
+    <string name="dl1_gestureTitleReady">準備完了</string>
+    <string name="dl1_gestureDescReady">さっそく予定を追加してみましょう。\nホーム画面のアイコン長押しでショートカットも使えます。</string>
+    <string name="dl1_gestureSwipeHint">左右にスワイプ</string>
+
+    <!-- MapSetupDialog -->
+    <string name="dl1_mapTitlePin">ピンで場所を選ぶ</string>
+    <string name="dl1_mapDescPin">地図を動かして中央のピンを場所に合わせ、\n「決定」で場所を保存します。</string>
+    <string name="dl1_mapTitleLocationButton">現在地ボタン</string>
+    <string name="dl1_mapDescLocationButton">右下のボタンをタップするたびに\n「追従 → コンパス追従 → OFF」と切り替わります。</string>
+    <string name="dl1_mapTitleSaveFormat">場所の保存形式</string>
+    <string name="dl1_mapDescSaveFormat">「POI名, 住所」の形式で保存され、\nGoogleマップなどと相互運用できます。</string>
+    <string name="dl1_mapSampleLocationName">東京駅</string>
+    <string name="dl1_mapSampleAddress">東京都千代田区丸の内1丁目</string>
+
+    <!-- MonthViewToggleTutorialDialog -->
+    <string name="dl1_monthToggleTitleList">下部リストの表示切替</string>
+    <string name="dl1_monthToggleDescList">月表示のヘッダー左のアイコンで、\nカレンダー下の予定リストを ON/OFF できます。\nOFF にすると月グリッドが大きく表示されます。</string>
+    <string name="dl1_monthToggleTitlePopup">日付タップでポップアップ</string>
+    <string name="dl1_monthToggleDescPopup">下部リストを OFF にしているとき、\n日付をタップするとその日の予定が\nポップアップで確認できます。</string>
+    <string name="dl1_monthToggleGridLabel">月グリッド</string>
+    <string name="dl1_monthToggleListLabel">予定リスト</string>
+    <string name="dl1_monthToggleGridLarge">月グリッド（拡大）</string>
+    <string name="dl1_monthToggleTapHint">↓ タップ</string>
+    <string name="dl1_monthToggleDayEvents">その日の予定</string>
+
+    <!-- NotificationSetupDialog -->
+    <string name="dl1_notifSetupTitlePermission">通知の許可</string>
+    <string name="dl1_notifSetupDescPermission">予定の開始時刻や10分前に\n通知を受け取るための許可をお願いします。</string>
+    <string name="dl1_notifSetupTitleAlarm">正確なアラームの許可</string>
+    <string name="dl1_notifSetupDescAlarm">予定時刻ぴったりに通知を届けるために、\n「正確なアラーム」の許可が必要です。</string>
+    <string name="dl1_notifSetupTitleBattery">バッテリー最適化の無効化</string>
+    <string name="dl1_notifSetupDescBattery">スリープ中の通知遅延を防ぐために、\nバッテリー最適化を無効化することをおすすめします。</string>
+    <string name="dl1_notifSetupDeniedTitle">通知が許可されていません</string>
+    <string name="dl1_notifSetupDeniedMessage">通知権限が恒久的に拒否されているため、システムの権限ダイアログを表示できません。\n\n「設定を開く」→「通知」→「許可」を選択してください。</string>
+
+    <!-- NotificationTutorialDialog -->
+    <string name="dl1_notifTutTitleTiming">通知のタイミング</string>
+    <string name="dl1_notifTutDescTiming">「定刻」と「10分前」の2種類を\n個別に ON/OFF できます。\n祝日・文化イベントは通知対象外です。</string>
+    <string name="dl1_notifTutTitleAlarm">正確なアラーム</string>
+    <string name="dl1_notifTutDescAlarm">予定時刻ぴったりに通知を届けるため、\n「正確なアラーム」の許可を推奨します。</string>
+    <string name="dl1_notifTutTitleBattery">バッテリー最適化</string>
+    <string name="dl1_notifTutDescBattery">スリープ中の通知遅延を防ぐため、\nバッテリー最適化の無効化を推奨します。</string>
+    <string name="dl1_tenMinutesBefore">10分前</string>
+    <string name="dl1_scheduledTime">定刻</string>
+
+    <!-- PhotoTutorialDialog -->
+    <string name="dl1_photoTutTitleAttach">写真を添付</string>
+    <string name="dl1_photoTutDescAttach">予定編集画面の「+」から、最大5枚まで\n写真を添付できます（長辺1920pxに縮小）。\nGolendarモード専用です。</string>
+    <string name="dl1_photoTutTitleViewer">拡大・保存・共有</string>
+    <string name="dl1_photoTutDescViewer">詳細のサムネイルをタップすると全画面表示。\n「保存」でピクチャ/Golendarへ書き出し、\n「共有」で他アプリへ送れます。</string>
+    <string name="dl1_photoTutLabelPhoto">写真</string>
+
+    <!-- RecurringTutorialDialog -->
+    <string name="dl1_recurTitleTypes">繰り返しの種類</string>
+    <string name="dl1_recurDescTypes">毎日 / 平日 / 毎週 / 毎月 / 毎年 から選べます。\n「平日」は月〜金のみ繰り返します。</string>
+    <string name="dl1_recurTitleEnd">「終了」と「繰り返し終了日」</string>
+    <string name="dl1_recurDescEnd">「終了」は1回分の所要時間、\n「繰り返しの終了日」は繰り返し全体の最終日です。</string>
+    <string name="dl1_recurTitleDelete">繰り返しの削除</string>
+    <string name="dl1_recurDescDelete">繰り返し予定は「この日だけ削除」できません。\n1件だけ変更したい場合は、繰り返しを解除してから\n個別の予定に分けてください。</string>
+    <string name="dl1_recurChipEveryDay">毎日</string>
+    <string name="dl1_recurChipWeekdays">平日</string>
+    <string name="dl1_recurChipEveryWeek">毎週</string>
+    <string name="dl1_recurChipEveryMonth">毎月</string>
+    <string name="dl1_recurChipEveryYear">毎年</string>
+    <string name="dl1_recurLabelStart">開始</string>
+    <string name="dl1_recurLabelFirst">初回</string>
+    <string name="dl1_recurHintEnd">←「終了」</string>
+    <string name="dl1_recurHintEndDate">←終了日</string>
+    <string name="dl1_recurringEvent">繰り返し予定</string>
+    <string name="dl1_recurCantDeleteOnlyThisDay">× この日だけ削除できません</string>
+
+    <!-- ScheduleAddTutorialDialog -->
+    <string name="dl1_schedAddTitleFab">FAB から追加</string>
+    <string name="dl1_schedAddDescFab">月表示の右下にある「+」ボタンをタップすると、\n日付を選んで予定を追加できます。</string>
+    <string name="dl1_schedAddTitleEachDay">各日から追加</string>
+    <string name="dl1_schedAddDescEachDay">週表示では、各日付の下の「+ 予定を追加」\nボタンからその日の予定を作成できます。</string>
+    <string name="dl1_schedAddTitleShortcut">ショートカット</string>
+    <string name="dl1_schedAddDescShortcut">ホーム画面のアイコンを長押しすると、\n「予定追加」を直接起動できます。</string>
+    <string name="dl1_schedAddFabHint">右下の + ボタン</string>
+    <string name="dl1_schedAddWeekButton">+ 予定を追加</string>
+    <string name="dl1_schedAddLongPress">長押し</string>
+
+    <!-- ScheduleEditTutorialDialog -->
+    <string name="dl1_schedEditTitleEdit">予定を編集</string>
+    <string name="dl1_schedEditDescEdit">予定カードをタップすると詳細が開き、\n「編集」ボタンから内容を変更できます。</string>
+    <string name="dl1_schedEditTitleDelete">予定を削除</string>
+    <string name="dl1_schedEditDescDelete">編集画面の「削除」ボタンで、\n予定を完全に削除します。</string>
+    <string name="dl1_schedEditTitleDeleteOnly">この日だけ削除</string>
+    <string name="dl1_schedEditDescDeleteOnly">複数日にまたがる予定では、\n「この日だけ削除」で他の日を残せます。\n※予定は2つに分割されます。</string>
+    <string name="dl1_schedEditSampleMeeting">会議</string>
+    <string name="dl1_schedEditLabelEdit">編集</string>
+    <string name="dl1_schedEditLabelDelete">削除</string>
+    <string name="dl1_schedEditLabelBefore">前</string>
+    <string name="dl1_schedEditLabelAfter">後</string>
+
+    <!-- SearchTutorialDialog -->
+    <string name="dl1_searchTitleSearch">予定を検索</string>
+    <string name="dl1_searchDescSearch">ヘッダーの検索アイコンから、\n予定のタイトルを検索できます。</string>
+    <string name="dl1_searchTitleRange">範囲と除外</string>
+    <string name="dl1_searchDescRange">過去2年〜未来2年が対象です。\n祝日・文化・誕生日は除外されます。\n結果をタップするとその日付へ移動します。</string>
+    <string name="dl1_searchPlaceholder">予定を検索...</string>
+    <string name="dl1_searchTwoYearsAgo">2年前</string>
+    <string name="dl1_searchTwoYearsLater">2年後</string>
+    <string name="dl1_searchExcluded">祝日・文化・誕生日は除外</string>
+
+    <!-- WelcomeDialog -->
+    <string name="dl1_welcomeUpdateSubtitle">v%1$s へアップデートしました</string>
+    <string name="dl1_welcomeStartButton">はじめる</string>
+
+    <!-- WidgetTutorialDialog -->
+    <string name="dl1_widgetTitleTypes">3種類のウィジェット</string>
+    <string name="dl1_widgetDescTypes">日間・週間・月間の3種類を、\nホーム画面に自由に配置できます。\nテーマや背景色と連動します。</string>
+    <string name="dl1_widgetTitleShortcuts">アプリショートカット</string>
+    <string name="dl1_widgetDescShortcuts">ホーム画面のアイコンを長押しすると、\n「予定追加」「今日」「検索」を\n直接起動できます。</string>
+    <string name="dl1_widgetShortcutAdd">予定追加</string>
+    <string name="dl1_widgetShortcutSearch">検索</string>
+</resources>

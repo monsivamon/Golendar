@@ -7,8 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.LIST_ROW_VERTICAL
 import com.monsivamon.golender.ui.SettingsSection
 import com.monsivamon.golender.ui.theme.AppColors
@@ -20,7 +22,7 @@ fun TutorialSection(
     viewModel: CalendarViewModel,
     colors: AppColors,
 ) {
-    SettingsSection("チュートリアル", colors) {
+    SettingsSection(stringResource(R.string.sc_tutorialSection), colors) {
         // カレンダー権限の案内を再表示
         Row(
             modifier = Modifier
@@ -33,7 +35,7 @@ fun TutorialSection(
                 .padding(vertical = LIST_ROW_VERTICAL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("カレンダーのアクセス権限を確認する", fontSize = 16.sp, color = colors.text)
+            Text(stringResource(R.string.sc_tutorialCalendarPermission), fontSize = 16.sp, color = colors.text)
         }
         // ジェスチャー操作の案内を再表示
         Row(
@@ -47,7 +49,7 @@ fun TutorialSection(
                 .padding(vertical = LIST_ROW_VERTICAL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("ジェスチャー操作の案内を見る", fontSize = 16.sp, color = colors.text)
+            Text(stringResource(R.string.sc_tutorialGesture), fontSize = 16.sp, color = colors.text)
         }
         // 地図の使い方を再表示
         Row(
@@ -61,7 +63,7 @@ fun TutorialSection(
                 .padding(vertical = LIST_ROW_VERTICAL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("地図の使い方を見る", fontSize = 16.sp, color = colors.text)
+            Text(stringResource(R.string.sc_tutorialMap), fontSize = 16.sp, color = colors.text)
         }
 
         // AI 解析の使い方を再表示
@@ -76,18 +78,18 @@ fun TutorialSection(
                 .padding(vertical = LIST_ROW_VERTICAL),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("AI解析の使い方を見る", fontSize = 16.sp, color = colors.text)
+            Text(stringResource(R.string.sc_tutorialAi), fontSize = 16.sp, color = colors.text)
         }
-        TutorialRow("カレンダーの表示と色の設定を見る", colors) { viewModel.requestShowCalendarModeTutorial() }
-        TutorialRow("月表示の下部リストを見る", colors) { viewModel.requestShowMonthViewToggleTutorial() }
-        TutorialRow("予定の追加を見る", colors) { viewModel.requestShowScheduleAddTutorial() }
-        TutorialRow("予定の編集と削除を見る", colors) { viewModel.requestShowScheduleEditTutorial() }
-        TutorialRow("繰り返し予定の使い方を見る", colors) { viewModel.requestShowRecurringTutorial() }
-        TutorialRow("写真の活用を見る", colors) { viewModel.requestShowPhotoTutorial() }
-        TutorialRow("検索の使い方を見る", colors) { viewModel.requestShowSearchTutorial() }
-        TutorialRow("通知の設定を見る", colors) { viewModel.requestShowNotificationTutorial() }
-        TutorialRow("バックアップと復元を見る", colors) { viewModel.requestShowBackupTutorial() }
-        TutorialRow("ウィジェットとショートカットを見る", colors) { viewModel.requestShowWidgetTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialCalendarDisplay), colors) { viewModel.requestShowCalendarModeTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialMonthList), colors) { viewModel.requestShowMonthViewToggleTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialScheduleAdd), colors) { viewModel.requestShowScheduleAddTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialScheduleEdit), colors) { viewModel.requestShowScheduleEditTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialRecurring), colors) { viewModel.requestShowRecurringTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialPhoto), colors) { viewModel.requestShowPhotoTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialSearch), colors) { viewModel.requestShowSearchTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialNotification), colors) { viewModel.requestShowNotificationTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialBackup), colors) { viewModel.requestShowBackupTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialWidget), colors) { viewModel.requestShowWidgetTutorial() }
     }
 }
 

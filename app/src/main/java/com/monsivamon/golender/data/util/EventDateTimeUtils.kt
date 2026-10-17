@@ -1,6 +1,8 @@
 package com.monsivamon.golender.data.util
 
+import android.content.Context
 import androidx.compose.ui.graphics.Color
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.DayOfWeek
@@ -10,6 +12,19 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.format.TextStyle
+import android.icu.text.DateTimePatternGenerator
+
+// Context から表示用 locale を取り出す
+private fun Context.displayLocale(): java.util.Locale =
+    resources.configuration.locales[0]
+
+// locale に応じた最適パターンで日付フォーマッタを組み立てる
+private fun LocalDate.formatLocal(context: Context, skeleton: String): String {
+    val locale = context.displayLocale()
+    val pattern = DateTimePatternGenerator.getInstance(locale).getBestPattern(skeleton)
+    return format(DateTimeFormatter.ofPattern(pattern, locale))
+}
 
 // 予定の日付解釈に使う TZ を返す（終日=UTC / 時間指定=システム TZ）
 fun Event.zone(): ZoneId = if (isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
@@ -38,19 +53,26 @@ fun Event.localEndDateTime(): LocalDateTime {
 }
 
 // 「09:00 - 10:00」または「終日」の形式で時刻範囲を返す
-fun Event.timeRangeString(): String {
-    if (isAllDay) return "終日"
+fun Event.timeRangeString(context: Context): String {
+    if (isAllDay) return context.getString(R.string.dt_all_day)
     val fmt = DateTimeFormatter.ofPattern("HH:mm")
     return "${localStartDateTime().format(fmt)} - ${localEndDateTime().format(fmt)}"
 }
 
-// 「2024年1月1日」または「1月1日 - 1月3日」の形式で日付範囲を返す
-fun Event.dateRangeString(): String {
+// 「2024年1月1日」（ja）/「Jan 1, 2024」（en）等、locale 適応の単日表記を返す
+fun Event.dateRangeString(context: Context): String {
     val s = localStartDate()
     val e = localEndDate()
-    return if (s == e) "${s.year}年${s.monthValue}月${s.dayOfMonth}日"
-    else "${s.monthValue}月${s.dayOfMonth}日 - ${e.monthValue}月${e.dayOfMonth}日"
+    if (s == e) return s.formatLocal(context, "yMMMMd")
+    return "${s.formatLocal(context, "MMMd")} - ${e.formatLocal(context, "MMMd")}"
 }
+
+// 「2024/1/1」（ja）/「1/1/2024」（en）等、locale 適応の年月日表記を返す
+fun LocalDate.shortDate(context: Context): String = formatLocal(context, "yMd")
+
+// 曜日を locale の短縮名（ja=「日」/ en=「Mon」/ ko=「일」）で返す
+fun DayOfWeek.dayShort(context: Context): String =
+    getDisplayName(TextStyle.SHORT, context.displayLocale())
 
 // 予定の種別に応じたアクセント色を返す
 fun Event.accentColor(colors: AppColors): Color = when {
@@ -59,17 +81,6 @@ fun Event.accentColor(colors: AppColors): Color = when {
     isCulturalEvent -> Color(0xFF4CAF50)
     else -> colors.primaryAccent
 }
-
-// 曜日を「日」〜「土」の 1 文字で返す
-fun DayOfWeek.jpShort(): String = when (this) {
-    DayOfWeek.SUNDAY -> "日";    DayOfWeek.MONDAY -> "月"
-    DayOfWeek.TUESDAY -> "火";   DayOfWeek.WEDNESDAY -> "水"
-    DayOfWeek.THURSDAY -> "木";  DayOfWeek.FRIDAY -> "金"
-    DayOfWeek.SATURDAY -> "土"
-}
-
-// jpShort() に委譲する後方互換用の曜日取得関数
-fun getJpDayOfWeek(dayOfWeek: DayOfWeek): String = dayOfWeek.jpShort()
 
 // 終日予定の補正後ミリ秒（開始・終了）を保持するデータクラス
 data class CorrectedMillis(val start: Long, val end: Long)

@@ -12,8 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.monsivamon.golender.data.Event
-import com.monsivamon.golender.data.util.getJpDayOfWeek
+import com.monsivamon.golender.data.util.dayShort
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.EventCard
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
@@ -36,20 +39,25 @@ fun DayEventsDialog(
             // 日付＋曜日と予定件数を横並びで表示する
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    "${date.monthValue}月${date.dayOfMonth}日 (${getJpDayOfWeek(date.dayOfWeek)})",
+                    stringResource(
+                        R.string.dl2_dayEventsTitle,
+                        date.monthValue,
+                        date.dayOfMonth,
+                        date.dayOfWeek.dayShort(LocalContext.current),
+                    ),
                     color = colors.text,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("${events.size}件", color = colors.textGray, fontSize = 14.sp)
+                Text(stringResource(R.string.dl2_eventCount, events.size), color = colors.textGray, fontSize = 14.sp)
             }
         },
         text = {
             // 予定が無い場合と一覧表示を分ける
             if (events.isEmpty()) {
                 Text(
-                    "予定なし",
+                    stringResource(R.string.dl2_noEvents),
                     color = colors.textGray,
                     fontSize = 16.sp,
                     modifier = Modifier.padding(vertical = 16.dp),
@@ -74,12 +82,12 @@ fun DayEventsDialog(
         confirmButton = {
             // この日付で新規予定追加
             TextButton(onClick = onAddEvent) {
-                Text("+ 予定を追加", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.dl2_addEvent), color = colors.primaryAccent, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("閉じる", color = colors.textGray)
+                Text(stringResource(R.string.dl2_close), color = colors.textGray)
             }
         },
     )

@@ -3,12 +3,15 @@ package com.monsivamon.golender.viewmodel
 import android.content.Context
 import android.net.Uri
 import androidx.datastore.preferences.core.edit
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.CalendarRepository
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.LocalCalendar
 import com.monsivamon.golender.data.LocalEvent
 import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.data.LocalCalendarNames
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.data.prefs.SettingsKeys
 import com.monsivamon.golender.data.util.PhotoStorage
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +33,13 @@ class BackupManager(
     private val context: Context,
     private val repository: CalendarRepository,
 ) {
+    // ユーザー向け文字列の解決先 Context。
+    // ViewModel にはシステムロケールの Application Context が渡り、Activity 再生成でも
+    // ViewModel は破棄されないため、文字列の解決時に毎回アプリ内言語を差し込む
+    // （DataStore は需求後にメモリキャッシュされるため低コスト）。
+    private val uic: Context
+        get() = LanguageSetting.wrap(context)
+
     sealed class Result {
         data class Success(val message: String) : Result()
         data class Failure(val message: String) : Result()
@@ -81,11 +91,11 @@ class BackupManager(
         try {
             if (includePhotos) exportZip(uri, calendarMode, selectedCalendars, onProgress)
             else {
-                onProgress?.invoke("バックアップを作成中", 0, 0)
+                onProgress?.invoke(uic.getString(R.string.vm_progress_creating_backup), 0, 0)
                 exportJson(uri, calendarMode, selectedCalendars)
             }
         } catch (e: Exception) {
-            Result.Failure("バックアップに失敗しました: ${e.message}")
+            Result.Failure(uic.getString(R.string.vm_backup_failed, e.message ?: uic.getString(R.string.vm_unknown_error)))
         }
     }
 
@@ -104,7 +114,7 @@ class BackupManager(
             }
         }
         context.contentResolver.openOutputStream(uri)?.use { it.write(root.toString().toByteArray()) }
-        return Result.Success("バックアップが完了しました（${sources.length()} カレンダー / ${events.size} 件）")
+        return Result.Success(uic.getString(R.string.vm_backup_complete_calendars, sources.length(), events.size))
     }
 
     private suspend fun exportZip(
@@ -112,7 +122,7 @@ class BackupManager(
         onProgress: ((phase: String, current: Int, total: Int) -> Unit)?,
     ): Result {
         if (calendarMode != CalendarMode.GOLENDAR) {
-            return Result.Failure("写真付きバックアップは Golendar モードでのみ利用できます")
+            return Result.Failure(uic.getString(R.string.vm_backup_zip_google_only_export))
         }
         val prefs = context.dataStore.data.first()
         val (events, sources) = collectEventsWithSources(calendarMode, selectedCalendars)
@@ -137,7 +147,7 @@ class BackupManager(
             put("local_calendars", BackupJsonUtils.localCalendarsToJson(repository.getAllLocalCalendars()))
         }
         val photoCount = photoMap.values.sumOf { it.size }
-        onProgress?.invoke("マニフェストを準備中", 0, photoCount)
+        onProgress?.invoke(uic.getString(R.string.vm_progress_preparing_manifest), 0, photoCount)
 
         val manifest = JSONObject().apply {
             put("app", APP_MARKER)
@@ -150,11 +160,11 @@ class BackupManager(
 
         context.contentResolver.openOutputStream(uri)?.use { rawOut ->
             ZipOutputStream(BufferedOutputStream(rawOut)).use { zos ->
-                onProgress?.invoke("マニフェストを書き込み中", 0, photoCount)
+                onProgress?.invoke(uic.getString(R.string.vm_progress_writing_manifest), 0, photoCount)
                 zos.putNextEntry(ZipEntry(MANIFEST_ENTRY))
                 zos.write(manifest.toString().toByteArray()); zos.closeEntry()
 
-                onProgress?.invoke("データを書き込み中", 0, photoCount)
+                onProgress?.invoke(uic.getString(R.string.vm_progress_writing_data), 0, photoCount)
                 zos.putNextEntry(ZipEntry(DATA_ENTRY))
                 zos.write(data.toString().toByteArray()); zos.closeEntry()
 
@@ -167,12 +177,12 @@ class BackupManager(
                         zos.closeEntry()
                     }
                     donePhotos++
-                    onProgress?.invoke("写真を書き出し中", donePhotos, photoCount)
+                    onProgress?.invoke(uic.getString(R.string.vm_progress_writing_photos), donePhotos, photoCount)
                 }
                 zos.finish()
             }
         }
-        return Result.Success("バックアップが完了しました（${sources.length()} カレンダー / ${events.size} 件 / 写真 $photoCount 枚）")
+        return Result.Success(uic.getString(R.string.vm_backup_complete_calendars_photos, sources.length(), events.size, photoCount))
     }
 
     // 可視カレンダーのみを対象に、イベントと source_calendars を同時収集する
@@ -187,7 +197,7 @@ class BackupManager(
             for (cal in visible) {
                 sources.put(JSONObject().apply {
                     put("id", cal.calendarId)
-                    put("name", cal.displayName.ifBlank { "名称未設定" })
+                    put("name", cal.displayName.ifBlank { uic.getString(R.string.vm_unnamed_calendar) })
                     put("colorArgb", cal.colorArgb)
                 })
             }
@@ -202,7 +212,8 @@ class BackupManager(
             for (cal in visibleCals) {
                 sources.put(JSONObject().apply {
                     put("id", cal.id)
-                    put("name", cal.name)
+                    // 既定カレンダーの空文字センチネルは locale 名に展開して書き出す
+                    put("name", LocalCalendarNames.resolveExport(context, cal))
                     put("colorArgb", cal.colorArgb)
                 })
             }
@@ -278,7 +289,7 @@ class BackupManager(
                 val o = arr.getJSONObject(i)
                 list.add(SourceCalendarInfo(
                     id = o.optLong("id", 0L),
-                    name = o.optString("name", "名称未設定"),
+                    name = o.optString("name", uic.getString(R.string.vm_unnamed_calendar)),
                     colorArgb = o.optInt("colorArgb", 0),
                 ))
             }
@@ -287,7 +298,7 @@ class BackupManager(
         // 旧形式は常に「マイカレンダー（既定）」扱い。
         // 復元先は RestoreOptionsDialog を経由せず、BackupSection 側で
         // 既定ローカルカレンダーに固定される（isLegacyFormat=true）。
-        return listOf(SourceCalendarInfo(0L, "マイカレンダー", 0))
+        return listOf(SourceCalendarInfo(0L, uic.getString(R.string.vm_my_calendar), 0))
     }
 
     // source_calendars を持つ新形式かどうかを判定する（旧形式なら false）
@@ -312,11 +323,11 @@ class BackupManager(
                     (h[2] == 0x03.toByte() || h[2] == 0x05.toByte() || h[2] == 0x07.toByte())
             if (isZip) importZip(uri, isAppend, calendarMode, selectedCalendars, options, onProgress)
             else {
-                onProgress?.invoke("インポート中", 0, 0)
+                onProgress?.invoke(uic.getString(R.string.vm_progress_importing), 0, 0)
                 importJson(uri, isAppend, calendarMode, selectedCalendars, options, onProgress)
             }
         } catch (e: Exception) {
-            Result.Failure("復元に失敗しました: ${e.message}")
+            Result.Failure(uic.getString(R.string.vm_restore_failed, e.message ?: uic.getString(R.string.vm_unknown_error)))
         }
     }
 
@@ -328,16 +339,18 @@ class BackupManager(
     ): Result {
         // Google モードでの上書き復元は対象カレンダーを選択できる場合のみ許可
         if (calendarMode == CalendarMode.GOOGLE && !isAppend && options.targetGoogleCalendarId == null) {
-            return Result.Failure("Googleモードでは復元先カレンダーを選択してください")
+            return Result.Failure(uic.getString(R.string.vm_select_restore_target_google))
         }
         val json = context.contentResolver.openInputStream(uri)?.use {
             it.bufferedReader().use { r -> r.readText() }
-        } ?: return Result.Failure("ファイルが開けませんでした")
+        } ?: return Result.Failure(uic.getString(R.string.vm_file_not_opened))
         val root = JSONObject(json)
 
-        // 復元時のみ設定を反映する（追記時は現状設定を保持）
+        // 復元時のみ設定を反映する（追記時は現状設定を保持）。
+        // 旧形式バックアップでの calendar_mode の意図しない上書きを防ぐため、
+        // 新形式（source_calendars 持ち）のときだけモードを復元する。
         if (!isAppend && root.has("settings")) {
-            applySettingsJson(root.getJSONObject("settings"))
+            applySettingsJson(root.getJSONObject("settings"), hasSourceCalendars(root))
         }
 
         val eventsArr = root.optJSONArray("events") ?: JSONArray()
@@ -361,22 +374,22 @@ class BackupManager(
         onProgress: ((phase: String, current: Int, total: Int) -> Unit)?,
     ): Result {
         if (calendarMode != CalendarMode.GOLENDAR) {
-            return Result.Failure("写真付きバックアップは Golendar モードでのみ復元できます")
+            return Result.Failure(uic.getString(R.string.vm_backup_zip_google_only_restore))
         }
         if (options.targetLocalCalendarId == null && !options.autoCreateMissingCalendars) {
-            return Result.Failure("復元先カレンダーを選択してください")
+            return Result.Failure(uic.getString(R.string.vm_select_restore_target))
         }
-        // 上書き復元のときのみ既存写真を全削除
-        if (!isAppend) {
-            PhotoStorage.deleteAllFiles(context)
-            repository.deleteAllPhotoRecords()
-        }
+        // 上書き復元の既存写真の掃除はしない。
+        // overwrite 対象カレンダーの既存予定は下の削除フェーズで deleteLocalEvent により
+        // 写真ファイル・レコードごと消えるため、ここで全消去すると
+        // 復元対象外カレンダーの写真まで失われる（全消去は撤去済み）。
+        // 新規抽出ファイルの名前はユニークなので解析中に既存写真と衝突しない。
         var manifestOk = false
         var dataJson: String? = null
         val extracted = mutableMapOf<String, String>()
         var totalPhotos = 0
         var donePhotos = 0
-        onProgress?.invoke("ファイルを準備中", 0, 0)
+        onProgress?.invoke(uic.getString(R.string.vm_progress_preparing_file), 0, 0)
         context.contentResolver.openInputStream(uri)?.use { rawIn ->
             val zis = ZipInputStream(BufferedInputStream(rawIn))
             var entry: ZipEntry? = zis.nextEntry
@@ -386,11 +399,11 @@ class BackupManager(
                     name == MANIFEST_ENTRY -> {
                         val m = JSONObject(zis.readBytes().toString(Charsets.UTF_8))
                         if (m.optString("app") != APP_MARKER) {
-                            return Result.Failure("このファイルは Golendar のバックアップではありません")
+                            return Result.Failure(uic.getString(R.string.vm_not_golendar_backup))
                         }
                         manifestOk = true
                         totalPhotos = m.optInt("photo_count", 0)
-                        onProgress?.invoke("写真を展開中", 0, totalPhotos)
+                        onProgress?.invoke(uic.getString(R.string.vm_progress_extracting_photos), 0, totalPhotos)
                     }
                     name == DATA_ENTRY -> dataJson = zis.readBytes().toString(Charsets.UTF_8)
                     name.startsWith(PHOTO_DIR_PREFIX) && !entry.isDirectory -> {
@@ -398,19 +411,19 @@ class BackupManager(
                         val newName = PhotoStorage.saveBytes(context, zis.readBytes())
                         if (newName != null) extracted[orig] = newName
                         donePhotos++
-                        onProgress?.invoke("写真を展開中", donePhotos, totalPhotos)
+                        onProgress?.invoke(uic.getString(R.string.vm_progress_extracting_photos), donePhotos, totalPhotos)
                     }
                 }
                 zis.closeEntry()
                 entry = zis.nextEntry
             }
         }
-        if (!manifestOk) return Result.Failure("このファイルは Golendar のバックアップではありません")
-        val json = dataJson ?: return Result.Failure("バックアップデータが破損しています")
+        if (!manifestOk) return Result.Failure(uic.getString(R.string.vm_not_golendar_backup))
+        val json = dataJson ?: return Result.Failure(uic.getString(R.string.vm_backup_data_corrupted))
         val root = JSONObject(json)
 
         if (!isAppend && root.has("settings")) {
-            applySettingsJson(root.getJSONObject("settings"))
+            applySettingsJson(root.getJSONObject("settings"), hasSourceCalendars(root))
         }
 
         val eventsArr = root.optJSONArray("events") ?: JSONArray()
@@ -422,11 +435,14 @@ class BackupManager(
         // ---- Golendar: 同名カレンダー自動作成モード ----
         if (options.autoCreateMissingCalendars) {
             val auto = buildAutoCreateMapping(sources, selected)
-                ?: return Result.Failure("マイカレンダーが見つかりません")
+                ?: return Result.Failure(uic.getString(R.string.vm_my_calendar_not_found))
             if (!isAppend) {
-                repository.getAllLocalEvents()
+                val ids = repository.getAllLocalEvents()
                     .filter { it.calendarId in auto.allTargetIds }
-                    .forEach { repository.deleteLocalEvent(it.id) }
+                    .map { it.id }
+                repository.withTransaction {
+                    ids.forEach { repository.deleteLocalEvent(it) }
+                }
             }
             val sigsByTarget = mutableMapOf<Long, MutableSet<String>>()
             if (isAppend) {
@@ -439,33 +455,37 @@ class BackupManager(
                 }
             }
             var inserted = 0
-            for ((ev, photos) in pairs) {
-                if (ev.description == LocalEvent.DESCRIPTION_HOLIDAY) continue
-                if (ev.calendarId !in selected) continue
-                val targetId = auto.mapping[ev.calendarId] ?: auto.defaultTargetId
-                val sigs = sigsByTarget.getOrPut(targetId) { mutableSetOf() }
-                val sig = eventSignature(ev.title, ev.startTime, ev.endTime, ev.isAllDay)
-                if (isAppend && sig in sigs) continue
-                val newId = repository.insertLocalEvent(
-                    ev.title, ev.startTime, ev.endTime, ev.isAllDay,
-                    ev.location, ev.description, ev.rrule, targetId,
-                )
-                photos.forEachIndexed { i, (fn, _) -> repository.importPhotoRecord(newId, fn, i) }
-                sigs.add(sig)
-                inserted++
+            repository.withTransaction {
+                for ((ev, photos) in pairs) {
+                    if (ev.description == LocalEvent.DESCRIPTION_HOLIDAY) continue
+                    if (ev.calendarId !in selected) continue
+                    val targetId = auto.mapping[ev.calendarId] ?: auto.defaultTargetId
+                    val sigs = sigsByTarget.getOrPut(targetId) { mutableSetOf() }
+                    val sig = eventSignature(ev.title, ev.startTime, ev.endTime, ev.isAllDay)
+                    if (isAppend && sig in sigs) continue
+                    val newId = repository.insertLocalEvent(
+                        ev.title, ev.startTime, ev.endTime, ev.isAllDay,
+                        ev.location, ev.description, ev.rrule, targetId,
+                    )
+                    photos.forEachIndexed { i, (fn, _) -> repository.importPhotoRecord(newId, fn, i) }
+                    sigs.add(sig)
+                    inserted++
+                }
             }
-            val msg = if (auto.createdCount > 0) " / 新規カレンダー ${auto.createdCount} 件" else ""
+            val msg = if (auto.createdCount > 0) uic.getString(R.string.vm_msg_new_calendars, auto.createdCount) else ""
             return Result.Success(
-                if (isAppend) "追記しました（$inserted 件 / 写真 ${extracted.size} 枚$msg）"
-                else "復元しました（$inserted 件 / 写真 ${extracted.size} 枚$msg）"
+                if (isAppend) uic.getString(R.string.vm_append_complete_calendars_photos_msg, inserted, extracted.size, msg)
+                else uic.getString(R.string.vm_restore_complete_calendars_photos_msg, inserted, extracted.size, msg)
             )
         }
 
         // ---- 単一の復元先カレンダーへ書き込む（従来の動作） ----
-        val target = options.targetLocalCalendarId ?: return Result.Failure("復元先カレンダーが選択されていません")
+        val target = options.targetLocalCalendarId ?: return Result.Failure(uic.getString(R.string.vm_restore_target_not_selected))
         if (!isAppend) {
-            val existing = repository.getAllLocalEvents().filter { it.calendarId == target }
-            for (ev in existing) repository.deleteLocalEvent(ev.id)
+            val ids = repository.getAllLocalEvents().filter { it.calendarId == target }.map { it.id }
+            repository.withTransaction {
+                ids.forEach { repository.deleteLocalEvent(it) }
+            }
         }
 
         // 追記時は既存予定からシグネチャ集合を作り、重複挿入を防ぐ
@@ -477,22 +497,24 @@ class BackupManager(
         }
 
         var inserted = 0
-        for ((ev, photos) in pairs) {
-            if (ev.description == LocalEvent.DESCRIPTION_HOLIDAY) continue
-            if (ev.calendarId !in selected) continue
-            val sig = eventSignature(ev.title, ev.startTime, ev.endTime, ev.isAllDay)
-            if (isAppend && sig in signatures) continue
-            val newId = repository.insertLocalEvent(
-                ev.title, ev.startTime, ev.endTime, ev.isAllDay,
-                ev.location, ev.description, ev.rrule, target,
-            )
-            photos.forEachIndexed { i, (fn, _) -> repository.importPhotoRecord(newId, fn, i) }
-            signatures.add(sig)
-            inserted++
+        repository.withTransaction {
+            for ((ev, photos) in pairs) {
+                if (ev.description == LocalEvent.DESCRIPTION_HOLIDAY) continue
+                if (ev.calendarId !in selected) continue
+                val sig = eventSignature(ev.title, ev.startTime, ev.endTime, ev.isAllDay)
+                if (isAppend && sig in signatures) continue
+                val newId = repository.insertLocalEvent(
+                    ev.title, ev.startTime, ev.endTime, ev.isAllDay,
+                    ev.location, ev.description, ev.rrule, target,
+                )
+                photos.forEachIndexed { i, (fn, _) -> repository.importPhotoRecord(newId, fn, i) }
+                signatures.add(sig)
+                inserted++
+            }
         }
         return Result.Success(
-            if (isAppend) "追記しました（$inserted 件 / 写真 ${extracted.size} 枚）"
-            else "復元しました（$inserted 件 / 写真 ${extracted.size} 枚）"
+            if (isAppend) uic.getString(R.string.vm_append_complete_calendars_photos, inserted, extracted.size)
+            else uic.getString(R.string.vm_restore_complete_calendars_photos, inserted, extracted.size)
         )
     }
 
@@ -513,7 +535,7 @@ class BackupManager(
 
         if (calendarMode == CalendarMode.GOOGLE) {
             val target = options.targetGoogleCalendarId
-                ?: return Result.Failure("復元先カレンダーが選択されていません")
+                ?: return Result.Failure(uic.getString(R.string.vm_restore_target_not_selected))
 
             // 追記時は既存予定からシグネチャ集合を作る
             val signatures = mutableSetOf<String>()
@@ -538,8 +560,8 @@ class BackupManager(
             }
             val skipped = filtered.size - inserted
             return Result.Success(
-                if (isAppend) "追記しました（$inserted 件 / 重複スキップ $skipped 件）"
-                else "復元しました（$inserted 件）"
+                if (isAppend) uic.getString(R.string.vm_append_complete_skipped_duplicates, inserted, skipped)
+                else uic.getString(R.string.vm_restore_complete_count, inserted)
             )
         } else {
             // Golendar モード: 同名カレンダー自動作成モード
@@ -548,10 +570,12 @@ class BackupManager(
             }
 
             val target = options.targetLocalCalendarId
-                ?: return Result.Failure("復元先カレンダーが選択されていません")
+                ?: return Result.Failure(uic.getString(R.string.vm_restore_target_not_selected))
             if (!isAppend) {
-                val existing = repository.getAllLocalEvents().filter { it.calendarId == target }
-                for (ev in existing) repository.deleteLocalEvent(ev.id)
+                val ids = repository.getAllLocalEvents().filter { it.calendarId == target }.map { it.id }
+                repository.withTransaction {
+                    ids.forEach { repository.deleteLocalEvent(it) }
+                }
             }
 
             // 追記時は既存予定からシグネチャ集合を作る
@@ -563,20 +587,22 @@ class BackupManager(
             }
 
             var inserted = 0
-            for (ev in filtered) {
-                val sig = eventSignature(ev.title, ev.startTime, ev.endTime, ev.isAllDay)
-                if (isAppend && sig in signatures) continue
-                repository.insertLocalEvent(
-                    ev.title, ev.startTime, ev.endTime, ev.isAllDay,
-                    ev.location, ev.description, ev.rrule, target,
-                )
-                signatures.add(sig)
-                inserted++
+            repository.withTransaction {
+                for (ev in filtered) {
+                    val sig = eventSignature(ev.title, ev.startTime, ev.endTime, ev.isAllDay)
+                    if (isAppend && sig in signatures) continue
+                    repository.insertLocalEvent(
+                        ev.title, ev.startTime, ev.endTime, ev.isAllDay,
+                        ev.location, ev.description, ev.rrule, target,
+                    )
+                    signatures.add(sig)
+                    inserted++
+                }
             }
             val skipped = filtered.size - inserted
             return Result.Success(
-                if (isAppend) "追記しました（$inserted 件 / 重複スキップ $skipped 件）"
-                else "復元しました（$inserted 件）"
+                if (isAppend) uic.getString(R.string.vm_append_complete_skipped_duplicates, inserted, skipped)
+                else uic.getString(R.string.vm_restore_complete_count, inserted)
             )
         }
     }
@@ -591,12 +617,15 @@ class BackupManager(
         isAppend: Boolean,
     ): Result {
         val auto = buildAutoCreateMapping(sources, selectedSourceIds)
-            ?: return Result.Failure("マイカレンダーが見つかりません")
+            ?: return Result.Failure(uic.getString(R.string.vm_my_calendar_not_found))
 
         if (!isAppend) {
-            repository.getAllLocalEvents()
+            val ids = repository.getAllLocalEvents()
                 .filter { it.calendarId in auto.allTargetIds }
-                .forEach { repository.deleteLocalEvent(it.id) }
+                .map { it.id }
+            repository.withTransaction {
+                ids.forEach { repository.deleteLocalEvent(it) }
+            }
         }
         val sigsByTarget = mutableMapOf<Long, MutableSet<String>>()
         if (isAppend) {
@@ -609,22 +638,24 @@ class BackupManager(
             }
         }
         var inserted = 0
-        for (ev in filtered) {
-            val targetId = auto.mapping[ev.calendarId] ?: auto.defaultTargetId
-            val sigs = sigsByTarget.getOrPut(targetId) { mutableSetOf() }
-            val sig = eventSignature(ev.title, ev.startTime, ev.endTime, ev.isAllDay)
-            if (isAppend && sig in sigs) continue
-            repository.insertLocalEvent(
-                ev.title, ev.startTime, ev.endTime, ev.isAllDay,
-                ev.location, ev.description, ev.rrule, targetId,
-            )
-            sigs.add(sig)
-            inserted++
+        repository.withTransaction {
+            for (ev in filtered) {
+                val targetId = auto.mapping[ev.calendarId] ?: auto.defaultTargetId
+                val sigs = sigsByTarget.getOrPut(targetId) { mutableSetOf() }
+                val sig = eventSignature(ev.title, ev.startTime, ev.endTime, ev.isAllDay)
+                if (isAppend && sig in sigs) continue
+                repository.insertLocalEvent(
+                    ev.title, ev.startTime, ev.endTime, ev.isAllDay,
+                    ev.location, ev.description, ev.rrule, targetId,
+                )
+                sigs.add(sig)
+                inserted++
+            }
         }
-        val msg = if (auto.createdCount > 0) " / 新規カレンダー ${auto.createdCount} 件" else ""
+        val msg = if (auto.createdCount > 0) uic.getString(R.string.vm_msg_new_calendars, auto.createdCount) else ""
         return Result.Success(
-            if (isAppend) "追記しました（$inserted 件$msg）"
-            else "復元しました（$inserted 件$msg）"
+            if (isAppend) uic.getString(R.string.vm_append_complete_msg, inserted, msg)
+            else uic.getString(R.string.vm_restore_complete_msg, inserted, msg)
         )
     }
 
@@ -654,7 +685,14 @@ class BackupManager(
                 mapping[0L] = defaultCal.id
                 continue
             }
-            val existing = localCalendars.firstOrNull { it.name == src.name }
+            val existing = localCalendars.firstOrNull { cal ->
+                cal.name == src.name || (
+                    // 既定カレンダーの空文字センチネルは locale 名としてバックアップに
+                    // 書き出されるため、全ロケールの既定名のいずれかと一致する
+                    // ケースも既定へ送る（他 locale 端末で書き出したバックアップ対応）
+                    cal.isDefault && cal.name.isEmpty() && src.name in LocalCalendarNames.allDefaultNames(uic)
+                )
+            }
             val targetId: Long = if (existing != null) {
                 existing.id
             } else {
@@ -705,11 +743,14 @@ class BackupManager(
         } catch (_: Exception) { null }
     }
 
-    private suspend fun applySettingsJson(s: JSONObject) {
+    private suspend fun applySettingsJson(s: JSONObject, restoreMode: Boolean = true) {
         context.dataStore.edit { prefs ->
             if (s.has("theme_mode")) prefs[SettingsKeys.THEME] = s.getString("theme_mode")
             if (s.has("week_start_day")) prefs[SettingsKeys.WEEK_START] = s.getString("week_start_day")
-            if (s.has("calendar_mode")) prefs[SettingsKeys.MODE] = s.getString("calendar_mode")
+            // calendar_mode は旧形式バックアップからの復元では上書きしない。
+            // 復元をきっかけに Golendar / Google モードが意図せず切り替わるのを防ぐ
+            // （新形式バックアップでは現在の設定をそのまま反映する）。
+            if (restoreMode && s.has("calendar_mode")) prefs[SettingsKeys.MODE] = s.getString("calendar_mode")
             if (s.has("calendar_bg_color")) {
                 val v = s.getString("calendar_bg_color")
                 // 旧Verバックアップでは色が UNSPECIFIED で保存されていることがある。

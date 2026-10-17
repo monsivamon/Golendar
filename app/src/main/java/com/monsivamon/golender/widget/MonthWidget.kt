@@ -3,17 +3,19 @@ package com.monsivamon.golender.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.unit.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -28,6 +30,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import com.monsivamon.golender.MainActivity
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.ui.Routes
 import java.time.DayOfWeek
 
@@ -35,8 +39,15 @@ import java.time.DayOfWeek
 class MonthWidget : GlanceAppWidget() {
     // ウィジェットの表示内容を構築する
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = WidgetDataManager.getMonthWidgetData(context)
-        provideContent { MonthWidgetContent(data) }
+        // Glance の描画は WorkManager 内部 Context（システムロケール）で行われるため、
+        // アプリ内言語設定を反映した Context をローカルで差し込む
+        val localized = LanguageSetting.wrap(context)
+        val data = WidgetDataManager.getMonthWidgetData(localized)
+        provideContent {
+            CompositionLocalProvider(LocalWidgetLocalizedContext provides localized) {
+                MonthWidgetContent(data)
+            }
+        }
     }
 }
 
@@ -44,7 +55,7 @@ class MonthWidget : GlanceAppWidget() {
 @Composable
 fun MonthWidgetContent(data: MonthWidgetData) {
     // 表示に必要なパラメータを取得する
-    val context = LocalContext.current
+    val context = LocalWidgetLocalizedContext.current
     val yearMonth = data.yearMonth
     val events = data.events
     val weekStartDay = data.weekStartDay
@@ -73,23 +84,33 @@ fun MonthWidgetContent(data: MonthWidgetData) {
         // 内側パネル（surface 色の枠）
         Column(modifier = GlanceModifier.fillMaxSize().background(wc.surface).padding(12.dp)) {
             // 共通ヘッダー（タイトル＋更新＋設定）
-            WidgetHeader(title = "${yearMonth.year}年 ${yearMonth.monthValue}月", colors = wc)
+            WidgetHeader(title = context.getString(R.string.wd_widgetMonthTitle, yearMonth.year, yearMonth.monthValue), colors = wc)
 
             Spacer(modifier = GlanceModifier.height(4.dp))
 
             // 曜日ヘッダー（週の始まり設定に応じて並び替え）
-            val allDays = listOf("日", "月", "火", "水", "木", "金", "土")
+            val weekdayPairs = listOf(
+                DayOfWeek.SUNDAY to context.getString(R.string.wd_weekDaySun),
+                DayOfWeek.MONDAY to context.getString(R.string.wd_weekDayMon),
+                DayOfWeek.TUESDAY to context.getString(R.string.wd_weekDayTue),
+                DayOfWeek.WEDNESDAY to context.getString(R.string.wd_weekDayWed),
+                DayOfWeek.THURSDAY to context.getString(R.string.wd_weekDayThu),
+                DayOfWeek.FRIDAY to context.getString(R.string.wd_weekDayFri),
+                DayOfWeek.SATURDAY to context.getString(R.string.wd_weekDaySat),
+            )
             val startIndex = if (weekStartDay == DayOfWeek.MONDAY) 1 else 0
-            val orderedWeekDays = allDays.drop(startIndex) + allDays.take(startIndex)
+            val orderedWeekDays = weekdayPairs.drop(startIndex) + weekdayPairs.take(startIndex)
 
-            // 曜日ラベルを 1 行で描画する（日=赤、土=青）
+            // 曜日ラベルを 1 行で描画する（アプリ内の曜日別文字色設定を反映。
+            // 未設定時は日=赤・土=青、「標準」明示選択時は通常文字色）
             Row(modifier = GlanceModifier.fillMaxWidth()) {
-                orderedWeekDays.forEach { day ->
-                    val color = when (day) {
-                        "日" -> wc.sunRed
-                        "土" -> wc.satBlue
-                        else -> wc.text
-                    }
+                orderedWeekDays.forEach { (dayEnum, day) ->
+                    val color = dayColorProvider(data.dayColors[dayEnum])
+                        ?: when (dayEnum) {
+                            DayOfWeek.SUNDAY -> wc.sunRed
+                            DayOfWeek.SATURDAY -> wc.satBlue
+                            else -> wc.text
+                        }
                     Text(
                         text = day,
                         style = TextStyle(
@@ -123,12 +144,17 @@ fun MonthWidgetContent(data: MonthWidgetData) {
                         val hasEvent = events[date]?.isNotEmpty() == true
                         val dayOfWeek = date.dayOfWeek.value
 
-                        // 当月外・日曜・土曜・通常で文字色を切り替え
-                        val textColorForDate = when {
-                            !isCurrentMonth -> wc.textGray
-                            dayOfWeek == 7 -> wc.sunRed
-                            dayOfWeek == 6 -> wc.satBlue
-                            else -> wc.text
+                        // 当月外はグレー。当月は曜日別文字色設定を反映する
+                        //（未設定時は日=赤・土=青・平日=通常、「標準」明示選択時は通常文字色）
+                        val textColorForDate = if (!isCurrentMonth) {
+                            wc.textGray
+                        } else {
+                            dayColorProvider(data.dayColors[date.dayOfWeek])
+                                ?: when (dayOfWeek) {
+                                    7 -> wc.sunRed
+                                    6 -> wc.satBlue
+                                    else -> wc.text
+                                }
                         }
 
                         // セル 1 つ分（日付＋ドット）を描画する

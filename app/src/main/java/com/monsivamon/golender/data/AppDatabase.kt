@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // ローカル予定と添付写真とローカルカレンダーを管理する Room データベース
 @Database(
     entities = [LocalEvent::class, EventPhoto::class, LocalCalendar::class],
-    version = 8,
+    version = 9,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -66,10 +66,11 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 // 既定カレンダーを 1 件投入する。
                 // 色は 0（自動割り当て）とし、テーマに応じたパレット色を実行時に解決する。
+                // 名前は空文字センチネルとし、表示時に locale の文字列リソースへ解決する。
                 val now = System.currentTimeMillis()
                 db.execSQL(
                     "INSERT INTO `local_calendars` (`name`, `colorArgb`, `isVisible`, `sortOrder`, `isDefault`, `createdAt`) " +
-                    "VALUES ('マイカレンダー', 0, 1, 0, 1, $now)"
+                    "VALUES ('', 0, 1, 0, 1, $now)"
                 )
                 // 既存予定に calendarId 列を追加する
                 db.execSQL("ALTER TABLE `local_events` ADD COLUMN `calendarId` INTEGER NOT NULL DEFAULT 0")
@@ -118,6 +119,19 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // v8 → v9 : 既定カレンダー名「マイカレンダー」を空文字センチネルへ移行する。
+        //           表示時に locale の文字列リソース（default_calendar_name）へ動的に
+        //           解決するため、DB 上では名前を持たない。ユーザーが既定カレンダーの
+        //           名前を変更している場合は触らない（名前変更APIで空文字は入らない想定）。
+        private val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "UPDATE `local_calendars` SET `name` = '' " +
+                    "WHERE `isDefault` = 1 AND `name` = 'マイカレンダー'"
+                )
+            }
+        }
+
         // 初回インストール時は Room が新規 DB を作るだけでマイグレーションは走らない。
         // その結果 local_calendars が空のままになり、既定カレンダー（マイカレンダー）が
         // 存在しない状態になる。onCreate / onOpen のタイミングで 1 件だけ投入し、
@@ -142,7 +156,7 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL(
                     "INSERT INTO `local_calendars` " +
                         "(`name`, `colorArgb`, `isVisible`, `sortOrder`, `isDefault`, `createdAt`) " +
-                        "VALUES ('マイカレンダー', 0, 1, 0, 1, $now)"
+                        "VALUES ('', 0, 1, 0, 1, $now)"
                 )
             }
         }
@@ -154,7 +168,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "golendar_database"
                 )
-                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                     .addCallback(SEED_DEFAULT_CALENDAR_CALLBACK)
                     .build()
                 INSTANCE = instance

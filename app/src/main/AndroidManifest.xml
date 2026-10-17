@@ -29,6 +29,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:localeConfig="@xml/locale_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
@@ -69,7 +70,7 @@
         <!-- 1日の予定ウィジェット -->
         <receiver
             android:name=".widget.DayWidgetReceiver"
-            android:label="1日の予定"
+            android:label="@string/widget_day_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -82,7 +83,7 @@
         <!-- 週間カレンダーウィジェット -->
         <receiver
             android:name=".widget.WeekWidgetReceiver"
-            android:label="週間カレンダー"
+            android:label="@string/widget_week_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -95,7 +96,7 @@
         <!-- 月間カレンダーウィジェット -->
         <receiver
             android:name=".widget.MonthWidgetReceiver"
-            android:label="月間カレンダー"
+            android:label="@string/widget_month_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

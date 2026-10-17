@@ -21,8 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.data.source.CalendarMeta
 import com.monsivamon.golender.ui.theme.AppColors
@@ -43,16 +45,16 @@ fun CalendarSelectionDialog(
         AlertDialog(
             onDismissRequest = { showWarning = false },
             containerColor = colors.surface,
-            title = { Text("警告", color = colors.text, fontWeight = FontWeight.Bold) },
-            text = { Text("カレンダーが1つも選択されていません。このままでは予定が表示されません。続行しますか？", color = colors.text) },
+            title = { Text(stringResource(R.string.dl2_warning), color = colors.text, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.dl2_calendarSelectionEmptyWarning), color = colors.text) },
             confirmButton = {
                 TextButton(onClick = {
                     showWarning = false
                     onComplete(emptyList())
-                }) { Text("続行", color = colors.sunRed, fontWeight = FontWeight.Bold) }
+                }) { Text(stringResource(R.string.dl2_proceed), color = colors.sunRed, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showWarning = false }) { Text("戻る", color = colors.primaryAccent) }
+                TextButton(onClick = { showWarning = false }) { Text(stringResource(R.string.dl2_goBack), color = colors.primaryAccent) }
             }
         )
     }
@@ -74,15 +76,15 @@ fun CalendarSelectionDialog(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 24.dp, vertical = 20.dp)
                 ) {
-                    Text("表示するカレンダーを選択", style = androidx.compose.material3.MaterialTheme.typography.titleLarge, color = colors.text)
+                    Text(stringResource(R.string.dl2_calendarSelectionTitle), style = androidx.compose.material3.MaterialTheme.typography.titleLarge, color = colors.text)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("表示したいカレンダーにチェックを入れてください。後から設定画面で変更できます。", color = colors.textGray, fontSize = 14.sp)
+                    Text(stringResource(R.string.dl2_calendarSelectionDesc), color = colors.textGray, fontSize = 14.sp)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // 全て選択／全て解除ボタン
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = { selectedIds = calendars.map { it.id }.toSet() }) { Text("全て選択", color = colors.primaryAccent) }
-                        TextButton(onClick = { selectedIds = emptySet() }) { Text("全て解除", color = colors.primaryAccent) }
+                        TextButton(onClick = { selectedIds = calendars.map { it.id }.toSet() }) { Text(stringResource(R.string.dl2_selectAllCalendar), color = colors.primaryAccent) }
+                        TextButton(onClick = { selectedIds = emptySet() }) { Text(stringResource(R.string.dl2_deselectAll), color = colors.primaryAccent) }
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -112,7 +114,7 @@ fun CalendarSelectionDialog(
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
-                                    meta.displayName.ifBlank { "名称未設定" },
+                                    meta.displayName.ifBlank { stringResource(R.string.dl2_unnamedCalendar) },
                                     color = colors.text,
                                     fontSize = 16.sp
                                 )
@@ -145,7 +147,7 @@ fun CalendarSelectionDialog(
                             onComplete(result)
                         }
                     }) {
-                        Text("決定", color = colors.primaryAccent, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(stringResource(R.string.dl2_confirmDecision), color = colors.primaryAccent, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     }
                 }
             }

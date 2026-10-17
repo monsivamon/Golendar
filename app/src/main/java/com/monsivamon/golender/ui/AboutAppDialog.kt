@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -85,13 +86,13 @@ fun AboutAppDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "このアプリについて",
+                        text = stringResource(R.string.co_about_dialog_title),
                         color = colors.text,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                     )
                     TextButton(onClick = onDismiss) {
-                        Text("閉じる", color = colors.textGray)
+                        Text(stringResource(R.string.co_close), color = colors.textGray)
                     }
                 }
                 HorizontalDivider(
@@ -191,11 +192,9 @@ private fun AboutHeader(colors: AppColors, version: String) {
 // 説明カード
 @Composable
 private fun AboutDescription(colors: AppColors) {
-    AboutCard(colors = colors, title = "アプリについて") {
+    AboutCard(colors = colors, title = stringResource(R.string.co_about_card_title)) {
         Text(
-            text = "月・週・日表示を備えた Android カレンダーアプリ。\n" +
-                    "プライバシー重視の Golendarモード と、\n" +
-                    "Googleカレンダー同期の Googleモード を搭載しています。",
+            text = stringResource(R.string.co_about_app_description),
             color = colors.text,
             fontSize = 13.sp,
             lineHeight = 20.sp,
@@ -209,7 +208,7 @@ private fun AboutCredits(colors: AppColors) {
     val items = listOf(
         CreditItem("🗓", "holidays-jp", "MIT"),
         CreditItem("🗺", "OpenStreetMap", "ODbL"),
-        CreditItem("🏛", "国土地理院", "公共データ"),
+        CreditItem("🏛", stringResource(R.string.co_credit_gsi), stringResource(R.string.co_credit_gsi_license)),
         CreditItem("📍", "Nominatim", "GPL v2"),
         CreditItem("🧭", "MapLibre Native", "BSD-2"),
         CreditItem("🎨", "AndroidX / Jetpack", "Apache 2.0"),
@@ -217,7 +216,7 @@ private fun AboutCredits(colors: AppColors) {
         CreditItem("🖼", "Coil", "Apache 2.0"),
     )
 
-    AboutCard(colors = colors, title = "データ提供・ライブラリ") {
+    AboutCard(colors = colors, title = stringResource(R.string.co_about_credits_title)) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items.forEach { item ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -260,7 +259,7 @@ private fun AboutLinks(colors: AppColors, context: Context) {
         )
         AboutLinkButton(
             icon = "📄",
-            label = "ライセンス",
+            label = stringResource(R.string.co_license_link),
             colors = colors,
             modifier = Modifier.weight(1f),
             onClick = {

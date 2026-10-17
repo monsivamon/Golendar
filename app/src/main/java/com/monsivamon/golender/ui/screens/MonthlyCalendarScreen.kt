@@ -11,6 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -18,7 +20,8 @@ import androidx.navigation.NavController
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.viewmodel.CalendarMode
-import com.monsivamon.golender.data.util.getJpDayOfWeek
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.util.dayShort
 import com.monsivamon.golender.data.util.localStartDate
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
@@ -101,12 +104,21 @@ fun MonthlyCalendarScreen(
             return@LaunchedEffect
         }
         editingPhotosLoaded = false
-        editingPhotos = try {
-            viewModel.getPhotosForEvent(ev.id)
-        } catch (_: Exception) {
-            emptyList()
+        // DB 読み込みが一時的に失敗しただけで「写真0枚」と確定させない。
+        // 空リストのまま確定すると保存時に既存写真がすべて消去されるため、
+        // 数回リトライし、それでも失敗したらローディングのまま（保存不可）にして
+        // 誤データでの保存を防ぐ。
+        var loaded = false
+        for (attempt in 1..3) {
+            try {
+                editingPhotos = viewModel.getPhotosForEvent(ev.id)
+                loaded = true
+                break
+            } catch (_: Exception) {
+                if (attempt < 3) kotlinx.coroutines.delay(300L * attempt)
+            }
         }
-        editingPhotosLoaded = true
+        editingPhotosLoaded = loaded
     }
 
     // editingEvent が null に戻った瞬間に写真状態をクリアする。
@@ -180,7 +192,7 @@ fun MonthlyCalendarScreen(
                 if (showBottomList) {
                     HorizontalDivider(thickness = 1.dp, color = colors.divider)
                     Column(modifier = Modifier.weight(0.8f).fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        val jpDayOfWeek = getJpDayOfWeek(selectedDate.dayOfWeek)
+                        val jpDayOfWeek = selectedDate.dayOfWeek.dayShort(LocalContext.current)
                         val dailyEvents = events.filter { it.occursOn(selectedDate) }
                         // 予定が 3 件以上あるときは「一覧に収まりきらない」ことがあるため、
                         // ヘッダーで強調し、リスト下端にもスクロールヒントを出す。
@@ -188,11 +200,11 @@ fun MonthlyCalendarScreen(
                         Row(verticalAlignment = Alignment.Bottom, modifier = Modifier.padding(bottom = 12.dp, top = 8.dp)) {
                             val c = dayColors[selectedDate.dayOfWeek] ?: Color.Unspecified
                             val finalBottomColor = if (c == Color.Unspecified) colors.text else c
-                            Text("${selectedDate.monthValue}月${selectedDate.dayOfMonth}日 ($jpDayOfWeek)",
+                            Text(stringResource(R.string.sc_dateWithCount, selectedDate.monthValue, selectedDate.dayOfMonth, jpDayOfWeek),
                                 fontSize = 18.sp, fontWeight = FontWeight.Bold, color = finalBottomColor)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                "${dailyEvents.size}件",
+                                stringResource(R.string.sc_eventCount, dailyEvents.size),
                                 fontSize = 14.sp,
                                 color = if (hasOverflow) colors.primaryAccent else colors.textGray,
                                 fontWeight = if (hasOverflow) FontWeight.Bold else FontWeight.Normal,
@@ -215,7 +227,7 @@ fun MonthlyCalendarScreen(
                         Box(modifier = Modifier.fillMaxSize()) {
                             LazyColumn(state = bottomListState, modifier = Modifier.fillMaxSize()) {
                                 if (dailyEvents.isEmpty()) {
-                                    item { Text("予定なし", color = colors.textGray, modifier = Modifier.padding(top = 8.dp)) }
+                                    item { Text(stringResource(R.string.sc_noEvents), color = colors.textGray, modifier = Modifier.padding(top = 8.dp)) }
                                 } else {
                                     items(dailyEvents) { event: Event ->
                                         EventCard(
@@ -234,7 +246,7 @@ fun MonthlyCalendarScreen(
                                             contentColor = colors.primaryAccent,
                                         ),
                                         shape = RoundedCornerShape(12.dp),
-                                    ) { Text("+ 予定を追加", fontSize = 16.sp, fontWeight = FontWeight.Medium) }
+                                    ) { Text(stringResource(R.string.sc_addEvent), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
                                 }
                             }
                             // スクロール可能な未表示アイテムがあるときのみ下端 ▼ を表示する。

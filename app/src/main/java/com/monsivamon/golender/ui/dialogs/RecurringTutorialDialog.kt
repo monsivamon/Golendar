@@ -17,9 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -31,24 +33,24 @@ fun RecurringTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "繰り返しの種類",
-                description = "毎日 / 平日 / 毎週 / 毎月 / 毎年 から選べます。\n「平日」は月〜金のみ繰り返します。",
+                title = stringResource(R.string.dl1_recurTitleTypes),
+                description = stringResource(R.string.dl1_recurDescTypes),
                 illustration = { c -> RecurringChipsIllustration(c) },
             ),
             TutorialPage(
-                title = "「終了」と「繰り返し終了日」",
-                description = "「終了」は1回分の所要時間、\n「繰り返しの終了日」は繰り返し全体の最終日です。",
+                title = stringResource(R.string.dl1_recurTitleEnd),
+                description = stringResource(R.string.dl1_recurDescEnd),
                 illustration = { c -> DurationVsUntilIllustration(c) },
             ),
             TutorialPage(
-                title = "繰り返しの削除",
-                description = "繰り返し予定は「この日だけ削除」できません。\n1件だけ変更したい場合は、繰り返しを解除してから\n個別の予定に分けてください。",
+                title = stringResource(R.string.dl1_recurTitleDelete),
+                description = stringResource(R.string.dl1_recurDescDelete),
                 illustration = { c -> NoSplitIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -60,13 +62,13 @@ private fun RecurringChipsIllustration(colors: AppColors) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Chip("毎日", colors, true)
-                Chip("平日", colors, false)
-                Chip("毎週", colors, false)
+                Chip(stringResource(R.string.dl1_recurChipEveryDay), colors, true)
+                Chip(stringResource(R.string.dl1_recurChipWeekdays), colors, false)
+                Chip(stringResource(R.string.dl1_recurChipEveryWeek), colors, false)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Chip("毎月", colors, false)
-                Chip("毎年", colors, false)
+                Chip(stringResource(R.string.dl1_recurChipEveryMonth), colors, false)
+                Chip(stringResource(R.string.dl1_recurChipEveryYear), colors, false)
             }
         }
     }
@@ -98,7 +100,7 @@ private fun DurationVsUntilIllustration(colors: AppColors) {
         ) {
             // 上段: 1回分の所要時間
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("開始", color = colors.textGray, fontSize = 11.sp, modifier = Modifier.width(40.dp))
+                Text(stringResource(R.string.dl1_recurLabelStart), color = colors.textGray, fontSize = 11.sp, modifier = Modifier.width(40.dp))
                 Box(
                     modifier = Modifier
                         .width(80.dp)
@@ -107,11 +109,11 @@ private fun DurationVsUntilIllustration(colors: AppColors) {
                         .background(colors.primaryAccent.copy(alpha = 0.5f)),
                 )
                 Spacer(Modifier.width(6.dp))
-                Text("←「終了」", color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                Text(stringResource(R.string.dl1_recurHintEnd), color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Medium)
             }
             // 下段: 繰り返し全体の期間
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("初回", color = colors.textGray, fontSize = 11.sp, modifier = Modifier.width(40.dp))
+                Text(stringResource(R.string.dl1_recurLabelFirst), color = colors.textGray, fontSize = 11.sp, modifier = Modifier.width(40.dp))
                 Box(
                     modifier = Modifier
                         .width(120.dp)
@@ -120,7 +122,7 @@ private fun DurationVsUntilIllustration(colors: AppColors) {
                         .background(colors.primaryAccent.copy(alpha = 0.3f)),
                 )
                 Spacer(Modifier.width(6.dp))
-                Text("←終了日", color = colors.textGray, fontSize = 11.sp)
+                Text(stringResource(R.string.dl1_recurHintEndDate), color = colors.textGray, fontSize = 11.sp)
             }
         }
     }
@@ -141,9 +143,9 @@ private fun NoSplitIllustration(colors: AppColors) {
                     .background(colors.primaryAccent.copy(alpha = 0.35f)),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("繰り返し予定", color = colors.text, fontSize = 11.sp)
+                Text(stringResource(R.string.dl1_recurringEvent), color = colors.text, fontSize = 11.sp)
             }
-            Text("× この日だけ削除できません", color = colors.sunRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dl1_recurCantDeleteOnlyThisDay), color = colors.sunRed, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
     }
 }

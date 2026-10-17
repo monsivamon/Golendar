@@ -11,6 +11,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.theme.AppColors
 
 // 繰り返し種別（毎日／平日／毎週／毎月／毎年）の選択チップ
@@ -23,11 +25,11 @@ internal fun RecurrenceChips(
     isLightBackground: Boolean,
 ) {
     val options = listOf(
-        "DAILY" to "毎日",
-        "WEEKDAYS" to "平日",
-        "WEEKLY" to "毎週",
-        "MONTHLY" to "毎月",
-        "YEARLY" to "毎年",
+        "DAILY" to stringResource(R.string.dl2_chipDaily),
+        "WEEKDAYS" to stringResource(R.string.dl2_chipWeekdays),
+        "WEEKLY" to stringResource(R.string.dl2_chipWeekly),
+        "MONTHLY" to stringResource(R.string.dl2_chipMonthly),
+        "YEARLY" to stringResource(R.string.dl2_chipYearly),
     )
 
     FlowRow(

@@ -16,8 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.monsivamon.golender.R
 import com.monsivamon.golender.viewmodel.BackupManager
 import com.monsivamon.golender.ui.theme.AppColors
 
@@ -63,14 +65,14 @@ fun RestoreOptionsDialog(
                         .padding(horizontal = 24.dp, vertical = 20.dp),
                 ) {
                     Text(
-                        if (isAppend) "バックアップを追記" else "バックアップを復元",
+                        if (isAppend) stringResource(R.string.dl2_backupAppend) else stringResource(R.string.dl2_backupRestore),
                         style = MaterialTheme.typography.titleLarge,
                         color = colors.text,
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "${metadata.sourceCalendars.size} カレンダー / ${metadata.eventCount} 件" +
-                            if (metadata.photoCount > 0) " / 写真 ${metadata.photoCount} 枚" else "",
+                        stringResource(R.string.dl2_backupSummary, metadata.sourceCalendars.size, metadata.eventCount) +
+                            if (metadata.photoCount > 0) stringResource(R.string.dl2_backupPhotoSuffix, metadata.photoCount) else "",
                         color = colors.textGray,
                         fontSize = 13.sp,
                     )
@@ -83,21 +85,18 @@ fun RestoreOptionsDialog(
                         // 同名カレンダーが既にあれば BackupSection 側で
                         // 上書き確認ダイアログが表示される。
                         Text(
-                            "バックアップ内のカレンダー名で振り分けます。\n" +
-                                "同名のカレンダーが無ければ新規作成し、\n" +
-                                "同名のカレンダーが既にあれば上書き確認が表示されます。\n" +
-                                "旧形式の予定はマイカレンダーへ復元されます。",
+                            stringResource(R.string.dl2_autoCreateExplanation),
                             color = colors.textGray,
                             fontSize = 13.sp,
                         )
                     } else {
                         // Google モード: 復元先カレンダーを選択
-                        Text(if (isAppend) "追記先カレンダー" else "復元先カレンダー", fontWeight = FontWeight.Bold, color = colors.text, fontSize = 14.sp)
+                        Text(if (isAppend) stringResource(R.string.dl2_appendTargetLabel) else stringResource(R.string.dl2_restoreTargetLabel), fontWeight = FontWeight.Bold, color = colors.text, fontSize = 14.sp)
                         Spacer(Modifier.height(8.dp))
 
                         if (targets.isEmpty()) {
                             Text(
-                                "復元先に指定できるカレンダーがありません。\n設定からカレンダーを追加してください。",
+                                stringResource(R.string.dl2_noRestoreTargets),
                                 color = colors.sunRed,
                                 fontSize = 13.sp,
                             )
@@ -127,7 +126,7 @@ fun RestoreOptionsDialog(
                                             .background(if (t.colorArgb == 0) Color.Gray else Color(t.colorArgb)),
                                     )
                                     Spacer(Modifier.width(12.dp))
-                                    Text(t.name.ifBlank { "名称未設定" }, color = colors.text, fontSize = 15.sp)
+                                    Text(t.name.ifBlank { stringResource(R.string.dl2_unnamedCalendar) }, color = colors.text, fontSize = 15.sp)
                                 }
                             }
                         }
@@ -139,10 +138,10 @@ fun RestoreOptionsDialog(
                     Spacer(Modifier.height(16.dp))
 
                     // ---- 復元する元カレンダー (複数選択) ----
-                    Text("復元するカレンダー", fontWeight = FontWeight.Bold, color = colors.text, fontSize = 14.sp)
+                    Text(stringResource(R.string.dl2_restoreSources), fontWeight = FontWeight.Bold, color = colors.text, fontSize = 14.sp)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "チェックしたカレンダーの予定だけを復元先に追加します。",
+                        stringResource(R.string.dl2_restoreSourcesNote),
                         color = colors.textGray,
                         fontSize = 12.sp,
                     )
@@ -178,9 +177,9 @@ fun RestoreOptionsDialog(
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(onClick = {
                                 selectedSources = metadata.sourceCalendars.map { it.id }.toSet()
-                            }) { Text("全て選択", color = colors.primaryAccent) }
+                            }) { Text(stringResource(R.string.dl2_selectAllCalendar), color = colors.primaryAccent) }
                             TextButton(onClick = { selectedSources = emptySet() }) {
-                                Text("全て解除", color = colors.primaryAccent)
+                                Text(stringResource(R.string.dl2_deselectAll), color = colors.primaryAccent)
                             }
                         }
                     }
@@ -196,7 +195,7 @@ fun RestoreOptionsDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("キャンセル", color = colors.textGray)
+                        Text(stringResource(R.string.dl2_cancel), color = colors.textGray)
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(
@@ -211,7 +210,7 @@ fun RestoreOptionsDialog(
                         enabled = selectedSources.isNotEmpty() &&
                             (allowAutoCreate || selectedTargetId != null),
                     ) {
-                        Text(if (isAppend) "追記" else "復元")
+                        Text(if (isAppend) stringResource(R.string.dl2_append) else stringResource(R.string.dl2_restore))
                     }
                 }
             }

@@ -1,0 +1,32 @@
+<resources>
+    <!-- widget / data util 系の UI 文字列（日本語原文を維持） -->
+
+    <!-- 予定なし -->
+    <string name="wd_widgetNoEvents">予定なし</string>
+    <string name="wd_calendarFallbackTitle">予定なし</string>
+
+    <!-- ウィジェットタイトル・曜日ラベル -->
+    <string name="wd_widgetMonthTitle">%1$d年 %2$d月</string>
+    <string name="wd_weekDaySun">日</string>
+    <string name="wd_weekDayMon">月</string>
+    <string name="wd_weekDayTue">火</string>
+    <string name="wd_weekDayWed">水</string>
+    <string name="wd_weekDayThu">木</string>
+    <string name="wd_weekDayFri">金</string>
+    <string name="wd_weekDaySat">土</string>
+
+    <!-- ウィジェットボタンの contentDescription -->
+    <string name="wd_widgetRefreshContentDesc">更新</string>
+    <string name="wd_widgetSettingsContentDesc">設定</string>
+
+    <!-- 地図アプリ共有 -->
+    <string name="wd_mapChooserTitle">地図アプリを選択</string>
+
+    <!-- 写真保存（MediaSaver） -->
+    <string name="wd_mediaOriginalNotFound">元のファイルが見つかりません</string>
+    <string name="wd_mediaSaveFailedWithReason">保存に失敗しました: %1$s</string>
+    <string name="wd_mediaStoreRegisterFailed">MediaStore への登録に失敗しました</string>
+    <string name="wd_mediaStreamOpenFailed">出力ストリームを開けませんでした</string>
+    <string name="wd_mediaSavedToPictures">ピクチャ/Golendar に保存しました</string>
+    <string name="wd_mediaMkdirFailed">保存先フォルダを作成できませんでした</string>
+</resources>

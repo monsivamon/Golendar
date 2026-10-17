@@ -19,9 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -33,24 +35,24 @@ fun ScheduleEditTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "予定を編集",
-                description = "予定カードをタップすると詳細が開き、\n「編集」ボタンから内容を変更できます。",
+                title = stringResource(R.string.dl1_schedEditTitleEdit),
+                description = stringResource(R.string.dl1_schedEditDescEdit),
                 illustration = { c -> EditIllustration(c) },
             ),
             TutorialPage(
-                title = "予定を削除",
-                description = "編集画面の「削除」ボタンで、\n予定を完全に削除します。",
+                title = stringResource(R.string.dl1_schedEditTitleDelete),
+                description = stringResource(R.string.dl1_schedEditDescDelete),
                 illustration = { c -> DeleteIllustration(c) },
             ),
             TutorialPage(
-                title = "この日だけ削除",
-                description = "複数日にまたがる予定では、\n「この日だけ削除」で他の日を残せます。\n※予定は2つに分割されます。",
+                title = stringResource(R.string.dl1_schedEditTitleDeleteOnly),
+                description = stringResource(R.string.dl1_schedEditDescDeleteOnly),
                 illustration = { c -> SplitDeleteIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -65,7 +67,7 @@ private fun EditIllustration(colors: AppColors) {
                 .border(1.dp, colors.divider, RoundedCornerShape(10.dp))
                 .padding(horizontal = 14.dp, vertical = 12.dp),
         ) {
-            Text("会議", color = colors.text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dl1_schedEditSampleMeeting), color = colors.text, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(
@@ -76,7 +78,7 @@ private fun EditIllustration(colors: AppColors) {
                         .background(colors.primaryAccent.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("編集", color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.dl1_schedEditLabelEdit), color = colors.primaryAccent, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -95,7 +97,7 @@ private fun DeleteIllustration(colors: AppColors) {
                 .border(1.dp, colors.sunRed, RoundedCornerShape(20.dp)),
             contentAlignment = Alignment.Center,
         ) {
-            Text("削除", color = colors.sunRed, fontSize = 15.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.dl1_schedEditLabelDelete), color = colors.sunRed, fontSize = 15.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -112,7 +114,7 @@ private fun SplitDeleteIllustration(colors: AppColors) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text("前", color = colors.textGray, fontSize = 11.sp)
+                Text(stringResource(R.string.dl1_schedEditLabelBefore), color = colors.textGray, fontSize = 11.sp)
                 Box(
                     modifier = Modifier
                         .width(140.dp)
@@ -127,7 +129,7 @@ private fun SplitDeleteIllustration(colors: AppColors) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                Text("後", color = colors.textGray, fontSize = 11.sp)
+                Text(stringResource(R.string.dl1_schedEditLabelAfter), color = colors.textGray, fontSize = 11.sp)
                 Box(
                     modifier = Modifier
                         .width(60.dp)

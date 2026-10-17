@@ -57,6 +57,7 @@ object WidgetDataManager {
         return WeekWidgetData(
             weekStart = weekStart, weekEnd = weekEnd, events = grouped,
             weekStartDay = weekStartDay, bgColor = bgColor, themeMode = themeMode,
+            dayColors = resolveDayColors(prefs),
         )
     }
 
@@ -87,6 +88,7 @@ object WidgetDataManager {
         return MonthWidgetData(
             yearMonth = yearMonth, events = grouped,
             weekStartDay = weekStartDay, bgColor = bgColor, themeMode = themeMode,
+            dayColors = resolveDayColors(prefs),
         )
     }
 
@@ -106,6 +108,25 @@ object WidgetDataManager {
         catch (_: Exception) { DayOfWeek.SUNDAY }
     }
 
+    // ユーザー設定の曜日別文字色を読み込む（null =「標準」を明示選択）。
+    // 日曜・土曜は未設定時もアプリ内カレンダーと同じ既定色（赤・青）を適用する。
+    private fun resolveDayColors(prefs: Preferences): Map<DayOfWeek, Int?> {
+        val map = mutableMapOf<DayOfWeek, Int?>(
+            DayOfWeek.SUNDAY to SettingsKeys.DEFAULT_SUNDAY_COLOR_ARGB,
+            DayOfWeek.SATURDAY to SettingsKeys.DEFAULT_SATURDAY_COLOR_ARGB,
+        )
+        DayOfWeek.values().forEach { day ->
+            prefs[SettingsKeys.dayColor(day)]?.let { colorStr ->
+                map[day] = if (colorStr == SettingsKeys.COLOR_UNSPECIFIED) {
+                    null
+                } else {
+                    try { colorStr.toInt() } catch (_: Exception) { null }
+                }
+            }
+        }
+        return map
+    }
+
     private suspend fun getEventsForRange(
         context: Context, prefs: Preferences,
         start: LocalDate, end: LocalDate,
@@ -114,7 +135,7 @@ object WidgetDataManager {
         val repo = CalendarRepository(context)
         val startMillis = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val endMillis = end.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        return if (mode == "GOOGLE") {
+        val events = if (mode == "GOOGLE") {
             val selectedJson = prefs[SettingsKeys.SELECTED_CALENDARS]
             val visibleIds = SelectedCalendarJson.fromJson(selectedJson ?: "")
                 .filter { it.isVisible }.map { it.calendarId }
@@ -125,6 +146,15 @@ object WidgetDataManager {
             val visibleIds = calendars.filter { it.isVisible }.map { it.id }
             if (visibleIds.isEmpty()) emptyList()
             else repo.getLocalEventsForMonth(startMillis, endMillis, visibleIds)
+        }
+        // 「祝日を表示」ON/OFF をウィジェットにも適用する（アプリ内カレンダーと同じ挙動）。
+        return if (prefs[SettingsKeys.SHOW_HOLIDAYS] ?: true) events else events.filter { event ->
+            if (mode == "GOOGLE") {
+                !event.isHolidayCalendar
+            } else {
+                // Golendar モードの祝日は記載マーカー(description)で判別する
+                event.description != com.monsivamon.golender.data.LocalEvent.DESCRIPTION_HOLIDAY
+            }
         }
     }
 

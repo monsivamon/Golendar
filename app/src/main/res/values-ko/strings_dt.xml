@@ -1,0 +1,4 @@
+<resources>
+    <!-- 날짜·시각 표시용 문자열(data/util/EventDateTimeUtils.kt) -->
+    <string name="dt_all_day">종일</string>
+</resources>

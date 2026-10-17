@@ -1,0 +1,66 @@
+<resources>
+    <!-- BackupCoordinator.kt -->
+    <string name="vm_progress_recreating_holidays">Refreshing holiday data</string>
+
+    <!-- BackupManager.kt -->
+    <string name="vm_progress_creating_backup">Creating backup</string>
+    <string name="vm_backup_failed">Backup failed: %1$s</string>
+    <string name="vm_unknown_error">Unknown error</string>
+    <string name="vm_backup_complete_calendars">Backup complete (%1$d calendars / %2$d events)</string>
+    <string name="vm_backup_zip_google_only_export">Photo backups are only available in Golendar mode</string>
+    <string name="vm_progress_preparing_manifest">Preparing manifest</string>
+    <string name="vm_progress_writing_manifest">Writing manifest</string>
+    <string name="vm_progress_writing_data">Writing data</string>
+    <string name="vm_progress_writing_photos">Exporting photos</string>
+    <string name="vm_backup_complete_calendars_photos">Backup complete (%1$d calendars / %2$d events / %3$d photos)</string>
+    <string name="vm_unnamed_calendar">Untitled</string>
+    <string name="vm_my_calendar">My Calendar</string>
+    <string name="vm_progress_importing">Importing</string>
+    <string name="vm_restore_failed">Restore failed: %1$s</string>
+    <string name="vm_select_restore_target_google">In Google mode, select the calendar to restore into</string>
+    <string name="vm_file_not_opened">Could not open the file</string>
+    <string name="vm_backup_zip_google_only_restore">Photo backups can only be restored in Golendar mode</string>
+    <string name="vm_select_restore_target">Select a target calendar to restore</string>
+    <string name="vm_progress_preparing_file">Preparing file</string>
+    <string name="vm_not_golendar_backup">This file is not a Golendar backup</string>
+    <string name="vm_progress_extracting_photos">Extracting photos</string>
+    <string name="vm_backup_data_corrupted">Backup data is corrupted</string>
+    <string name="vm_my_calendar_not_found">My Calendar not found</string>
+    <string name="vm_msg_new_calendars">"/ %1$d new calendar(s)"</string>
+    <string name="vm_append_complete_calendars_photos_msg">Appended (%1$d events / %2$d photos%3$s)</string>
+    <string name="vm_restore_complete_calendars_photos_msg">Restored (%1$d events / %2$d photos%3$s)</string>
+    <string name="vm_restore_target_not_selected">No target calendar selected for restore</string>
+    <string name="vm_append_complete_calendars_photos">Appended (%1$d events / %2$d photos)</string>
+    <string name="vm_restore_complete_calendars_photos">Restored (%1$d events / %2$d photos)</string>
+    <string name="vm_append_complete_skipped_duplicates">Appended (%1$d events / %2$d duplicates skipped)</string>
+    <string name="vm_restore_complete_count">Restored (%1$d events)</string>
+    <string name="vm_append_complete_msg">Appended (%1$d events%2$s)</string>
+    <string name="vm_restore_complete_msg">Restored (%1$d events%2$s)</string>
+
+    <!-- CalendarEventLoader.kt (keyword values: kept in Japanese for all locales) -->
+    <string name="vm_birthday_keyword">誕生日</string>
+    <string name="vm_emperor_birthday_keyword">天皇誕生日</string>
+    <string name="vm_cultural_tanabata">七夕</string>
+    <string name="vm_cultural_valentine">バレンタイン</string>
+    <string name="vm_cultural_setsubun">節分</string>
+    <string name="vm_cultural_hinamatsuri">ひな祭り</string>
+    <string name="vm_cultural_mothers_day">母の日</string>
+    <string name="vm_cultural_fathers_day">父の日</string>
+    <string name="vm_cultural_halloween">ハロウィン</string>
+    <string name="vm_cultural_christmas">クリスマス</string>
+    <string name="vm_cultural_omisoka">大晦日</string>
+    <string name="vm_cultural_ganjitsu">元日</string>
+    <string name="vm_holiday_display_name">Holiday</string>
+
+    <!-- CalendarViewModel.kt -->
+    <string name="vm_keep_one_calendar_visible">At least one calendar must be visible</string>
+    <string name="vm_nothing_selected_fallback_golendar">Nothing was selected, so switched to Golendar mode</string>
+    <string name="vm_progress_preparing_backup">Preparing backup</string>
+    <string name="vm_progress_preparing_import">Preparing import</string>
+
+    <!-- NotificationConfig.kt / NotificationReceiver.kt / NotificationScheduler.kt -->
+    <string name="vm_channel_name">Event notifications</string>
+    <string name="vm_channel_description">Notifies you of event times and 10 minutes before</string>
+    <string name="vm_notification_default_title">It\'s event time</string>
+    <string name="vm_notification_prefix_10min">"[10 min before] "</string>
+</resources>

@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,9 +42,11 @@ import com.monsivamon.golender.ui.dialogs.SearchTutorialDialog
 import com.monsivamon.golender.ui.dialogs.NotificationTutorialDialog
 import com.monsivamon.golender.ui.dialogs.BackupTutorialDialog
 import com.monsivamon.golender.ui.dialogs.WidgetTutorialDialog
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.sections.BackupSection
 import com.monsivamon.golender.ui.sections.CalendarModeSection
 import com.monsivamon.golender.ui.sections.CustomSettingsSection
+import com.monsivamon.golender.ui.sections.LanguageSettingsSection
 import com.monsivamon.golender.ui.sections.NotificationSection
 import com.monsivamon.golender.ui.sections.TutorialSection
 import com.monsivamon.golender.ui.theme.AppColors
@@ -169,13 +172,13 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "‹ 戻る",
+                    text = stringResource(R.string.sc_back),
                     fontSize = 18.sp,
                     color = colors.primaryAccent,
                     modifier = Modifier.clickable { onBack() },
                 )
                 Spacer(modifier = Modifier.width(16.dp))
-                Text(text = "設定", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                Text(text = stringResource(R.string.sc_settings), fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.text)
             }
             HorizontalDivider(color = colors.divider, modifier = Modifier.padding(bottom = 8.dp))
 
@@ -206,6 +209,8 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 colors = colors,
             )
 
+            LanguageSettingsSection(colors)
+
             BackupSection(
                 viewModel = viewModel,
                 colors = colors,
@@ -223,7 +228,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = "このアプリについて",
+                    text = stringResource(R.string.sc_aboutApp),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.text,
@@ -275,9 +280,8 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     if (showCalendarPermissionDialog) {
         CalendarPermissionDialog(
             colors = colors,
-            title = "Googleカレンダーへのアクセス",
-            message = "Googleカレンダーと同期するには、カレンダーへのアクセス許可が必要です。\n" +
-                    "次の画面で「許可」を選んでください。",
+            title = stringResource(R.string.sc_googleCalendarAccess),
+            message = stringResource(R.string.sc_calendarPermissionMessage),
             onResult = { granted ->
                 showCalendarPermissionDialog = false
                 if (granted) {
@@ -287,7 +291,7 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                     viewModel.setCalendarMode(CalendarMode.GOLENDAR)
                     android.widget.Toast.makeText(
                         context,
-                        "カレンダーへのアクセスが許可されなかったため、Golendarモードに切り替えました",
+                        context.getString(R.string.sc_permissionDeniedSwitchMode),
                         android.widget.Toast.LENGTH_LONG,
                     ).show()
                 }
@@ -299,9 +303,8 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     if (showCalendarTutorial) {
         CalendarPermissionDialog(
             colors = colors,
-            title = "Googleカレンダーへのアクセス",
-            message = "Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\n\n" +
-                    "Golendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。",
+            title = stringResource(R.string.sc_googleCalendarAccess),
+            message = stringResource(R.string.sc_calendarTutorialMessage),
             onResult = { viewModel.dismissCalendarTutorial() },
             onDismiss = { viewModel.dismissCalendarTutorial() },
         )
@@ -349,18 +352,16 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
         AlertDialog(
             onDismissRequest = { showNoAccountDialog = false },
             containerColor = colors.surface,
-            title = { Text("Googleアカウントが見つかりません", color = colors.text, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.sc_noGoogleAccountTitle), color = colors.text, fontWeight = FontWeight.Bold) },
             text = {
                 Text(
-                    "端末にGoogleアカウントが設定されていないため、Googleモードを使用できません。\n\n" +
-                            "端末の「設定」→「アカウント」からGoogleアカウントを追加してから、もう一度お試しください。\n\n" +
-                            "Golendarモード（アプリ内のみ）は引き続きご利用いただけます。",
+                    stringResource(R.string.sc_noGoogleAccountMessage),
                     color = colors.text, fontSize = 14.sp,
                 )
             },
             confirmButton = {
                 TextButton(onClick = { showNoAccountDialog = false }) {
-                    Text("閉じる", color = colors.primaryAccent, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.sc_close), color = colors.primaryAccent, fontWeight = FontWeight.Bold)
                 }
             },
         )

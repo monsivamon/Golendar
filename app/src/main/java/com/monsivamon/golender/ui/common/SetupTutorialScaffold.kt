@@ -26,11 +26,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.theme.AppColors
 import kotlinx.coroutines.launch
 
@@ -76,12 +78,17 @@ fun SetupTutorialScaffold(
     illustrationWidth: Dp = 240.dp,
     illustrationHeight: Dp = 180.dp,
     swipeEnabled: Boolean = true,
-    confirmLabel: String = "次へ",
-    confirmLabelLast: String = "始める",
-    dismissLabel: String = "スキップ",
-    backLabel: String = "戻る",
+    confirmLabel: String? = null,
+    confirmLabelLast: String? = null,
+    dismissLabel: String? = null,
+    backLabel: String? = null,
 ) {
     if (pages.isEmpty()) return
+    // デフォルトのボタンラベルは文字列リソースから取得する
+    val confirmLabelText = confirmLabel ?: stringResource(R.string.co_next)
+    val confirmLabelLastText = confirmLabelLast ?: stringResource(R.string.co_tutorial_start)
+    val dismissLabelText = dismissLabel ?: stringResource(R.string.co_tutorial_skip)
+    val backLabelText = backLabel ?: stringResource(R.string.co_tutorial_back)
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val scope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage == pages.lastIndex
@@ -164,7 +171,7 @@ fun SetupTutorialScaffold(
         },
         confirmButton = {
             val currentIndex = pagerState.currentPage
-            val defaultLabel = if (isLastPage || !isMultiPage) confirmLabelLast else confirmLabel
+            val defaultLabel = if (isLastPage || !isMultiPage) confirmLabelLastText else confirmLabelText
             val label = confirmLabelProvider?.invoke(currentIndex, isLastPage) ?: defaultLabel
             TextButton(onClick = {
                 if (onConfirmOverride != null) {
@@ -188,11 +195,11 @@ fun SetupTutorialScaffold(
                         pagerState.animateScrollToPage(pagerState.currentPage - 1)
                     }
                 }) {
-                    Text(backLabel, color = colors.textGray)
+                    Text(backLabelText, color = colors.textGray)
                 }
             } else {
                 TextButton(onClick = onComplete) {
-                    Text(dismissLabel, color = colors.textGray)
+                    Text(dismissLabelText, color = colors.textGray)
                 }
             }
         },

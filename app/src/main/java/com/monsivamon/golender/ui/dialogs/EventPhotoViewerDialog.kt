@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +37,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.data.util.MediaSaver
 import com.monsivamon.golender.data.util.PhotoStorage
@@ -83,7 +85,7 @@ fun EventPhotoViewerDialog(
         } else if (!granted) {
             Toast.makeText(
                 context,
-                "保存にはストレージへのアクセス許可が必要です",
+                context.getString(R.string.dl2_storagePermissionRequired),
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -116,7 +118,7 @@ fun EventPhotoViewerDialog(
         val photo = photos.getOrNull(idx) ?: return
         val file = PhotoStorage.getFile(context, photo.fileName)
         if (!file.exists()) {
-            Toast.makeText(context, "写真ファイルが見つかりません", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.dl2_photoFileNotFound), Toast.LENGTH_SHORT).show()
             return
         }
         try {
@@ -131,9 +133,9 @@ fun EventPhotoViewerDialog(
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            context.startActivity(Intent.createChooser(intent, "写真を共有"))
+            context.startActivity(Intent.createChooser(intent, context.getString(R.string.dl2_sharePhotoChooser)))
         } catch (e: Exception) {
-            Toast.makeText(context, "共有に失敗しました: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.dl2_shareFailed, e.message ?: context.getString(R.string.vm_unknown_error)), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -176,10 +178,10 @@ fun EventPhotoViewerDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TextButton(onClick = { saveCurrent() }) {
-                        Text("保存", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.dl2_save), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                     TextButton(onClick = { shareCurrent() }) {
-                        Text("共有", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.dl2_share), color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -187,7 +189,7 @@ fun EventPhotoViewerDialog(
                 TextButton(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
-                ) { Text("閉じる", color = Color.White, fontWeight = FontWeight.Bold) }
+                ) { Text(stringResource(R.string.dl2_close), color = Color.White, fontWeight = FontWeight.Bold) }
             }
         }
     }

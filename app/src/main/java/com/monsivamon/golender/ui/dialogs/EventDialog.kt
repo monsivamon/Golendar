@@ -20,10 +20,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.data.LocalCalendar
@@ -72,6 +74,7 @@ fun EventDialog(
     onAiParse: (Long?) -> Unit,
 ) {
     var title by remember(event) { mutableStateOf(event?.title ?: "") }
+    val context = LocalContext.current
     var location by remember(event) { mutableStateOf(event?.location ?: "") }
     var description by remember(event) { mutableStateOf(event?.description ?: "") }
     var isAllDay by remember(event) { mutableStateOf(event?.isAllDay ?: false) }
@@ -86,9 +89,13 @@ fun EventDialog(
     val showCalendarSelector = availableCalendars.size >= 2
 
     // Golendar モード用ローカルカレンダー選択
+    // 初期選択は「可視かつ既定 → 可視の先頭 → 既定 → 先頭（ fallback）」の優先順位。
+    // 既定カレンダーが非表示のときに見えない場所へ保存される事故を防ぐ。
     var selectedLocalCalendarId by remember(eventKey, localCalendars) {
         mutableStateOf(
             event?.calendarId?.takeIf { it > 0L && localCalendars.any { c -> c.id == it } }
+                ?: localCalendars.firstOrNull { it.isVisible && it.isDefault }?.id
+                ?: localCalendars.firstOrNull { it.isVisible }?.id
                 ?: localCalendars.firstOrNull { it.isDefault }?.id
                 ?: localCalendars.firstOrNull()?.id
                 ?: 0L
@@ -163,7 +170,7 @@ fun EventDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
-        title = { Text(if (event == null) "予定の追加" else "予定の編集", color = colors.text) },
+        title = { Text(if (event == null) stringResource(R.string.dl2_addEventTitle) else stringResource(R.string.dl2_editEventTitle), color = colors.text) },
         text = {
             Column(
                 modifier = Modifier
@@ -193,14 +200,14 @@ fun EventDialog(
                     // LocalCalendarSelector で選択中のローカルカレンダーを
                     // AI 解析結果の登録先として引き渡す（null なら既定カレンダー）。
                     TextButton(onClick = { onAiParse(selectedLocalCalendarId.takeIf { it > 0L }) }) {
-                        Text("AIに読み取らせる (BETA)", color = colors.primaryAccent)
+                        Text(stringResource(R.string.dl2_aiParseTitle), color = colors.primaryAccent)
                     }
                 }
 
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("タイトル", color = colors.textGray) },
+                    label = { Text(stringResource(R.string.dl2_titleLabel), color = colors.textGray) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = colors.text, unfocusedTextColor = colors.text,
@@ -217,7 +224,7 @@ fun EventDialog(
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(checked = isAllDay, onCheckedChange = { isAllDay = it }, colors = checkboxColors)
-                        Text("終日", color = colors.text)
+                        Text(stringResource(R.string.dl2_allDay), color = colors.text)
                         Spacer(modifier = Modifier.width(16.dp))
                         Checkbox(
                             checked = isRecurring,
@@ -232,7 +239,7 @@ fun EventDialog(
                             },
                             colors = checkboxColors,
                         )
-                        Text("繰り返し", color = colors.text)
+                        Text(stringResource(R.string.dl2_recurring), color = colors.text)
                     }
 
                     if (isRecurring) {
@@ -246,20 +253,20 @@ fun EventDialog(
 
                     if (startDateLocked) {
                         Text(
-                            "※カレンダーで選んだ日付に追加されます（日付は変更できません）",
+                            stringResource(R.string.dl2_dateLockedNote),
                             color = colors.textGray, fontSize = 11.sp,
                             modifier = Modifier.padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
                         )
                     }
 
                     DateTimeRow(
-                        label = "開始", date = startDate, time = startTime, isAllDay = isAllDay,
+                        label = stringResource(R.string.dl2_startLabel), date = startDate, time = startTime, isAllDay = isAllDay,
                         isDateLocked = startDateLocked, topPadding = 8.dp, colors = colors,
                         onDateClick = { showStartDatePicker = true },
                         onTimeClick = { showStartTimePicker = true },
                     )
                     DateTimeRow(
-                        label = "終了", date = endDate, time = endTime, isAllDay = isAllDay,
+                        label = stringResource(R.string.dl2_endLabel), date = endDate, time = endTime, isAllDay = isAllDay,
                         isDateLocked = endDateLocked, topPadding = 16.dp, colors = colors,
                         onDateClick = { showEndDatePicker = true },
                         onTimeClick = { showEndTimePicker = true },
@@ -267,7 +274,7 @@ fun EventDialog(
 
                     if (isRecurring) {
                         Text(
-                            "※「終了」は1回分の所要時間です。繰り返しの終了日は下で指定します。",
+                            stringResource(R.string.dl2_recurringDurationNote),
                             color = colors.textGray, fontSize = 11.sp,
                             modifier = Modifier.padding(start = (12 + 60 + 8).dp, top = 6.dp),
                         )
@@ -278,7 +285,7 @@ fun EventDialog(
                                 onCheckedChange = { hasRecurrenceEnd = it },
                                 colors = checkboxColors,
                             )
-                            Text("繰り返しの終了日を指定", color = colors.text, fontSize = 14.sp)
+                            Text(stringResource(R.string.dl2_specifyRecurrenceEnd), color = colors.text, fontSize = 14.sp)
                         }
                         if (hasRecurrenceEnd) {
                             Row(
@@ -286,7 +293,7 @@ fun EventDialog(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
                             ) {
-                                Text("終了日", color = colors.textGray, modifier = Modifier.width(LABEL_WIDTH))
+                                Text(stringResource(R.string.dl2_recurrenceEndDate), color = colors.textGray, modifier = Modifier.width(LABEL_WIDTH))
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(8.dp))
@@ -295,7 +302,12 @@ fun EventDialog(
                                         .padding(horizontal = 12.dp, vertical = 10.dp),
                                 ) {
                                     Text(
-                                        "${recurrenceEndDate.year}年${recurrenceEndDate.monthValue}月${recurrenceEndDate.dayOfMonth}日",
+                                        stringResource(
+                                            R.string.dl2_dateYmd,
+                                            recurrenceEndDate.year,
+                                            recurrenceEndDate.monthValue,
+                                            recurrenceEndDate.dayOfMonth,
+                                        ),
                                         color = colors.text,
                                     )
                                 }
@@ -307,13 +319,13 @@ fun EventDialog(
                 OutlinedTextField(
                     value = location,
                     onValueChange = { location = it },
-                    label = { Text("場所", color = colors.textGray) },
+                    label = { Text(stringResource(R.string.dl2_locationLabel), color = colors.textGray) },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         IconButton(onClick = { showPlacePicker = true }) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
-                                contentDescription = "地図から選択",
+                                contentDescription = stringResource(R.string.dl2_pickFromMap),
                                 tint = colors.primaryAccent,
                             )
                         }
@@ -328,7 +340,7 @@ fun EventDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("メモ / 内容", color = colors.textGray) },
+                    label = { Text(stringResource(R.string.dl2_memoLabel), color = colors.textGray) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2, maxLines = 2,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -357,7 +369,7 @@ fun EventDialog(
         confirmButton = {
             TextButton(enabled = (event == null || photosLoaded), onClick = {
                 val effectiveEndDate = if (endDateLocked) startDate else endDate
-                val finalTitle = title.ifBlank { "名称未設定" }
+                val finalTitle = title.ifBlank { context.getString(R.string.dl2_unnamedCalendar) }
                 val saveZone = if (isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
                 val startDateTime = startDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else startTime)
                 val endDateTime = effectiveEndDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else endTime)
@@ -380,16 +392,16 @@ fun EventDialog(
                     newPhotoUris, keptPhotoIds.toList(), finalTargetCalendarId, finalLocalCalendarId,
                 )
             }) {
-                Text("保存", color = if (event == null || photosLoaded) colors.primaryAccent else colors.textGray, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.dl2_save), color = if (event == null || photosLoaded) colors.primaryAccent else colors.textGray, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (event != null) {
-                    TextButton(onClick = { onDelete(event) }) { Text("削除", color = colors.sunRed) }
+                    TextButton(onClick = { onDelete(event) }) { Text(stringResource(R.string.dl2_delete), color = colors.sunRed) }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
-                TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) }
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.dl2_cancel), color = colors.textGray) }
             }
         },
     )

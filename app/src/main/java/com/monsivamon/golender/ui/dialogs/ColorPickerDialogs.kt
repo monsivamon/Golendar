@@ -18,7 +18,10 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.monsivamon.golender.data.util.jpShort
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import com.monsivamon.golender.R
+import com.monsivamon.golender.data.util.dayShort
 import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.ui.theme.DayColorPalette
 import com.monsivamon.golender.ui.theme.PastelColorPalette
@@ -46,16 +49,16 @@ fun BackgroundColorPickerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
-        title = { Text("アプリ背景色を選択", color = colors.text, fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.dl2_bgColorPickerTitle), color = colors.text, fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
 
                 // ダークモード時の見え方を説明する
                 Text(
                     text = if (isDarkTheme)
-                        "ダークモードでは選択した色が自動的に暗く表示されます。"
+                        stringResource(R.string.dl2_bgColorDarkNote)
                     else
-                        "同じ色相のまま、ダークモード時は暗い背景になります。",
+                        stringResource(R.string.dl2_bgColorLightNote),
                     color = colors.textGray,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(bottom = 12.dp),
@@ -85,7 +88,7 @@ fun BackgroundColorPickerDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("閉じる", color = colors.textGray) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.dl2_close), color = colors.textGray) }
         },
     )
 }
@@ -102,7 +105,7 @@ fun DayColorPickerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
-        title = { Text("${day.jpShort()}曜日の色", color = colors.text, fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.dl2_dayColorTitle, day.dayShort(LocalContext.current)), color = colors.text, fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 // カスタム色を解除する「標準」行
@@ -127,7 +130,7 @@ fun DayColorPickerDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("閉じる", color = colors.textGray) }
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.dl2_close), color = colors.textGray) }
         },
     )
 }
@@ -154,11 +157,11 @@ private fun StandardRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("標準（カスタムなし）", color = colors.text, fontSize = 15.sp)
+            Text(stringResource(R.string.dl2_colorStandard), color = colors.text, fontSize = 15.sp)
             // 選択中はチェックマークを表示する
             if (isSelected) {
                 Spacer(Modifier.width(8.dp))
-                Text("✓ 選択中", color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.dl2_selectedMark), color = colors.primaryAccent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
         // カスタムなしを意味する「/」付きの丸

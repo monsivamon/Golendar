@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.LocalCalendar
 import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.ui.theme.resolveCalendarColor
@@ -40,7 +42,7 @@ internal fun LocalCalendarSelector(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "追加先カレンダー",
+            stringResource(R.string.dl2_targetCalendarLabel),
             color = colors.textGray,
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -66,7 +68,9 @@ internal fun LocalCalendarSelector(
                     Spacer(Modifier.width(8.dp))
                 }
                 Text(
-                    selected?.name ?: "カレンダーを選択",
+                    (if (selected?.isDefault == true && selected.name.isEmpty()) {
+                        stringResource(R.string.default_calendar_name)
+                    } else selected?.name) ?: stringResource(R.string.dl2_selectCalendarPlaceholder),
                     color = colors.text,
                     fontSize = 14.sp,
                     modifier = Modifier.weight(1f),
@@ -97,7 +101,12 @@ internal fun LocalCalendarSelector(
                                         .background(displayColor)
                                 )
                                 Spacer(Modifier.width(8.dp))
-                                Text(cal.name, color = colors.text, fontSize = 14.sp)
+                                Text(
+                                    if (cal.isDefault && cal.name.isEmpty()) {
+                                        stringResource(R.string.default_calendar_name)
+                                    } else cal.name,
+                                    color = colors.text, fontSize = 14.sp,
+                                )
                             }
                         },
                         onClick = {

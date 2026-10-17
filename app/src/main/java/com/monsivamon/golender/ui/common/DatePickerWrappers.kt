@@ -15,10 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.Instant
 import java.time.LocalDate
@@ -68,7 +70,7 @@ private fun GolendarDatePickerDialogImpl(
                 onDismiss()
             }) { Text("OK", color = colors.primaryAccent) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.co_cancel), color = colors.textGray) } },
         colors = DatePickerDefaults.colors(containerColor = colors.surface),
     ) {
         // テーマ色を反映した DatePicker
@@ -127,7 +129,7 @@ fun GolendarTimePickerDialog(
                 onTimeSelected(LocalTime.of(state.hour, state.minute)); onDismiss()
             }) { Text("OK", color = colors.primaryAccent) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.co_cancel), color = colors.textGray) } },
     )
 }
 
@@ -143,7 +145,7 @@ fun YearMonthPickerDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.surface,
-        title = { Text("年月へジャンプ", color = colors.text) },
+        title = { Text(stringResource(R.string.co_year_month_jump_title), color = colors.text) },
         text = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 // 年送りヘッダー
@@ -152,9 +154,9 @@ fun YearMonthPickerDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                 ) {
-                    IconButton(onClick = { year-- }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "前年", tint = colors.primaryAccent) }
-                    Text("$year 年", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
-                    IconButton(onClick = { year++ }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "翌年", tint = colors.primaryAccent) }
+                    IconButton(onClick = { year-- }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.co_prev_year_cd), tint = colors.primaryAccent) }
+                    Text(stringResource(R.string.co_year_header, year), fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                    IconButton(onClick = { year++ }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.co_next_year_cd), tint = colors.primaryAccent) }
                 }
                 // 12 ヶ月を 4 列グリッドで表示する
                 LazyVerticalGrid(GridCells.Fixed(4),
@@ -168,11 +170,11 @@ fun YearMonthPickerDialog(
                             modifier = Modifier.aspectRatio(1f).clip(RoundedCornerShape(8.dp))
                                 .background(if (selected) colors.primaryAccent else colors.bg)
                                 .clickable { onDateSelected(year, m) },
-                        ) { Text("${m}月", color = if (selected) Color.White else colors.text) }
+                        ) { Text(stringResource(R.string.co_month_label, m), color = if (selected) Color.White else colors.text) }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("キャンセル", color = colors.textGray) } },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.co_cancel), color = colors.textGray) } },
     )
 }

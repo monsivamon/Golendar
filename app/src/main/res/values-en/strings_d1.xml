@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Common labels (dialog tutorials & setup dialogs in ui/dialogs) -->
+    <string name="dl1_close">Close</string>
+    <string name="dl1_allow">Allow</string>
+    <string name="dl1_later">Later</string>
+    <string name="dl1_openSettings">Open settings</string>
+    <string name="dl1_next">Next</string>
+    <string name="dl1_prev">Previous</string>
+    <string name="dl1_skip">Skip</string>
+    <string name="dl1_back">Back</string>
+    <string name="dl1_start">Get started</string>
+    <string name="dl1_today">Today</string>
+    <string name="dl1_save">Save</string>
+    <string name="dl1_share">Share</string>
+    <string name="dl1_tabDay">Day</string>
+    <string name="dl1_tabWeek">Week</string>
+    <string name="dl1_tabMonth">Month</string>
+
+    <!-- AiSetupDialog -->
+    <string name="dl1_aiSetupTitleOverview">What "AI reading" does</string>
+    <string name="dl1_aiSetupDescOverview">Pass a calendar image or text to an AI to\nregister events into your calendar in bulk.</string>
+    <string name="dl1_aiSetupTitleFlow">How it works</string>
+    <string name="dl1_aiSetupDescFlow">1. Copy the prompt\n2. Pass it to an AI app along with the image\n3. Paste back the returned JSON</string>
+    <string name="dl1_aiSetupTitlePreview">Preview &amp; add</string>
+    <string name="dl1_aiSetupDescPreview">Select parsed results with checkboxes.\nOnly checked events are added.</string>
+    <string name="dl1_aiSetupStepCopy">Copy the prompt</string>
+    <string name="dl1_aiSetupStepPass">Pass it to an AI app</string>
+    <string name="dl1_aiSetupStepPaste">Paste the JSON</string>
+
+    <!-- BackupTutorialDialog -->
+    <string name="dl1_backupTitleFormat">Save format</string>
+    <string name="dl1_backupDescFormat">With "Back up photos too" OFF, events are saved as JSON;\nON saves a ZIP with photos.\nThe ZIP is for Golendar mode only.</string>
+    <string name="dl1_backupTitleOperations">Save vs. Restore vs. Append</string>
+    <string name="dl1_backupDescOperations">"Save" exports events,\n"Append" adds them while keeping existing ones,\n"Restore" overwrites existing ones.\n"Restore" is unavailable in Google mode.</string>
+    <string name="dl1_backupTitleTarget">Choosing a restore target</string>
+    <string name="dl1_backupDescTarget">When using "Append" in Google mode,\nyou can pick one writable calendar\nas the destination.</string>
+    <string name="dl1_append">Append</string>
+    <string name="dl1_restore">Restore</string>
+    <string name="dl1_backupLegendThin">Light = existing / Dark = new</string>
+
+    <!-- CalendarModeTutorialDialog -->
+    <string name="dl1_calModeTitleDifference">Golendar vs. Google</string>
+    <string name="dl1_calModeDescDifference">Golendar is self-contained in the app with no external sync;\nGoogle syncs with Google Calendar.\nSwitch depending on your needs.</string>
+    <string name="dl1_calModeTitleGoogleOps">Google mode basics</string>
+    <string name="dl1_calModeDescGoogleOps">Use checkboxes to show or hide events,\nand tap a color circle to change its display color.\nAfter adding or removing calendars on the device,\ntap "Reload calendar list".</string>
+    <string name="dl1_calModeTitleGolendarOps">Golendar mode basics</string>
+    <string name="dl1_calModeDescGolendarOps">Checkboxes show/hide events, color circles change colors,\nand tapping a name renames the calendar.\nMy Calendar cannot be deleted,\nbut it can be hidden.</string>
+    <string name="dl1_calModeTitleHidden">When a calendar is hidden…</string>
+    <string name="dl1_calModeDescHidden">Events in that calendar no longer appear\nin the calendar, widgets, or notifications.\nHolidays are always shown.\n</string>
+    <string name="dl1_calModeSubInApp">In-app only</string>
+    <string name="dl1_calModeSubSync">Calendar sync</string>
+    <string name="dl1_calModeEditHint">← Tap the name to edit</string>
+    <string name="dl1_calModeHolidaysAlways">Holidays are always shown</string>
+
+    <!-- CalendarPermissionDialog -->
+    <string name="dl1_permDeniedCalendarTitle">Calendar access is not allowed</string>
+    <string name="dl1_permDeniedCalendarMessage">The calendar permission has been permanently denied, so the system permission dialog cannot be shown.\n\nOpen "Settings" → "Apps" → "Golendar" → "Permissions" → "Calendar" and allow it.</string>
+
+    <!-- GestureSetupDialog -->
+    <string name="dl1_gestureTitleVertical">Swipe up/down to move between periods</string>
+    <string name="dl1_gestureDescVertical">In month, week, or day view, quickly swipe twice in the same direction to move to the previous or next period.</string>
+    <string name="dl1_gestureTitleHorizontal">Swipe left/right to switch views</string>
+    <string name="dl1_gestureDescHorizontal">Swipe left or right to switch between day, week, and month views.</string>
+    <string name="dl1_gestureTitleReady">You\'re all set</string>
+    <string name="dl1_gestureDescReady">Try adding an event now.\nLong-press the home screen icon to use shortcuts, too.</string>
+    <string name="dl1_gestureSwipeHint">Swipe left / right</string>
+
+    <!-- MapSetupDialog -->
+    <string name="dl1_mapTitlePin">Choose a location with the pin</string>
+    <string name="dl1_mapDescPin">Move the map to place the center pin on the location,\nthen save it with "OK".</string>
+    <string name="dl1_mapTitleLocationButton">Current-location button</string>
+    <string name="dl1_mapDescLocationButton">Each tap cycles the mode:\n"Follow → Compass follow → OFF".</string>
+    <string name="dl1_mapTitleSaveFormat">Location save format</string>
+    <string name="dl1_mapDescSaveFormat">Locations are saved as "POI name, address",\ninteroperable with Google Maps and other apps.</string>
+    <string name="dl1_mapSampleLocationName">Tokyo Station</string>
+    <string name="dl1_mapSampleAddress">1-Chome Marunouchi, Chiyoda-ku, Tokyo</string>
+
+    <!-- MonthViewToggleTutorialDialog -->
+    <string name="dl1_monthToggleTitleList">Toggle the bottom list</string>
+    <string name="dl1_monthToggleDescList">Use the icon at the left of the monthly header\nto turn the event list under the calendar on or off.\nTurning it OFF makes the month grid larger.</string>
+    <string name="dl1_monthToggleTitlePopup">Tap a date for a popup</string>
+    <string name="dl1_monthToggleDescPopup">With the bottom list OFF,\ntapping a date shows that day\'s events\nin a popup.</string>
+    <string name="dl1_monthToggleGridLabel">Month grid</string>
+    <string name="dl1_monthToggleListLabel">Event list</string>
+    <string name="dl1_monthToggleGridLarge">Month grid (enlarged)</string>
+    <string name="dl1_monthToggleTapHint">↓ Tap</string>
+    <string name="dl1_monthToggleDayEvents">Events for the day</string>
+
+    <!-- NotificationSetupDialog -->
+    <string name="dl1_notifSetupTitlePermission">Notification permission</string>
+    <string name="dl1_notifSetupDescPermission">Allow notifications to receive them\nat event start times or 10 minutes before.</string>
+    <string name="dl1_notifSetupTitleAlarm">Exact alarm permission</string>
+    <string name="dl1_notifSetupDescAlarm">The "Alarms &amp; reminders" permission is needed\nto deliver notifications exactly on time.</string>
+    <string name="dl1_notifSetupTitleBattery">Disable battery optimization</string>
+    <string name="dl1_notifSetupDescBattery">Disabling battery optimization is recommended\nto prevent notification delays during sleep.</string>
+    <string name="dl1_notifSetupDeniedTitle">Notifications are not allowed</string>
+    <string name="dl1_notifSetupDeniedMessage">The notification permission has been permanently denied, so the system permission dialog cannot be shown.\n\nOpen "Settings" → "Apps" → "Golendar" → "Notifications" and enable them.</string>
+
+    <!-- NotificationTutorialDialog -->
+    <string name="dl1_notifTutTitleTiming">Notification timing</string>
+    <string name="dl1_notifTutDescTiming">Two timing types, "On time" and "10 minutes before",\ncan be toggled individually.\nHolidays and cultural events are not notified.</string>
+    <string name="dl1_notifTutTitleAlarm">Exact alarms</string>
+    <string name="dl1_notifTutDescAlarm">The "Alarms &amp; reminders" permission is recommended\nto deliver notifications exactly on time.</string>
+    <string name="dl1_notifTutTitleBattery">Battery optimization</string>
+    <string name="dl1_notifTutDescBattery">Disabling battery optimization is recommended\nto prevent notification delays during sleep.</string>
+    <string name="dl1_tenMinutesBefore">10 min before</string>
+    <string name="dl1_scheduledTime">On time</string>
+
+    <!-- PhotoTutorialDialog -->
+    <string name="dl1_photoTutTitleAttach">Attach photos</string>
+    <string name="dl1_photoTutDescAttach">From the "+" button on the event editor, you can attach\nup to 5 photos (downscaled to 1920px on the long side).\nGolendar mode only.</string>
+    <string name="dl1_photoTutTitleViewer">Zoom, save, share</string>
+    <string name="dl1_photoTutDescViewer">Tap a thumbnail in the details to view full screen.\n"Save" exports to Pictures/Golendar,\n"Share" sends to other apps.</string>
+    <string name="dl1_photoTutLabelPhoto">Photo</string>
+
+    <!-- RecurringTutorialDialog -->
+    <string name="dl1_recurTitleTypes">Recurrence types</string>
+    <string name="dl1_recurDescTypes">Choose from Daily / Weekdays / Weekly / Monthly / Yearly.\n"Weekdays" repeats Monday through Friday only.</string>
+    <string name="dl1_recurTitleEnd">"Duration" and "repeat end date"</string>
+    <string name="dl1_recurDescEnd">"End" is the duration of a single occurrence;\nthe "repeat end date" is the final day of the whole series.</string>
+    <string name="dl1_recurTitleDelete">Deleting recurrences</string>
+    <string name="dl1_recurDescDelete">Recurring events cannot be deleted for a single day only.\nTo change one occurrence, remove the recurrence\nand split it into individual events first.</string>
+    <string name="dl1_recurChipEveryDay">Daily</string>
+    <string name="dl1_recurChipWeekdays">Weekdays</string>
+    <string name="dl1_recurChipEveryWeek">Weekly</string>
+    <string name="dl1_recurChipEveryMonth">Monthly</string>
+    <string name="dl1_recurChipEveryYear">Yearly</string>
+    <string name="dl1_recurLabelStart">Start</string>
+    <string name="dl1_recurLabelFirst">First</string>
+    <string name="dl1_recurHintEnd">← "End"</string>
+    <string name="dl1_recurHintEndDate">← End date</string>
+    <string name="dl1_recurringEvent">Recurring event</string>
+    <string name="dl1_recurCantDeleteOnlyThisDay">× Cannot delete only this day</string>
+
+    <!-- ScheduleAddTutorialDialog -->
+    <string name="dl1_schedAddTitleFab">Add from the FAB</string>
+    <string name="dl1_schedAddDescFab">Tap the "+" button in the bottom right of the monthly view\nto pick a date and add an event.</string>
+    <string name="dl1_schedAddTitleEachDay">Add from each day</string>
+    <string name="dl1_schedAddDescEachDay">In weekly view, use the "+ Add event" button\nunder each date to create that day\'s events.</string>
+    <string name="dl1_schedAddTitleShortcut">Shortcut</string>
+    <string name="dl1_schedAddDescShortcut">Long-press the home screen icon\nto launch "Add Event" directly.</string>
+    <string name="dl1_schedAddFabHint">+ button in the bottom right</string>
+    <string name="dl1_schedAddWeekButton">+ Add event</string>
+    <string name="dl1_schedAddLongPress">Long-press</string>
+
+    <!-- ScheduleEditTutorialDialog -->
+    <string name="dl1_schedEditTitleEdit">Edit an event</string>
+    <string name="dl1_schedEditDescEdit">Tap an event card to open its details,\nthen use the "Edit" button to change it.</string>
+    <string name="dl1_schedEditTitleDelete">Delete an event</string>
+    <string name="dl1_schedEditDescDelete">The "Delete" button in the editor\nremoves the event permanently.</string>
+    <string name="dl1_schedEditTitleDeleteOnly">Delete only this day</string>
+    <string name="dl1_schedEditDescDeleteOnly">For events spanning multiple days,\n"Delete only this day" keeps the other days.\n* The event is split into two.</string>
+    <string name="dl1_schedEditSampleMeeting">Meeting</string>
+    <string name="dl1_schedEditLabelEdit">Edit</string>
+    <string name="dl1_schedEditLabelDelete">Delete</string>
+    <string name="dl1_schedEditLabelBefore">Before</string>
+    <string name="dl1_schedEditLabelAfter">After</string>
+
+    <!-- SearchTutorialDialog -->
+    <string name="dl1_searchTitleSearch">Search events</string>
+    <string name="dl1_searchDescSearch">From the search icon in the header,\nyou can search event titles.</string>
+    <string name="dl1_searchTitleRange">Range and exclusions</string>
+    <string name="dl1_searchDescRange">The range is 2 years back to 2 years ahead.\nHolidays, cultural events, and birthdays are excluded.\nTap a result to jump to that date.</string>
+    <string name="dl1_searchPlaceholder">Search events...</string>
+    <string name="dl1_searchTwoYearsAgo">2 years ago</string>
+    <string name="dl1_searchTwoYearsLater">2 years later</string>
+    <string name="dl1_searchExcluded">Holidays, cultural events, and birthdays are excluded</string>
+
+    <!-- WelcomeDialog -->
+    <string name="dl1_welcomeUpdateSubtitle">Updated to v%1$s</string>
+    <string name="dl1_welcomeStartButton">Get started</string>
+
+    <!-- WidgetTutorialDialog -->
+    <string name="dl1_widgetTitleTypes">3 widget types</string>
+    <string name="dl1_widgetDescTypes">Day, week, and month widgets can be placed freely\non the home screen.\nThey follow the theme and background color.</string>
+    <string name="dl1_widgetTitleShortcuts">App shortcuts</string>
+    <string name="dl1_widgetDescShortcuts">Long-press the home screen icon\nto launch "Add Event", "Today", or "Search"\ndirectly.</string>
+    <string name="dl1_widgetShortcutAdd">Add Event</string>
+    <string name="dl1_widgetShortcutSearch">Search</string>
+</resources>

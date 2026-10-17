@@ -1,0 +1,4 @@
+<resources>
+    <!-- Strings for date/time display (data/util/EventDateTimeUtils.kt) -->
+    <string name="dt_all_day">All day</string>
+</resources>

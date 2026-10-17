@@ -1,14 +1,15 @@
 package com.monsivamon.golender.widget
 
+import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
-import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
@@ -23,6 +24,13 @@ import androidx.glance.text.TextStyle
 import com.monsivamon.golender.MainActivity
 import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.Routes
+
+// ウィジェット描画に使う「アプリ内言語設定を反映した Context」。
+// Glance の provideGlance は WorkManager 経由のシステムロケール Context で
+// Content を描画するため、ローカル経由で言語設定済み Context を差し込む。
+val LocalWidgetLocalizedContext = staticCompositionLocalOf<Context> {
+    error("LocalWidgetLocalizedContext is not provided")
+}
 
 // 全ウィジェット共通のヘッダー行（タイトル＋更新＋設定ボタン）
 @Composable
@@ -59,6 +67,7 @@ fun WidgetRefreshButton(
     iconSize: Int = 18,
 ) {
     // タップ時に WidgetUpdateAction を実行するアイコンボタン
+    val context = LocalWidgetLocalizedContext.current
     Box(
         modifier = GlanceModifier
             .size(touchSize.dp)
@@ -67,7 +76,7 @@ fun WidgetRefreshButton(
     ) {
         Image(
             provider = ImageProvider(R.drawable.ic_widget_refresh),
-            contentDescription = "更新",
+            contentDescription = context.getString(R.string.wd_widgetRefreshContentDesc),
             colorFilter = ColorFilter.tint(colors.text),
             modifier = GlanceModifier.size(iconSize.dp),
         )
@@ -82,7 +91,7 @@ fun WidgetSettingsButton(
     iconSize: Int = 18,
 ) {
     // 設定画面を開く Intent を組み立てる
-    val context = LocalContext.current
+    val context = LocalWidgetLocalizedContext.current
     val openSettingsIntent = Intent(context, MainActivity::class.java).apply {
         putExtra(MainActivity.EXTRA_ROUTE, Routes.SETTINGS)
     }
@@ -96,7 +105,7 @@ fun WidgetSettingsButton(
     ) {
         Image(
             provider = ImageProvider(R.drawable.ic_widget_settings),
-            contentDescription = "設定",
+            contentDescription = context.getString(R.string.wd_widgetSettingsContentDesc),
             colorFilter = ColorFilter.tint(colors.text),
             modifier = GlanceModifier.size(iconSize.dp),
         )

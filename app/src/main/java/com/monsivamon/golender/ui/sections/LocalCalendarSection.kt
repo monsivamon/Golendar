@@ -18,9 +18,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.LocalCalendar
 import com.monsivamon.golender.ui.dialogs.CalendarColorPickerDialog
 import com.monsivamon.golender.ui.dialogs.LocalCalendarEditDialog
@@ -28,6 +30,11 @@ import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.ui.theme.calendarColorPalette
 import com.monsivamon.golender.ui.theme.resolveCalendarColor
 import com.monsivamon.golender.viewmodel.CalendarViewModel
+
+// 表示用のカレンダー名に解決する（既定カレンダーで名前が空文字なら locale 名へ）
+@Composable
+private fun LocalCalendar.resolvedName(): String =
+    if (isDefault && name.isEmpty()) stringResource(R.string.default_calendar_name) else name
 
 // 「カレンダーモード」セクション内に埋め込まれる Golendar カレンダー管理の中身。
 // 見た目は Google モードのカレンダー一覧に寄せ、
@@ -51,14 +58,14 @@ fun LocalCalendarSectionContent(
     var pendingDeleteCalendar by remember { mutableStateOf<LocalCalendar?>(null) }
 
     Text(
-        "マイカレンダーは削除できません。",
+        stringResource(R.string.sc_defaultCalendarNotDeletable),
         fontSize = 12.sp, color = colors.textGray, modifier = Modifier.padding(bottom = 8.dp)
     )
 
     // 一括表示／非表示ボタン（Google モードと同じ体裁）
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
         TextButton(onClick = { viewModel.setAllLocalCalendarsVisible(true) }) {
-            Text("全て表示", color = colors.primaryAccent)
+            Text(stringResource(R.string.sc_showAll), color = colors.primaryAccent)
         }
     }
 
@@ -74,7 +81,7 @@ fun LocalCalendarSectionContent(
                 checked = cal.isVisible,
                 onCheckedChange = { checked ->
                     if (!checked && cal.isVisible && visibleLocalCalendarCount <= 1) {
-                        Toast.makeText(context, "最低1つのカレンダーを表示してください", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.sc_minOneCalendar), Toast.LENGTH_SHORT).show()
                     } else {
                         viewModel.updateLocalCalendar(cal.copy(isVisible = checked))
                     }
@@ -100,7 +107,7 @@ fun LocalCalendarSectionContent(
                     .padding(vertical = 4.dp, horizontal = 4.dp),
             ) {
                 Text(
-                    cal.name + if (cal.isDefault) " (既定)" else "",
+                    cal.resolvedName() + if (cal.isDefault) stringResource(R.string.sc_defaultSuffix) else "",
                     color = colors.text,
                     fontSize = 15.sp,
                 )
@@ -118,7 +125,7 @@ fun LocalCalendarSectionContent(
     ) {
         Icon(Icons.Default.Add, contentDescription = null)
         Spacer(Modifier.width(8.dp))
-        Text("カレンダーを追加")
+        Text(stringResource(R.string.sc_addCalendar))
     }
 
     // ---------- カレンダー追加ダイアログ ----------
@@ -128,13 +135,13 @@ fun LocalCalendarSectionContent(
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
             containerColor = colors.surface,
-            title = { Text("カレンダーを追加", color = colors.text, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.sc_addCalendar), color = colors.text, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
-                        label = { Text("名前") },
+                        label = { Text(stringResource(R.string.sc_name)) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = colors.text, unfocusedTextColor = colors.text,
@@ -143,7 +150,7 @@ fun LocalCalendarSectionContent(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text("色", color = colors.textGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.sc_color), color = colors.textGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         colors.calendarColorPalette().chunked(4).forEach { rowColors ->
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -182,10 +189,10 @@ fun LocalCalendarSectionContent(
                         viewModel.addLocalCalendar(newName.trim(), newColor)
                         showAddDialog = false
                     }
-                }) { Text("追加", color = colors.primaryAccent, fontWeight = FontWeight.Bold) }
+                }) { Text(stringResource(R.string.sc_add), color = colors.primaryAccent, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) { Text("キャンセル", color = colors.textGray) }
+                TextButton(onClick = { showAddDialog = false }) { Text(stringResource(R.string.sc_cancel), color = colors.textGray) }
             }
         )
     }
@@ -221,32 +228,31 @@ fun LocalCalendarSectionContent(
             containerColor = colors.surface,
             title = {
                 Text(
-                    "カレンダーを削除しますか？",
+                    stringResource(R.string.sc_deleteCalendarTitle),
                     color = colors.text, fontWeight = FontWeight.Bold,
                 )
             },
             text = {
                 Column {
                     Text(
-                        "「${cal.name}」を削除します。",
+                        stringResource(R.string.sc_deleteCalendarMessage, cal.resolvedName()),
                         color = colors.text, fontSize = 14.sp,
                     )
                     Spacer(Modifier.height(8.dp))
                     val count = eventCount
                     if (count == null) {
                         Text(
-                            "所属予定を確認中...",
+                            stringResource(R.string.sc_checkingEvents),
                             color = colors.textGray, fontSize = 13.sp,
                         )
                     } else if (count == 0) {
                         Text(
-                            "このカレンダーに予定はありません。",
+                            stringResource(R.string.sc_noEventsInCalendar),
                             color = colors.textGray, fontSize = 13.sp,
                         )
                     } else {
                         Text(
-                            "このカレンダーに属する予定 ${count} 件も一緒に削除されます。\n" +
-                                "元に戻すことはできません。",
+                            stringResource(R.string.sc_deleteWithEvents, count),
                             color = colors.sunRed, fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                         )
@@ -261,12 +267,12 @@ fun LocalCalendarSectionContent(
                     },
                     enabled = eventCount != null,
                 ) {
-                    Text("削除", color = colors.sunRed, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.sc_delete), color = colors.sunRed, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDeleteCalendar = null }) {
-                    Text("キャンセル", color = colors.textGray)
+                    Text(stringResource(R.string.sc_cancel), color = colors.textGray)
                 }
             },
         )
@@ -275,7 +281,7 @@ fun LocalCalendarSectionContent(
     // ---------- 色変更ダイアログ（Google モードと同じものを流用） ----------
     colorPickerCalendar?.let { cal ->
         CalendarColorPickerDialog(
-            calendarName = cal.name,
+            calendarName = cal.resolvedName(),
             colors = colors,
             currentColorArgb = cal.colorArgb,
             onDismiss = { colorPickerCalendar = null },

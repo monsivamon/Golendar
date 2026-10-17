@@ -1,0 +1,32 @@
+<resources>
+    <!-- widget / data util 계열의 UI 문자열(한국어 번역) -->
+
+    <!-- 일정 없음 -->
+    <string name="wd_widgetNoEvents">일정 없음</string>
+    <string name="wd_calendarFallbackTitle">일정 없음</string>
+
+    <!-- 위젯 타이틀·요일 라벨 -->
+    <string name="wd_widgetMonthTitle">%1$d년 %2$d월</string>
+    <string name="wd_weekDaySun">일</string>
+    <string name="wd_weekDayMon">월</string>
+    <string name="wd_weekDayTue">화</string>
+    <string name="wd_weekDayWed">수</string>
+    <string name="wd_weekDayThu">목</string>
+    <string name="wd_weekDayFri">금</string>
+    <string name="wd_weekDaySat">토</string>
+
+    <!-- 위젯 버튼의 contentDescription -->
+    <string name="wd_widgetRefreshContentDesc">새로고침</string>
+    <string name="wd_widgetSettingsContentDesc">설정</string>
+
+    <!-- 지도 앱 공유 -->
+    <string name="wd_mapChooserTitle">지도 앱 선택</string>
+
+    <!-- 사진 저장(MediaSaver) -->
+    <string name="wd_mediaOriginalNotFound">원본 파일을 찾을 수 없습니다</string>
+    <string name="wd_mediaSaveFailedWithReason">저장에 실패했습니다: %1$s</string>
+    <string name="wd_mediaStoreRegisterFailed">MediaStore에 등록하지 못했습니다</string>
+    <string name="wd_mediaStreamOpenFailed">출력 스트림을 열 수 없습니다</string>
+    <string name="wd_mediaSavedToPictures">Pictures/Golendar에 저장했습니다</string>
+    <string name="wd_mediaMkdirFailed">저장 폴더를 만들 수 없습니다</string>
+</resources>

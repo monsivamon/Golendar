@@ -12,6 +12,7 @@ import com.monsivamon.golender.data.LocalEvent
 import com.monsivamon.golender.data.SelectedCalendarJson
 import com.monsivamon.golender.data.dataStore
 import com.monsivamon.golender.data.prefs.SettingsKeys
+import com.monsivamon.golender.R
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -85,8 +86,14 @@ object NotificationScheduler {
                 repo.getEventsForMonth(startMillis, endMillis, visibleIds)
                     .filter { !it.isHolidayCalendar && !it.isCulturalEvent }
             } else {
-                // Golendar モードではシステム祝日データを除外する
-                repo.getLocalEventsForMonth(startMillis, endMillis)
+                // Golendar モードではシステム祝日データを除外する。
+                // 可視カレンダーに限定する（非表示カレンダーは通知対象外：README 仕様と整合）。
+                val visibleLocalIds = repo.getVisibleLocalCalendars().map { it.id }
+                if (visibleLocalIds.isEmpty()) {
+                    context.dataStore.edit { it[SettingsKeys.SCHEDULED_ALARM_IDS] = "" }
+                    return@withLock
+                }
+                repo.getLocalEventsForMonth(startMillis, endMillis, visibleLocalIds)
                     .filter { it.description != LocalEvent.DESCRIPTION_HOLIDAY }
             }
 
@@ -161,7 +168,7 @@ object NotificationScheduler {
 
         // 通知内容を Intent に詰める
         val intent = Intent(context, NotificationReceiver::class.java).apply {
-            val prefix = if (is10MinBefore) "[10分前] " else ""
+            val prefix = if (is10MinBefore) context.getString(R.string.vm_notification_prefix_10min) else ""
             putExtra(NotificationConfig.EXTRA_TITLE, prefix + event.title)
             putExtra(NotificationConfig.EXTRA_MESSAGE, event.description)
             putExtra(NotificationConfig.EXTRA_ID, notificationId)
@@ -176,14 +183,23 @@ object NotificationScheduler {
         )
 
         return try {
-            // Doze 中でも発火する正確アラームとして登録する
+            // Doze 中でも発火する正確なアラームとして登録する
             alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent,
             )
             requestCode
         } catch (_: SecurityException) {
-            // 権限不足などは無視して -1 を返す
-            -1
+            // 正確アラーム権限が無い端末では ±15 分許容の setWindow で代用する。
+            // 無視して沈黙するよりは、多少の遅延でも通知が届く方を優先する。
+            try {
+                alarmManager.setWindow(
+                    AlarmManager.RTC_WAKEUP, triggerTime,
+                    15 * 60_000L, pendingIntent,
+                )
+                requestCode
+            } catch (_: Exception) {
+                -1
+            }
         }
     }
 }

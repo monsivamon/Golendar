@@ -20,7 +20,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
+import com.monsivamon.golender.R
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.data.util.PhotoStorage
 import com.monsivamon.golender.ui.theme.AppColors
@@ -40,7 +42,7 @@ internal fun PhotoAttachmentSection(
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("写真", color = colors.textGray, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            Text(stringResource(R.string.dl2_photoSection), color = colors.textGray, fontWeight = FontWeight.Bold, fontSize = 13.sp)
             Spacer(Modifier.width(8.dp))
             Text(
                 "$total / ${EventPhoto.MAX_PHOTOS_PER_EVENT}",
@@ -94,7 +96,7 @@ internal fun PhotoAttachmentSection(
             }
         }
         Text(
-            "写真はアプリ内に保存されます（長辺 ${PhotoStorage.MAX_LONG_EDGE}px に縮小）",
+            stringResource(R.string.dl2_photoResizeNote, PhotoStorage.MAX_LONG_EDGE),
             color = colors.textGray,
             fontSize = 11.sp,
             modifier = Modifier.padding(top = 6.dp),

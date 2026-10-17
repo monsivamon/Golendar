@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ui/AboutAppDialog.kt -->
+    <string name="co_about_dialog_title">이 앱 정보</string>
+    <string name="co_close">닫기</string>
+    <string name="co_about_card_title">앱 정보</string>
+    <string name="co_about_app_description">월·주·일 표시를 갖춘 Android 캘린더 앱입니다.\n프라이버시를 중시하는 Golendar 모드와,\nGoogle 캘린더 동기화의 Google 모드를 탑재하고 있습니다.</string>
+    <string name="co_about_credits_title">데이터 제공·라이브러리</string>
+    <string name="co_credit_gsi">국토지리원</string>
+    <string name="co_credit_gsi_license">공공 데이터</string>
+    <string name="co_license_link">라이선스</string>
+
+    <!-- ui/AppNavigation.kt -->
+    <string name="co_header_month_title">%1$d년 %2$d월</string>
+    <string name="co_header_daily_title">%1$d년 %2$d월 %3$d일</string>
+    <string name="co_calendar_access_title">Google 캘린더 접근</string>
+    <string name="co_calendar_access_message">캘린더 접근 권한이 있어야 Google 캘린더와 동기화하여 일정을 읽고 쓸 수 있습니다.\nGolendar 모드(앱 내에서만)만 사용하는 경우에는 허용하지 않고 나중에 설정 화면에서 변경할 수도 있습니다.</string>
+
+    <!-- ui/common/CalendarHeader.kt -->
+    <string name="co_search_cd">검색</string>
+    <string name="co_sync_cd">동기화</string>
+    <string name="co_settings_cd">설정</string>
+    <string name="co_search_placeholder">일정 검색...</string>
+    <string name="co_select_cd">선택</string>
+    <string name="co_bottom_list_hide_cd">하단 목록 숨기기</string>
+    <string name="co_bottom_list_show_cd">하단 목록 표시</string>
+
+    <!-- ui/common/CalendarTabRow.kt -->
+    <string name="co_prev">이전</string>
+    <string name="co_next">다음</string>
+    <string name="co_tab_daily">일</string>
+    <string name="co_tab_weekly">주</string>
+    <string name="co_tab_monthly">월</string>
+
+    <!-- ui/common/DatePickerWrappers.kt -->
+    <string name="co_cancel">취소</string>
+    <string name="co_year_month_jump_title">연월로 이동</string>
+    <string name="co_prev_year_cd">이전 연도</string>
+    <string name="co_next_year_cd">다음 연도</string>
+    <string name="co_year_header">%1$d년</string>
+    <string name="co_month_label">%1$d월</string>
+
+    <!-- ui/common/PermissionUtils.kt -->
+    <string name="co_open_settings">설정 열기</string>
+    <string name="co_later">나중에</string>
+
+    <!-- ui/common/SetupTutorialScaffold.kt -->
+    <string name="co_tutorial_start">시작</string>
+    <string name="co_tutorial_skip">건너뛰기</string>
+    <string name="co_tutorial_back">뒤로</string>
+
+    <!-- ui/components/AiPreviewList.kt -->
+    <string name="co_all_day">종일</string>
+
+    <!-- ui/components/MonthGridView.kt -->
+    <string name="co_weekday_sun">일</string>
+    <string name="co_weekday_mon">월</string>
+    <string name="co_weekday_tue">화</string>
+    <string name="co_weekday_wed">수</string>
+    <string name="co_weekday_thu">목</string>
+    <string name="co_weekday_fri">금</string>
+    <string name="co_weekday_sat">토</string>
+
+    <!-- ui/components/SearchResultsList.kt -->
+    <string name="co_search_no_results">해당하는 일정이 없습니다</string>
+    <string name="co_search_results_count">검색 결과: %1$d건</string>
+</resources>

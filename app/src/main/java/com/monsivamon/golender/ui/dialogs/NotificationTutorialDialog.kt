@@ -19,9 +19,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.common.SetupTutorialScaffold
 import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
@@ -33,24 +35,24 @@ fun NotificationTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
     SetupTutorialScaffold(
         pages = listOf(
             TutorialPage(
-                title = "通知のタイミング",
-                description = "「定刻」と「10分前」の2種類を\n個別に ON/OFF できます。\n祝日・文化イベントは通知対象外です。",
+                title = stringResource(R.string.dl1_notifTutTitleTiming),
+                description = stringResource(R.string.dl1_notifTutDescTiming),
                 illustration = { c -> TimingIllustration(c) },
             ),
             TutorialPage(
-                title = "正確なアラーム",
-                description = "予定時刻ぴったりに通知を届けるため、\n「正確なアラーム」の許可を推奨します。",
+                title = stringResource(R.string.dl1_notifTutTitleAlarm),
+                description = stringResource(R.string.dl1_notifTutDescAlarm),
                 illustration = { c -> ExactAlarmIllustration(c) },
             ),
             TutorialPage(
-                title = "バッテリー最適化",
-                description = "スリープ中の通知遅延を防ぐため、\nバッテリー最適化の無効化を推奨します。",
+                title = stringResource(R.string.dl1_notifTutTitleBattery),
+                description = stringResource(R.string.dl1_notifTutDescBattery),
                 illustration = { c -> BatteryTutIllustration(c) },
             ),
         ),
         colors = colors,
         onComplete = onComplete,
-        dismissLabel = "閉じる",
+        dismissLabel = stringResource(R.string.dl1_close),
     )
 }
 
@@ -64,8 +66,8 @@ private fun TimingIllustration(colors: AppColors) {
             Text("🔔", fontSize = 36.sp)
             Spacer(Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Pill("10分前", colors)
-                Pill("定刻", colors)
+                Pill(stringResource(R.string.dl1_tenMinutesBefore), colors)
+                Pill(stringResource(R.string.dl1_scheduledTime), colors)
             }
         }
     }

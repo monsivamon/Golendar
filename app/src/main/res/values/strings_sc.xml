@@ -1,0 +1,131 @@
+<resources>
+    <!-- ============================================================
+         ui/sections/BackupSection.kt
+         ============================================================ -->
+    <string name="sc_backupRestoreSection">バックアップと復元</string>
+    <string name="sc_backupSaveDescription">保存: 可視カレンダーの予定をまとめて書き出します。\n復元: 同名カレンダーを上書きします（Golendarモードのみ）。\n追記: 既存の予定を残したまま追加します。</string>
+    <string name="sc_backupPhotosLabel">写真もバックアップ</string>
+    <string name="sc_backupPhotosZipDesc">予定に添付した写真も ZIP ファイルに含めます（Golendarモードのみ）</string>
+    <string name="sc_backupPhotosOffDesc">OFF の場合は従来通り JSON で保存されます</string>
+    <string name="sc_save">保存</string>
+    <string name="sc_append">追記</string>
+    <string name="sc_restore">復元</string>
+    <string name="sc_multiCalendarBackupTitle">複数のカレンダーをまとめてバックアップ</string>
+    <string name="sc_multiCalendarBackupMessage">複数のカレンダーが表示されています。\nまとめてバックアップしてよろしいですか？</string>
+    <string name="sc_multiCalendarTargetCount">対象: %1$d 件</string>
+    <string name="sc_bulletItemName">・%1$s</string>
+    <string name="sc_unnamed">名称未設定</string>
+    <string name="sc_cancel">キャンセル</string>
+    <string name="sc_overwriteTitle">同名カレンダーが存在します</string>
+    <string name="sc_overwriteMessage">以下のカレンダーは既に存在します。\n復元すると、もとのカレンダーの予定は上書きされます。\nよろしいですか？</string>
+    <string name="sc_overwriteNote">※ バックアップに含まれないカレンダーはそのまま残ります。</string>
+    <string name="sc_overwriteConfirm">上書きする</string>
+    <string name="sc_restoreNotAvailableInFile">このファイルは復元できません</string>
+    <string name="sc_zipAppendGolendarOnly">写真付きバックアップは Golendar モードでのみ追記できます</string>
+    <string name="sc_legacyRestoreUnavailable">旧形式のバックアップは Google モードでは復元できません。追記をご利用ください。</string>
+    <string name="sc_restoreGoogleModeUnavailable">Googleモードでは復元できません。追記をご利用ください。</string>
+
+    <!-- ============================================================
+         ui/sections/CalendarModeSection.kt
+         ============================================================ -->
+    <string name="sc_calendarModeSection">カレンダーモード</string>
+    <string name="sc_golendarModeDesc">アプリ内のみで完結します。</string>
+    <string name="sc_googleModeDesc">Googleカレンダーと同期します。</string>
+    <string name="sc_showAll">全て表示</string>
+    <string name="sc_minOneCalendar">最低1つのカレンダーを表示してください</string>
+    <string name="sc_refreshCalendarList">カレンダー一覧を再取得</string>
+
+    <!-- ============================================================
+         ui/sections/CustomSettingsSection.kt
+         ============================================================ -->
+    <string name="sc_customSettingsSection">カスタム設定</string>
+    <string name="sc_showHolidays">祝日を表示</string>
+    <string name="sc_appBgColor">アプリ背景色</string>
+    <string name="sc_appBgColorSelect">アプリ背景色を選択</string>
+    <string name="sc_dayColors">曜日の色</string>
+    <string name="sc_dayOfWeekRow">%1$s曜日</string>
+    <string name="sc_displayTheme">表示テーマ</string>
+    <string name="sc_themeSystem">端末の設定に合わせる</string>
+    <string name="sc_themeLight">ライトモード</string>
+    <string name="sc_themeDark">ダークモード</string>
+    <string name="sc_weekStart">週の始まり</string>
+    <string name="sc_weekStartSunday">日曜日から始める</string>
+    <string name="sc_weekStartMonday">月曜日から始める</string>
+
+    <!-- ============================================================
+         ui/sections/LocalCalendarSection.kt
+         ============================================================ -->
+    <string name="sc_defaultCalendarNotDeletable">マイカレンダーは削除できません。</string>
+    <string name="sc_defaultSuffix">" (既定)"</string>
+    <string name="sc_addCalendar">カレンダーを追加</string>
+    <string name="sc_name">名前</string>
+    <string name="sc_color">色</string>
+    <string name="sc_add">追加</string>
+    <string name="sc_deleteCalendarTitle">カレンダーを削除しますか？</string>
+    <string name="sc_deleteCalendarMessage">「%1$s」を削除します。</string>
+    <string name="sc_checkingEvents">所属予定を確認中...</string>
+    <string name="sc_noEventsInCalendar">このカレンダーに予定はありません。</string>
+    <string name="sc_deleteWithEvents">このカレンダーに属する予定 %1$d 件も一緒に削除されます。\n元に戻すことはできません。</string>
+    <string name="sc_delete">削除</string>
+
+    <!-- ============================================================
+         ui/sections/NotificationSection.kt
+         ============================================================ -->
+    <string name="sc_notificationSection">通知設定</string>
+    <string name="sc_notifyAtStart">定刻（開始時間）に通知</string>
+    <string name="sc_notify10MinBefore">10分前に通知</string>
+    <string name="sc_bgNotificationReliability">バックグラウンド通知の確実化</string>
+    <string name="sc_batteryOptimizationOff">バッテリー最適化の無効化\n（スリープ中の通知遅延を防ぎます）</string>
+    <string name="sc_batteryOptimizationDone">無効化済み</string>
+    <string name="sc_openSettings">設定を開く</string>
+    <string name="sc_notificationPermission">通知の許可</string>
+    <string name="sc_permissionGranted">許可済み</string>
+    <string name="sc_grantPermission">許可する</string>
+    <string name="sc_exactAlarmPermission">正確なアラーム機能の許可</string>
+    <string name="sc_recheckSettings">設定状況を再チェックする</string>
+    <string name="sc_notificationDeniedTitle">通知が許可されていません</string>
+    <string name="sc_notificationDeniedMessage">通知権限が恒久的に拒否されているため、システムの権限ダイアログを表示できません。\n\n「設定を開く」→「通知」→「許可」を選択してください。</string>
+
+    <!-- ============================================================
+         ui/sections/TutorialSection.kt
+         ============================================================ -->
+    <string name="sc_tutorialSection">チュートリアル</string>
+    <string name="sc_tutorialCalendarPermission">カレンダーのアクセス権限を確認する</string>
+    <string name="sc_tutorialGesture">ジェスチャー操作の案内を見る</string>
+    <string name="sc_tutorialMap">地図の使い方を見る</string>
+    <string name="sc_tutorialAi">AI解析の使い方を見る</string>
+    <string name="sc_tutorialCalendarDisplay">カレンダーの表示と色の設定を見る</string>
+    <string name="sc_tutorialMonthList">月表示の下部リストを見る</string>
+    <string name="sc_tutorialScheduleAdd">予定の追加を見る</string>
+    <string name="sc_tutorialScheduleEdit">予定の編集と削除を見る</string>
+    <string name="sc_tutorialRecurring">繰り返し予定の使い方を見る</string>
+    <string name="sc_tutorialPhoto">写真の活用を見る</string>
+    <string name="sc_tutorialSearch">検索の使い方を見る</string>
+    <string name="sc_tutorialNotification">通知の設定を見る</string>
+    <string name="sc_tutorialBackup">バックアップと復元を見る</string>
+    <string name="sc_tutorialWidget">ウィジェットとショートカットを見る</string>
+
+    <!-- ============================================================
+         ui/screens/DailyCalendarScreen.kt / WeeklyCalendarScreen.kt / MonthlyCalendarScreen.kt
+         ============================================================ -->
+    <string name="sc_dateWithCount">%1$d月%2$d日 (%3$s)</string>
+    <string name="sc_weekDateWithCount">%1$d月%2$d日 (%3$s)  %4$d件</string>
+    <string name="sc_eventCount">%1$d件</string>
+    <string name="sc_noEvents">予定なし</string>
+    <string name="sc_addEvent">+ 予定を追加</string>
+
+    <!-- ============================================================
+         ui/screens/SettingsScreen.kt
+         ============================================================ -->
+    <string name="sc_back">‹ 戻る</string>
+    <string name="sc_settings">設定</string>
+    <string name="sc_aboutApp">このアプリについて</string>
+    <string name="sc_googleCalendarAccess">Googleカレンダーへのアクセス</string>
+    <string name="sc_calendarPermissionMessage">Googleカレンダーと同期するには、カレンダーへのアクセス許可が必要です。\n次の画面で「許可」を選んでください。</string>
+    <string name="sc_permissionDeniedSwitchMode">カレンダーへのアクセスが許可されなかったため、Golendarモードに切り替えました</string>
+    <string name="sc_calendarTutorialMessage">Googleカレンダーと同期して予定を読み書きするには、カレンダーへのアクセス許可が必要です。\n\nGolendarモード（アプリ内のみ）だけを使う場合は、許可せずに後で設定画面から変更することもできます。</string>
+    <string name="sc_noGoogleAccountTitle">Googleアカウントが見つかりません</string>
+    <string name="sc_noGoogleAccountMessage">端末にGoogleアカウントが設定されていないため、Googleモードを使用できません。\n\n端末の「設定」→「アカウント」からGoogleアカウントを追加してから、もう一度お試しください。\n\nGolendarモード（アプリ内のみ）は引き続きご利用いただけます。</string>
+    <string name="sc_close">閉じる</string>
+    <string name="sc_language">表示言語</string>
+</resources>

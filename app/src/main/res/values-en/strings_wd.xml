@@ -1,0 +1,32 @@
+<resources>
+    <!-- widget / data util UI strings -->
+
+    <!-- No events -->
+    <string name="wd_widgetNoEvents">No events</string>
+    <string name="wd_calendarFallbackTitle">No events</string>
+
+    <!-- Widget title / weekday labels -->
+    <string name="wd_widgetMonthTitle">%1$d, %2$d</string>
+    <string name="wd_weekDaySun">Sun</string>
+    <string name="wd_weekDayMon">Mon</string>
+    <string name="wd_weekDayTue">Tue</string>
+    <string name="wd_weekDayWed">Wed</string>
+    <string name="wd_weekDayThu">Thu</string>
+    <string name="wd_weekDayFri">Fri</string>
+    <string name="wd_weekDaySat">Sat</string>
+
+    <!-- Widget button contentDescriptions -->
+    <string name="wd_widgetRefreshContentDesc">Refresh</string>
+    <string name="wd_widgetSettingsContentDesc">Settings</string>
+
+    <!-- Map app sharing -->
+    <string name="wd_mapChooserTitle">Choose a map app</string>
+
+    <!-- Photo saving (MediaSaver) -->
+    <string name="wd_mediaOriginalNotFound">Original file not found</string>
+    <string name="wd_mediaSaveFailedWithReason">Failed to save: %1$s</string>
+    <string name="wd_mediaStoreRegisterFailed">Failed to register with MediaStore</string>
+    <string name="wd_mediaStreamOpenFailed">Could not open output stream</string>
+    <string name="wd_mediaSavedToPictures">Saved to Pictures/Golendar</string>
+    <string name="wd_mediaMkdirFailed">Could not create the destination folder</string>
+</resources>
