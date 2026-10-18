@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tz_sectionTitle">Time zone</string>
+    <string name="tz_pinTitle">Pin display time zone</string>
+    <string name="tz_pinDesc">Show times in the selected region even abroad</string>
+    <string name="tz_pinnedZoneLabel">Pinned time zone</string>
+    <string name="tz_currentBase">Current display base: %1$s</string>
+    <string name="tz_notifyPinTitle">Pin notification times too (align with local clock)</string>
+    <string name="tz_notifyPinDesc">When abroad, notify when the local clock reaches the event time (or 10 minutes before)</string>
+    <string name="tz_pickerTitle">Select time zone</string>
+    <string name="tz_searchHint">Search time zones...</string>
+    <string name="tz_noResults">No matching time zones</string>
+    <string name="tz_close">Close</string>
+</resources>

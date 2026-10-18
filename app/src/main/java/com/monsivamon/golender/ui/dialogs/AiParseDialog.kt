@@ -22,6 +22,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.monsivamon.golender.R
 import com.monsivamon.golender.data.LocalEvent
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.data.util.AiJsonConverter
 import com.monsivamon.golender.data.util.AiPromptTemplate
 import com.monsivamon.golender.ui.components.AiPreviewList
@@ -60,8 +61,8 @@ fun AiParseDialog(
     var showWarningDialog by remember { mutableStateOf(false) }
     // プロンプトのプレースホルダを今日の日付・TZ に置換する
     val prompt = AiPromptTemplate.promptTemplate(context)
-        .replace("{{TODAY}}", LocalDate.now().toString())
-        .replace("{{TZ}}", ZoneId.systemDefault().id)
+        .replace("{{TODAY}}", LocalDate.now(AppTimeZone.effective()).toString())
+        .replace("{{TZ}}", AppTimeZone.effective().id)
     // 全件選択済みかどうかを判定する
     val allSelected = previewEvents.isNotEmpty() && selectedIndices.size == previewEvents.size
     // 警告モーダルを表示する

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tz_sectionTitle">타임존</string>
+    <string name="tz_pinTitle">표시 타임존 고정</string>
+    <string name="tz_pinDesc">해외에서도 선택한 지역의 시각으로 표시합니다</string>
+    <string name="tz_pinnedZoneLabel">고정할 타임존</string>
+    <string name="tz_currentBase">현재 표시 기준: %1$s</string>
+    <string name="tz_notifyPinTitle">알림 시각도 고정 (현지 시계에 맞춤)</string>
+    <string name="tz_notifyPinDesc">해외 체류 시 현지 시계가 일정 시각(10분 전 등)이 되면 알립니다</string>
+    <string name="tz_pickerTitle">타임존 선택</string>
+    <string name="tz_searchHint">타임존 검색...</string>
+    <string name="tz_noResults">해당하는 타임존이 없습니다</string>
+    <string name="tz_close">닫기</string>
+</resources>

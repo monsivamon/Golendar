@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.R
 import com.monsivamon.golender.data.LocalEvent
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.Instant
 import java.time.LocalDateTime
@@ -33,7 +34,7 @@ fun AiPreviewList(
     LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)) {
         itemsIndexed(events) { index, event ->
             // 終日は UTC、時間指定はシステム TZ で日時を解釈する
-            val zone = if (event.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+            val zone = if (event.isAllDay) ZoneOffset.UTC else AppTimeZone.effective()
             val startDt = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.startTime), zone)
             val endDt = LocalDateTime.ofInstant(Instant.ofEpochMilli(event.endTime), zone)
             val dateStr = startDt.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"))

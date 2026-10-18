@@ -39,11 +39,11 @@ import com.monsivamon.golender.ui.dialogs.event.DateTimeRow
 import com.monsivamon.golender.ui.dialogs.event.PhotoAttachmentSection
 import com.monsivamon.golender.ui.dialogs.event.RecurrenceChips
 import com.monsivamon.golender.ui.theme.AppColors
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.ZoneId
 import java.time.ZoneOffset
 
 internal val LABEL_WIDTH: Dp = 60.dp
@@ -122,10 +122,11 @@ fun EventDialog(
     }
     var recurrenceEndDate by remember(eventKey) {
         val parsed = RruleExpander.parseUntilDate(event?.rrule)
-        mutableStateOf(parsed ?: LocalDate.now().plusMonths(1))
+        mutableStateOf(parsed ?: LocalDate.now(AppTimeZone.effective()).plusMonths(1))
     }
 
-    val initialZone = if (event?.isAllDay == true) ZoneOffset.UTC else ZoneId.systemDefault()
+    // 終日=UTC / 時間指定=表示タイムゾーン基準で日時を解釈・保存する
+    val initialZone = if (event?.isAllDay == true) ZoneOffset.UTC else AppTimeZone.effective()
     val initialStart = event?.let {
         LocalDateTime.ofInstant(Instant.ofEpochMilli(it.startTime), initialZone)
     } ?: selectedDate.atTime(10, 0)
@@ -370,7 +371,7 @@ fun EventDialog(
             TextButton(enabled = (event == null || photosLoaded), onClick = {
                 val effectiveEndDate = if (endDateLocked) startDate else endDate
                 val finalTitle = title.ifBlank { context.getString(R.string.dl2_unnamedCalendar) }
-                val saveZone = if (isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+                val saveZone = if (isAllDay) ZoneOffset.UTC else AppTimeZone.effective()
                 val startDateTime = startDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else startTime)
                 val endDateTime = effectiveEndDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else endTime)
                 val startMillis = startDateTime.atZone(saveZone).toInstant().toEpochMilli()

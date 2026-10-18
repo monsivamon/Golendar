@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.monsivamon.golender.data.Event
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.viewmodel.CalendarMode
 import com.monsivamon.golender.R
@@ -29,6 +30,7 @@ import com.monsivamon.golender.ui.common.swipeToNavigateCalendar
 import com.monsivamon.golender.ui.components.SearchResultsList
 import com.monsivamon.golender.ui.dialogs.EventDetailDialog
 import com.monsivamon.golender.ui.dialogs.EventDialog
+import com.monsivamon.golender.ui.events.EventEditorPhotoEffects
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 import java.time.Instant
@@ -80,53 +82,20 @@ fun DailyCalendarScreen(
     var eventPhotoCounts by remember { mutableStateOf<Map<Long, Int>>(emptyMap()) }
     val aiSetupDone by viewModel.aiSetupDone.collectAsState()
 
-    // 予定編集にまつわる写真関連の状態を一括で初期化する。
-    // 個別に null/empty を代入すると消し忘れが発生するため、
-    // 「開く前」「閉じた後」は必ずこの関数（または LaunchedEffect 経由）を通す。
-    fun resetEventEditorPhotos() {
-        editingPhotos = emptyList()
-        editingPhotosLoaded = true
-    }
-
-    LaunchedEffect(viewingEvent) { detailPhotos = viewingEvent?.let { viewModel.getPhotosForEvent(it.id) } ?: emptyList() }
-    LaunchedEffect(editingLoadToken) {
-        if (editingLoadToken == 0L) return@LaunchedEffect
-        val ev = editingEvent ?: run {
-            editingPhotosLoaded = true
-            return@LaunchedEffect
-        }
-        editingPhotosLoaded = false
-        // DB 読み込みが一時的に失敗しただけで「写真0枚」と確定させない。
-        // 空リストのまま確定すると保存時に既存写真がすべて消去されるため、
-        // 数回リトライし、それでも失敗したらローディングのまま（保存不可）にして
-        // 誤データでの保存を防ぐ。
-        var loaded = false
-        for (attempt in 1..3) {
-            try {
-                editingPhotos = viewModel.getPhotosForEvent(ev.id)
-                loaded = true
-                break
-            } catch (_: Exception) {
-                if (attempt < 3) kotlinx.coroutines.delay(300L * attempt)
-            }
-        }
-        editingPhotosLoaded = loaded
-    }
-
-    // editingEvent が null に戻った瞬間に写真状態をクリアする。
-    // 呼び出し側の「editingEvent = null」忘れ／消し忘れを防ぐセーフティネット。
-    // （「+ 予定を追加」を開いたときに前の予定の写真サムネイルが残る不具合の恒久対策）
-    LaunchedEffect(editingEvent) {
-        if (editingEvent == null) resetEventEditorPhotos()
-    }
-
-    // dataVersion が更新されるたびに写真枚数マップを再取得する
+    // 写真関連の共通エフェクト（詳細/編集の写真ロード、📎枚数マップ）を呼び出す。
+    // 3画面の重複ロジックは EventEditorPhotoEffects に集約済み。
     val dataVersion by viewModel.dataVersion.collectAsState()
-    LaunchedEffect(dataVersion) {
-        val ids = viewModel.events.value.map { it.id }.filter { it > 0 }
-        eventPhotoCounts = if (ids.isEmpty()) emptyMap()
-                         else viewModel.getPhotoCountsForEvents(ids)
-    }
+    EventEditorPhotoEffects(
+        viewModel = viewModel,
+        viewingEvent = viewingEvent,
+        editingEvent = editingEvent,
+        editingLoadToken = editingLoadToken,
+        dataVersion = dataVersion,
+        onDetailPhotosChange = { detailPhotos = it },
+        onEditingPhotosChange = { photos, loaded -> editingPhotos = photos; editingPhotosLoaded = loaded },
+        onPhotoCountsChange = { eventPhotoCounts = it },
+        onEditingEventCleared = { editingPhotos = emptyList(); editingPhotosLoaded = true },
+    )
 
     if (isSearchMode) {
         SearchResultsList(
@@ -214,7 +183,7 @@ fun DailyCalendarScreen(
     }
 
     if (showEventDialog) {
-        val zone = editingEvent?.let { if (it.isAllDay) ZoneOffset.UTC else ZoneId.systemDefault() } ?: ZoneId.systemDefault()
+        val zone = editingEvent?.let { if (it.isAllDay) ZoneOffset.UTC else AppTimeZone.effective() } ?: AppTimeZone.effective()
         val dialogDate = editingEvent?.let { Instant.ofEpochMilli(it.startTime).atZone(zone).toLocalDate() } ?: selectedDate
         EventDialog(
             event = editingEvent, selectedDate = dialogDate, colors = colors,

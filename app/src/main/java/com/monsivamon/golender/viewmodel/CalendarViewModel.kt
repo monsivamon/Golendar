@@ -19,6 +19,7 @@ import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.data.prefs.SettingsKeys
 import com.monsivamon.golender.data.source.CalendarMeta
 import com.monsivamon.golender.notification.NotificationScheduler
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,12 +29,12 @@ import kotlinx.coroutines.withContext
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
 import androidx.compose.ui.graphics.toArgb
 
 // UI 状態とビジネスロジックを集約する ViewModel
 class CalendarViewModel(application: Application) : AndroidViewModel(application) {
     private val context = application.applicationContext
+    private val displayZone get() = AppTimeZone.effective()
     private val repository = CalendarRepository(application)
     private val eventLoader = CalendarEventLoader(context, repository)
     private val settingsStore = SettingsDataStore(context.dataStore)
@@ -50,10 +51,17 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     private val SEARCH_YEARS_PAST = 2L
     private val SEARCH_YEARS_FUTURE = 2L
 
+    // 表示タイムゾーン設定の UI 変数。settings と picker ダイアログの双方から使う
+    data class TimezoneSetting(
+        val pinned: Boolean,      // 表示タイムゾーンを固定するか
+        val zoneId: String,       // 固定する IANA ゾーン ID（例: "Asia/Tokyo"）
+        val notifyPinned: Boolean, // 通知時刻も現地の時計に合わせるか
+    )
+
     // ---------- 表示状態 ----------
-    private val _currentMonth = MutableStateFlow(YearMonth.now())
+    private val _currentMonth = MutableStateFlow(YearMonth.now(AppTimeZone.effective()))
     val currentMonth: StateFlow<YearMonth> = _currentMonth.asStateFlow()
-    private val _selectedDate = MutableStateFlow(LocalDate.now())
+    private val _selectedDate = MutableStateFlow(LocalDate.now(AppTimeZone.effective()))
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
     private val _events = MutableStateFlow<List<Event>>(emptyList())
     val events: StateFlow<List<Event>> = _events.asStateFlow()
@@ -84,6 +92,13 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     val selectedCalendars: StateFlow<List<SelectedCalendar>> = _selectedCalendars.asStateFlow()
     private val _showHolidays = MutableStateFlow(true)
     val showHolidays: StateFlow<Boolean> = _showHolidays.asStateFlow()
+
+    // ---------- 表示タイムゾーン ----------
+    // 表示タイムゾーン設定。固定 ON なら zoneId の時刻で全画面を表示する
+    private val _timezoneSetting = MutableStateFlow(
+        TimezoneSetting(pinned = false, zoneId = AppTimeZone.effective().id, notifyPinned = false)
+    )
+    val timezoneSetting: StateFlow<TimezoneSetting> = _timezoneSetting.asStateFlow()
     private val _showCalendarSelection = MutableStateFlow(false)
     val showCalendarSelection: StateFlow<Boolean> = _showCalendarSelection.asStateFlow()
     private val _statusMessage = MutableStateFlow<String?>(null)
@@ -389,11 +404,11 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
 
     // 検索範囲（過去2年〜未来2年）の予定を読み込む
     private suspend fun loadEventsForSearch(): List<Event> {
-        val now = LocalDate.now()
+        val now = LocalDate.now(displayZone)
         val startDate = now.minusYears(SEARCH_YEARS_PAST)
         val endDate = now.plusYears(SEARCH_YEARS_FUTURE)
-        val start = startDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val end = endDate.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val start = startDate.atStartOfDay(displayZone).toInstant().toEpochMilli()
+        val end = endDate.atTime(23, 59, 59).atZone(displayZone).toInstant().toEpochMilli()
         val visibleIds = _selectedCalendars.value.filter { it.isVisible }.map { it.calendarId }
         val colorMap = _selectedCalendars.value.filter { it.colorArgb != 0 }.associate { it.calendarId to it.colorArgb }
         val displayNameMap = _selectedCalendars.value.associate { it.calendarId to it.displayName }
@@ -458,6 +473,14 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                     else Color(colorStr.toInt())
                 }
                 _showHolidays.value = preferences[SettingsKeys.SHOW_HOLIDAYS] ?: true
+
+                // 表示タイムゾーン設定を読み込んで UI 状態とプロセス内キャッシュへ反映する
+                _timezoneSetting.value = TimezoneSetting(
+                    pinned = preferences[SettingsKeys.TIMEZONE_PIN] ?: false,
+                    zoneId = preferences[SettingsKeys.TIMEZONE_ID] ?: displayZone.id,
+                    notifyPinned = preferences[SettingsKeys.TIMEZONE_NOTIFY_PIN] ?: false,
+                )
+                AppTimeZone.load(context)
 
                 val savedColors = mutableMapOf(
                     DayOfWeek.SUNDAY to Color(SettingsKeys.DEFAULT_SUNDAY_COLOR_ARGB),
@@ -684,6 +707,23 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    // ---------- 表示タイムゾーン ----------
+    // 表示タイムゾーン設定（固定 ON/OFF・固定ゾーン・通知固定）を保存し、
+    // 通知・ウィジェット・予定一覧を新しい表示基準で更新する
+    fun updateTimezoneSetting(pinned: Boolean, zoneId: String, notifyPinned: Boolean) {
+        _timezoneSetting.value = TimezoneSetting(pinned, zoneId, notifyPinned)
+        viewModelScope.launch(Dispatchers.IO) {
+            try { AppTimeZone.save(context, pinned, zoneId, notifyPinned) } catch (_: Exception) { }
+            // 「今日」の解釈が変わるため選択日を新基準の今日へ合わせ直す
+            val today = LocalDate.now(AppTimeZone.effective())
+            _selectedDate.value = today
+            _currentMonth.value = YearMonth.from(today)
+            try { NotificationScheduler.updateAlarms(context) } catch (_: Exception) { }
+            try { widgetMgr.updateAll() } catch (_: Exception) { }
+            loadEvents()
+        }
+    }
+
     // ---------- カスタム設定 ----------
     // アプリ背景色を保存し、ウィジェットを更新する
     fun setCalendarBgColor(color: Color) {
@@ -728,8 +768,8 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     fun loadEvents() {
         viewModelScope.launch(Dispatchers.IO) {
             val yearMonth = _currentMonth.value
-            val start = yearMonth.minusMonths(1).atDay(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-            val end = yearMonth.plusMonths(1).atEndOfMonth().atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val start = yearMonth.minusMonths(1).atDay(1).atStartOfDay(displayZone).toInstant().toEpochMilli()
+            val end = yearMonth.plusMonths(1).atEndOfMonth().atTime(23, 59, 59).atZone(displayZone).toInstant().toEpochMilli()
             try {
                 val fetchedEvents = if (_calendarMode.value == CalendarMode.GOOGLE) {
                     val visibleIds = _selectedCalendars.value.filter { it.isVisible }.map { it.calendarId }
@@ -770,8 +810,8 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // 選択日を今日に戻す
-    fun resetToToday() { selectDate(LocalDate.now()) }
+    // 選択日を今日に戻す。「今日」は表示タイムゾーン基準
+    fun resetToToday() { selectDate(LocalDate.now(displayZone)) }
 
     // ---------- テーマ・週開始・モード ----------
     // テーマモードを保存し、ウィジェットを更新する

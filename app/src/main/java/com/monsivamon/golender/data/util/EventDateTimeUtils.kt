@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.ui.graphics.Color
 import com.monsivamon.golender.R
 import com.monsivamon.golender.data.Event
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.DayOfWeek
 import java.time.Instant
@@ -26,8 +27,9 @@ private fun LocalDate.formatLocal(context: Context, skeleton: String): String {
     return format(DateTimeFormatter.ofPattern(pattern, locale))
 }
 
-// 予定の日付解釈に使う TZ を返す（終日=UTC / 時間指定=システム TZ）
-fun Event.zone(): ZoneId = if (isAllDay) ZoneOffset.UTC else ZoneId.systemDefault()
+// 予定の日付解釈に使う TZ を返す（終日=UTC / 時間指定=表示設定のタイムゾーン）。
+// 表示タイムゾーン固定 ON なら固定ゾーン、OFF なら端末のシステムゾーン。
+fun Event.zone(): ZoneId = if (isAllDay) ZoneOffset.UTC else AppTimeZone.effective()
 
 // 予定の開始日をローカル日付で返す
 fun Event.localStartDate(): LocalDate =
@@ -93,12 +95,12 @@ fun correctAllDayMillis(startMillis: Long, endMillis: Long): CorrectedMillis {
     // 開始が UTC 境界でなければローカル日付の 0 時（UTC 基準）に丸める
     if (startMillis % dayMs != 0L) {
         start = Instant.ofEpochMilli(startMillis)
-            .atZone(ZoneId.systemDefault()).toLocalDate()
+            .atZone(AppTimeZone.effective()).toLocalDate()
             .atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
     }
     // 終了が UTC 境界でなければ 23 時以降かどうかで翌日／当日に丸める
     if (endMillis % dayMs != 0L) {
-        val endZoned = Instant.ofEpochMilli(endMillis).atZone(ZoneId.systemDefault())
+        val endZoned = Instant.ofEpochMilli(endMillis).atZone(AppTimeZone.effective())
         end = if (endZoned.hour >= 23) {
             endZoned.toLocalDate().plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         } else {

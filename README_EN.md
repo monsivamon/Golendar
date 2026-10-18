@@ -42,7 +42,7 @@ Open the APK on your device and install it after allowing "Install unknown apps"
 ### Multiple Calendars in Golendar Mode
 - Create multiple local calendars within the app and organize your events across them.
 - "My Calendar" is created automatically on first launch. My Calendar cannot be deleted, but it can be hidden.
-- Each calendar can have its own name, color, visibility ON/OFF, and display order.
+- Each calendar can have its own name, color, and visibility ON/OFF.
 - Deleting a calendar other than the default also deletes all of its events (a dialog shows the event count before deletion so you can confirm).
 - On the event editing screen, you can choose which calendar to add the event to (when two or more calendars are visible).
 - "Show All" turns every calendar's display ON at once (the number of visible calendars cannot be zero).
@@ -84,7 +84,7 @@ Open the APK on your device and install it after allowing "Install unknown apps"
 - Long-press the icon for "Add Event", "Today", and "Search".
 
 ### Home Screen Widgets
-- Three types: Day, Week, and Month. They follow the app settings (theme, background color, visible calendars, and the show-holidays toggle).
+- Three types: Day, Week, and Month. They follow the app settings (theme, background color, visible calendars, the show-holidays toggle, and time zone).
 - The month widget shows event dots for cells of the previous and next months as well.
 - In Golendar Mode it reflects events from visible local calendars; in Google Mode, from visible Google calendars.
 
@@ -92,6 +92,13 @@ Open the APK on your device and install it after allowing "Install unknown apps"
 - Notifications at the exact time and 10 minutes before. Uses exact alarms from `AlarmManager` to counter Doze mode.
 - Holidays and cultural observation days are not notified. **Birthdays are notified** (the Emperor's Birthday is treated as a holiday and thus excluded).
 - Linked to the visible calendar settings (covers visible calendars in both Golendar and Google Modes).
+
+### Time Zone Settings
+- You can pin the display time zone to **any region in the world** (IANA zone selection with search, ~600 zones).
+- With "Pin display time zone" ON, the calendar is displayed on the date-time basis of the selected region even while abroad, and widgets follow the same date basis.
+- With "Pin notification times too (align with local clock)" ON, notifications fire when the device's local clock reaches the event time (or 10 minutes before).
+- With pinning OFF (default), the app follows the device's system time zone, exactly as in v1.1.8 and earlier.
+- Configure it from the "Time zone" section in Settings.
 
 ### First-Launch Setup
 0. Welcome screen (shown on first launch and on version upgrades)
@@ -118,6 +125,7 @@ Location permission is requested the first time you open the map.
 - **Compatibility with old-format (v1.1.6 or earlier) backups**: Appending works in both Google/Golendar modes (you choose the calendar to append to). Restore (overwrite) is available only in Golendar Mode, restoring to My Calendar. Adding from an old-format ZIP in Google Mode is not possible.
 - In Google Mode, "Restore (overwrite)" is unavailable and only "Append" can be used.
 - Holiday data is not included and is re-fetched automatically on restore.
+- Some settings such as time zone pinning, notification ON/OFF, and display language are device-specific and are excluded from backups.
 
 ### Holidays & Cultural Events
 - Fetched automatically from the `holidays-jp` API (on first launch and every 30 days).
@@ -138,6 +146,7 @@ Location permission is requested the first time you open the map.
 - Theme: Light / Dark / Follow system
 - Languages: Japanese / English / 简体中文 / 한국어 (switch from the "Display language" section in Settings; the app stays on the Settings screen after switching. When not selected, the default is auto-detected from the device language)
 - App background color: 16 pastel colors (synced with the calendar, settings, and widgets)
+- Time zone: Pin display time zone ON/OFF · IANA zone selection (~600 zones, searchable) · Pin notification times ON/OFF
 - Weekday colors: Can be set for every weekday
 - Per-calendar colors: Can be set individually in **both Golendar Mode and Google Mode**. Assigned automatically according to the theme (light = 16 dark colors / dark = 16 light colors).
 - Event color coding: Birthday = orange, Culture = green, Normal = theme color (calendar color takes priority)
@@ -171,6 +180,7 @@ Location permission is requested the first time you open the map.
 - **Deleting local calendars**: Deleting a local calendar other than the default (My Calendar) also deletes all of its events. A dialog shows the count before deletion so you can confirm.
 - **Switching to Google Mode**: In v1.1.7, if permission is already granted, switching happens instantly without restarting the app.
 - **Notifications**: Disabling battery optimization and allowing exact alarms is recommended. Notifications may be delayed on some manufacturers' devices.
+- **Time zone**: When Pin display time zone is ON, timed events (not all-day events, which are saved at UTC day boundaries) are saved based on the pinned zone. With Pin notification times too ON while abroad, notifications fire when the device's local clock reaches the event time.
 - **Map**: Requires an internet connection. The map feature works even if location permission is denied.
 - **Search**: Holidays, cultural events, and birthdays are excluded.
 - **Recurrence**: "End" refers to the duration of a single occurrence. The overall end date is specified separately.

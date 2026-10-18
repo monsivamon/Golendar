@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.widget.WidgetUpdateWorker
 import java.util.concurrent.TimeUnit
 
@@ -13,6 +14,11 @@ class GolenderApplication : Application() {
     // アプリ起動時にウィジェット更新の定期タスクを WorkManager に登録する
     override fun onCreate() {
         super.onCreate()
+
+        // 表示タイムゾーン設定を最小コストで初期化する。
+        // ミラー SharedPreferences があれば O(1)。初回（旧Verからの更新時）のみ
+        // DataStore を 1 度ブロッキング読み取りし、以降はミラーで済む。
+        AppTimeZone.init(this)
 
         // 6 時間ごとにウィジェットを更新する定期リクエストを組み立てる
         val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(

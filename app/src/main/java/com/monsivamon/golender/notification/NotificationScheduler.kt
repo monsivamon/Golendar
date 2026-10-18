@@ -11,13 +11,13 @@ import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.LocalEvent
 import com.monsivamon.golender.data.SelectedCalendarJson
 import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.data.prefs.SettingsKeys
 import com.monsivamon.golender.R
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
-import java.time.ZoneId
 
 // 予定のリマインダー通知を AlarmManager に登録・再登録するスケジューラ。
 // 登録済みの要求コードは DataStore に台帳として保存し、プロセスが死んでも
@@ -49,11 +49,10 @@ object NotificationScheduler {
             // 今回の登録分を蓄積する台帳
             val currentIds = mutableListOf<Int>()
 
-            // Android 12+ で正確なアラーム権限が無ければ台帳を空にして終了
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
-                context.dataStore.edit { it[SettingsKeys.SCHEDULED_ALARM_IDS] = "" }
-                return@withLock
-            }
+            // Android 12+ で正確なアラーム権限が無い場合でも、ここでは中断しない。
+            // 各登録で setExactAndAllowWhileIdle が SecurityException を投げた場合、
+            // scheduleExactAlarm 内のフォールバックが ±15 分許容の setWindow で再登録し、
+            // 権限 OFF 時でも通知が完全に消失するのを防ぐ（チェックリスト 3-2 対応）。
 
             // 通知が全て OFF なら台帳を空にして終了
             if (!notifyAtStart && !notify10MinBefore) {
@@ -70,11 +69,13 @@ object NotificationScheduler {
                 .filter { it.isVisible }
                 .map { it.calendarId }
 
-            // 先読み期間（今日〜N ヶ月後）を求める
-            val nowDate = LocalDate.now()
-            val startMillis = nowDate.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            // 先読み期間（今日〜N ヶ月後）を求める。
+            // 「今日」は表示タイムゾーン基準（固定 ON なら固定ゾーンの今日）
+            val zone = AppTimeZone.effective()
+            val nowDate = LocalDate.now(zone)
+            val startMillis = nowDate.atStartOfDay(zone).toInstant().toEpochMilli()
             val endMillis = nowDate.plusMonths(NotificationConfig.LOOKAHEAD_MONTHS)
-                .atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                .atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
 
             // モードに応じて対象イベントを取得する
             val events = if (mode == "GOOGLE") {
@@ -104,17 +105,19 @@ object NotificationScheduler {
                 .sortedBy { it.startTime }
                 .take(NotificationConfig.MAX_SCHEDULED)
 
-            // 各予定について 10 分前／定刻のアラームを登録する
+            // 各予定について 10 分前／定刻のアラームを登録する。
+            // 通知固定モード（現地の時計に合わせる）では発火時刻を現地壁時計時刻へ寄せる
             for (event in futureEvents) {
                 if (notify10MinBefore) {
-                    val t = event.startTime - NotificationConfig.TEN_MIN_BEFORE_MS
+                    val t = AppTimeZone.notifyTriggerMillis(event.startTime, NotificationConfig.TEN_MIN_BEFORE_MS)
                     if (t > now) {
                         val rc = scheduleExactAlarm(context, alarmManager, event, t, true)
                         if (rc >= 0) currentIds.add(rc)
                     }
                 }
                 if (notifyAtStart && event.startTime > now) {
-                    val rc = scheduleExactAlarm(context, alarmManager, event, event.startTime, false)
+                    val t = AppTimeZone.notifyTriggerMillis(event.startTime, 0L)
+                    val rc = scheduleExactAlarm(context, alarmManager, event, t, false)
                     if (rc >= 0) currentIds.add(rc)
                 }
             }

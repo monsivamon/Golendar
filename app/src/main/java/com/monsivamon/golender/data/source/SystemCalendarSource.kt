@@ -6,6 +6,7 @@ import android.content.Context
 import android.provider.CalendarContract
 import com.monsivamon.golender.R
 import com.monsivamon.golender.data.Event
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import java.util.TimeZone
 
 // カレンダーごとのアクセス権限・祝日・誕生日情報を保持するデータクラス
@@ -290,7 +291,7 @@ class SystemCalendarSource(private val context: Context) {
             put(CalendarContract.Events.DTEND, endMillis)
             put(CalendarContract.Events.TITLE, title)
             put(CalendarContract.Events.CALENDAR_ID, getTargetCalendarId(accountName))
-            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else TimeZone.getDefault().id)
+            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else AppTimeZone.effective().id)
             put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
             put(CalendarContract.Events.EVENT_LOCATION, location)
             put(CalendarContract.Events.DESCRIPTION, description)
@@ -309,7 +310,7 @@ class SystemCalendarSource(private val context: Context) {
             put(CalendarContract.Events.DTEND, endMillis)
             put(CalendarContract.Events.TITLE, title)
             put(CalendarContract.Events.CALENDAR_ID, calendarId)
-            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else TimeZone.getDefault().id)
+            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else AppTimeZone.effective().id)
             put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
             put(CalendarContract.Events.EVENT_LOCATION, location)
             put(CalendarContract.Events.DESCRIPTION, description)
@@ -327,7 +328,7 @@ class SystemCalendarSource(private val context: Context) {
             put(CalendarContract.Events.DTEND, endMillis)
             put(CalendarContract.Events.TITLE, title)
             put(CalendarContract.Events.ALL_DAY, if (isAllDay) 1 else 0)
-            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else TimeZone.getDefault().id)
+            put(CalendarContract.Events.EVENT_TIMEZONE, if (isAllDay) "UTC" else AppTimeZone.effective().id)
             put(CalendarContract.Events.EVENT_LOCATION, location)
             put(CalendarContract.Events.DESCRIPTION, description)
             put(CalendarContract.Events.RRULE, rrule)

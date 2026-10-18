@@ -6,6 +6,7 @@ import com.monsivamon.golender.data.CalendarRepository
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.SelectedCalendarJson
 import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.data.prefs.SettingsKeys
 import com.monsivamon.golender.data.util.occursOn
 import com.monsivamon.golender.viewmodel.ThemeMode
@@ -13,7 +14,6 @@ import kotlinx.coroutines.flow.first
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
 
 // 各ウィジェットに表示するデータを収集・加工するオブジェクト
 object WidgetDataManager {
@@ -24,8 +24,9 @@ object WidgetDataManager {
         val prefs = context.dataStore.data.first()
         val themeMode = resolveThemeMode(prefs)
         val bgColor = resolveBgColor(prefs)
-        // 今日に該当する予定を抽出し、開始時刻順で軽量イベントに変換する
-        val today = LocalDate.now()
+        // 今日に該当する予定を抽出し、開始時刻順で軽量イベントに変換する。
+        // 「今日」は表示タイムゾーン基準（固定 ON なら固定ゾーンの今日）
+        val today = LocalDate.now(AppTimeZone.effective())
         val events = getEventsForRange(context, prefs, today, today)
             .filter { it.occursOn(today) }
             .sortedBy { it.startTime }
@@ -41,7 +42,7 @@ object WidgetDataManager {
         val bgColor = resolveBgColor(prefs)
         val weekStartDay = resolveWeekStartDay(prefs)
         // 週の開始日と終了日を算出する
-        val today = LocalDate.now()
+        val today = LocalDate.now(AppTimeZone.effective())
         val offset = (today.dayOfWeek.value - weekStartDay.value + 7) % 7
         val weekStart = today.minusDays(offset.toLong())
         val weekEnd = weekStart.plusDays(6)
@@ -68,7 +69,7 @@ object WidgetDataManager {
         val bgColor = resolveBgColor(prefs)
         val weekStartDay = resolveWeekStartDay(prefs)
         // 月グリッドの前後月セル分も含めた日付範囲を算出する
-        val yearMonth = YearMonth.now()
+        val yearMonth = YearMonth.now(AppTimeZone.effective())
         val firstDayOfMonth = yearMonth.atDay(1)
         val daysInMonth = yearMonth.lengthOfMonth()
         val offset = (firstDayOfMonth.dayOfWeek.value - weekStartDay.value + 7) % 7
@@ -133,8 +134,9 @@ object WidgetDataManager {
     ): List<Event> {
         val mode = prefs[SettingsKeys.MODE] ?: "GOLENDAR"
         val repo = CalendarRepository(context)
-        val startMillis = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val endMillis = end.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val zone = AppTimeZone.effective()
+        val startMillis = start.atStartOfDay(zone).toInstant().toEpochMilli()
+        val endMillis = end.atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
         val events = if (mode == "GOOGLE") {
             val selectedJson = prefs[SettingsKeys.SELECTED_CALENDARS]
             val visibleIds = SelectedCalendarJson.fromJson(selectedJson ?: "")

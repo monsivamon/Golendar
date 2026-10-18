@@ -1,6 +1,7 @@
 package com.monsivamon.golender.data.util
 
 import com.monsivamon.golender.data.LocalEvent
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import org.json.JSONObject
 import org.json.JSONArray
 import java.time.LocalDate
@@ -97,7 +98,7 @@ object AiJsonConverter {
                     } else null
 
                     // 終日／時間指定それぞれの方式でミリ秒へ変換する
-                    val zone = ZoneId.systemDefault()
+                    val zone = AppTimeZone.effective()
                     val startMillis: Long
                     val endMillis: Long
 

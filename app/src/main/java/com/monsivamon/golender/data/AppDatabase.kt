@@ -27,6 +27,73 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        // v1/v2 → v3 : DB バージョン 1/2 の超旧バージョンからのアップグレード救済。
+        //              当時のスキーマは管理外のため、local_events を欠損カラム補完付きの
+        //              v3 互換テーブルへ再構築し、マイグレーションパス欠落による
+        //              クラッシュ (IllegalStateException) を防ぎつつ既存データを保持する。
+        private fun migrateLegacyLocalEventsToV3(db: SupportSQLiteDatabase) {
+            // 既存カラム名を収集する。
+            // Cursor.getString() は String? を返すため、?.let でアンラップして
+            // から MutableSet<String> へ追加する（型不一致のコンパイルエラー対策）。
+            val cols = mutableSetOf<String>()
+            db.query("PRAGMA table_info(`local_events`)").use { cursor ->
+                val nameIdx = cursor.getColumnIndex("name")
+                while (cursor.moveToNext()) {
+                    if (nameIdx >= 0) cursor.getString(nameIdx)?.let { cols.add(it) }
+                }
+            }
+            if (cols.isEmpty()) {
+                // テーブル自体が無い（さらに古い / 破損 DB）場合は新規作成のみで済ませる
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `local_events` (" +
+                        "`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                        "`title` TEXT NOT NULL, " +
+                        "`startTime` INTEGER NOT NULL, " +
+                        "`endTime` INTEGER NOT NULL, " +
+                        "`isAllDay` INTEGER NOT NULL, " +
+                        "`location` TEXT NOT NULL, " +
+                        "`description` TEXT NOT NULL, " +
+                        "`rrule` TEXT)"
+                )
+                return
+            }
+            // 存在するカラムは COALESCE 補完、欠損カラムはフォールバック値で SELECT する
+            fun src(col: String, fallback: String): String =
+                if (col in cols) "COALESCE(`$col`, $fallback)" else fallback
+            val idExpr = if ("id" in cols) "`id`" else "rowid"
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS `local_events_migration_tmp` (" +
+                    "`id` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, " +
+                    "`title` TEXT NOT NULL, " +
+                    "`startTime` INTEGER NOT NULL, " +
+                    "`endTime` INTEGER NOT NULL, " +
+                    "`isAllDay` INTEGER NOT NULL, " +
+                    "`location` TEXT NOT NULL, " +
+                    "`description` TEXT NOT NULL, " +
+                    "`rrule` TEXT)"
+            )
+            db.execSQL(
+                "INSERT INTO `local_events_migration_tmp` " +
+                    "(`id`, `title`, `startTime`, `endTime`, `isAllDay`, `location`, `description`, `rrule`) " +
+                    "SELECT $idExpr, ${src("title", "''")}, ${src("startTime", "0")}, " +
+                    "${src("endTime", "0")}, ${src("isAllDay", "0")}, ${src("location", "''")}, " +
+                    "${src("description", "''")}, ${src("rrule", "NULL")} FROM `local_events`"
+            )
+            db.execSQL("DROP TABLE `local_events`")
+            db.execSQL("ALTER TABLE `local_events_migration_tmp` RENAME TO `local_events`")
+        }
+
+        private val MIGRATION_1_3 = object : Migration(1, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                migrateLegacyLocalEventsToV3(db)
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                migrateLegacyLocalEventsToV3(db)
+            }
+        }
         // v3 → v4 : event_photos テーブルを追加するマイグレーション
         private val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -168,7 +235,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "golendar_database"
                 )
-                    .addMigrations(MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+                    .addMigrations(MIGRATION_1_3, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                     .addCallback(SEED_DEFAULT_CALENDAR_CALLBACK)
                     .build()
                 INSTANCE = instance

@@ -49,6 +49,7 @@ import com.monsivamon.golender.ui.sections.CustomSettingsSection
 import com.monsivamon.golender.ui.sections.LanguageSettingsSection
 import com.monsivamon.golender.ui.sections.NotificationSection
 import com.monsivamon.golender.ui.sections.TutorialSection
+import com.monsivamon.golender.ui.sections.TimezoneSection
 import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarMode
@@ -189,6 +190,11 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
                 onPermissionNeeded = { showCalendarPermissionDialog = true },
                 onNoAccounts = { showNoAccountDialog = true },
                 onColorPickerRequested = { cal -> colorPickerCalendar = cal },
+            )
+            // v1.1.9: タイムゾーン設定
+            TimezoneSection(
+                viewModel = viewModel,
+                colors = colors,
             )
 
             NotificationSection(

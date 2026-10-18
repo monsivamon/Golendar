@@ -114,7 +114,7 @@ class CalendarRepository(context: Context) {
         } else {
             localSource.getEventsInRange(startMillis, endMillis)
         }
-        val zone = ZoneId.systemDefault()
+        val zone = com.monsivamon.golender.data.prefs.AppTimeZone.effective()
         return all.flatMap { RruleExpander.expand(it, startMillis, endMillis, zone) }
     }
 

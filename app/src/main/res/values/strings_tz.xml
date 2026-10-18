@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tz_sectionTitle">タイムゾーン</string>
+    <string name="tz_pinTitle">表示タイムゾーンを固定</string>
+    <string name="tz_pinDesc">海外でも選択した地域の時刻で表示します</string>
+    <string name="tz_pinnedZoneLabel">固定するタイムゾーン</string>
+    <string name="tz_currentBase">現在の表示基準：%1$s</string>
+    <string name="tz_notifyPinTitle">通知の時刻も固定（現地の時計に合わせる）</string>
+    <string name="tz_notifyPinDesc">海外滞在時、現地の時計が予定の時刻（10分前など）になった時に通知します</string>
+    <string name="tz_pickerTitle">タイムゾーンを選択</string>
+    <string name="tz_searchHint">タイムゾーンを検索...</string>
+    <string name="tz_noResults">該当するタイムゾーンがありません</string>
+    <string name="tz_close">閉じる</string>
+</resources>

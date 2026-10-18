@@ -57,6 +57,13 @@ object SettingsKeys {
     // アプリ内言語選択（"system" / "ja" / "en" / "zh-CN" / "ko"）
     val APP_LANGUAGE = stringPreferencesKey("app_language")
 
+    // 表示タイムゾーン固定 ON/OFF（固定 OFF は端末のシステムゾーンに追従）
+    val TIMEZONE_PIN = booleanPreferencesKey("timezone_pin")
+    // 固定するタイムゾーン（IANA ゾーン ID。例: "Asia/Tokyo"）
+    val TIMEZONE_ID = stringPreferencesKey("timezone_id")
+    // 通知時刻も現地の時計に合わせる（現地時計が表示時刻に達したら通知）
+    val TIMEZONE_NOTIFY_PIN = booleanPreferencesKey("timezone_notify_pin")
+
     // 曜日ごとの色キーを動的に生成する
     fun dayColor(day: DayOfWeek) = stringPreferencesKey("day_color_${day.name}")
 

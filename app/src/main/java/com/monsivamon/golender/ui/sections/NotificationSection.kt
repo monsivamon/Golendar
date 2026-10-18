@@ -98,7 +98,7 @@ fun NotificationSection(
                 onCheckedChange = { viewModel.setNotifyOptions(it, notify10MinBefore) },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = colors.primaryAccent,
-                    checkedTrackColor = colors.primaryAccent.copy(alpha = 0.5f),
+                    checkedTrackColor = colors.primaryAccent.copy(alpha = 0.7f),
                 ),
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -111,7 +111,7 @@ fun NotificationSection(
                 onCheckedChange = { viewModel.setNotifyOptions(notifyAtStart, it) },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = colors.primaryAccent,
-                    checkedTrackColor = colors.primaryAccent.copy(alpha = 0.5f),
+                    checkedTrackColor = colors.primaryAccent.copy(alpha = 0.7f),
                 ),
             )
             Spacer(modifier = Modifier.width(16.dp))
