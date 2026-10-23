@@ -39,7 +39,10 @@
          ui/sections/CustomSettingsSection.kt
          ============================================================ -->
     <string name="sc_customSettingsSection">커스텀 설정</string>
-    <string name="sc_showHolidays">공휴일 표시</string>
+    <string name="sc_holidaySection">공휴일 표시</string>
+    <string name="sc_holidayCountrySearch">국가 또는 지역 검색</string>
+    <string name="sc_holidaySelectedCount">선택: %1$d개</string>
+    <string name="sc_holidayEmptyHint">국가 또는 지역을 선택하면 해당 공휴일이 달력에 표시됩니다. 선택하지 않으면 공휴일이 표시되지 않습니다.</string>
     <string name="sc_appBgColor">앱 배경색</string>
     <string name="sc_appBgColorSelect">앱 배경색 선택</string>
     <string name="sc_dayColors">요일 색</string>
@@ -95,9 +98,12 @@
     <string name="sc_tutorialMap">지도 사용법 보기</string>
     <string name="sc_tutorialAi">AI 분석 사용법 보기</string>
     <string name="sc_tutorialCalendarDisplay">캘린더 표시와 색 설정 보기</string>
+    <string name="sc_tutorialTimezone">시간대 설정 보기</string>
+    <string name="sc_tutorialHoliday">공휴일 표시 설정 보기</string>
     <string name="sc_tutorialMonthList">월 표시의 하단 목록 보기</string>
     <string name="sc_tutorialScheduleAdd">일정 추가 보기</string>
     <string name="sc_tutorialScheduleEdit">일정 편집과 삭제 보기</string>
+    <string name="sc_tutorialEventColor">일정 색 변경 보기</string>
     <string name="sc_tutorialRecurring">반복 일정 사용법 보기</string>
     <string name="sc_tutorialPhoto">사진 활용 보기</string>
     <string name="sc_tutorialSearch">검색 사용법 보기</string>
@@ -113,6 +119,7 @@
     <string name="sc_eventCount">%1$d건</string>
     <string name="sc_noEvents">일정 없음</string>
     <string name="sc_addEvent">+ 일정 추가</string>
+    <string name="sc_addEventShort">일정 추가</string>
 
     <!-- ============================================================
          ui/screens/SettingsScreen.kt

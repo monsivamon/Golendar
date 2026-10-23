@@ -39,7 +39,10 @@
          ui/sections/CustomSettingsSection.kt
          ============================================================ -->
     <string name="sc_customSettingsSection">カスタム設定</string>
-    <string name="sc_showHolidays">祝日を表示</string>
+    <string name="sc_holidaySection">祝日表示</string>
+    <string name="sc_holidayCountrySearch">国・地域を検索</string>
+    <string name="sc_holidaySelectedCount">選択中: %1$d か国・地域</string>
+    <string name="sc_holidayEmptyHint">国・地域を選択すると、その祝日がカレンダーに表示されます。未選択の場合、祝日は表示されません。</string>
     <string name="sc_appBgColor">アプリ背景色</string>
     <string name="sc_appBgColorSelect">アプリ背景色を選択</string>
     <string name="sc_dayColors">曜日の色</string>
@@ -95,9 +98,12 @@
     <string name="sc_tutorialMap">地図の使い方を見る</string>
     <string name="sc_tutorialAi">AI解析の使い方を見る</string>
     <string name="sc_tutorialCalendarDisplay">カレンダーの表示と色の設定を見る</string>
+    <string name="sc_tutorialTimezone">タイムゾーン設定を見る</string>
+    <string name="sc_tutorialHoliday">祝日表示の設定を見る</string>
     <string name="sc_tutorialMonthList">月表示の下部リストを見る</string>
     <string name="sc_tutorialScheduleAdd">予定の追加を見る</string>
     <string name="sc_tutorialScheduleEdit">予定の編集と削除を見る</string>
+    <string name="sc_tutorialEventColor">予定の色の変え方を見る</string>
     <string name="sc_tutorialRecurring">繰り返し予定の使い方を見る</string>
     <string name="sc_tutorialPhoto">写真の活用を見る</string>
     <string name="sc_tutorialSearch">検索の使い方を見る</string>
@@ -113,6 +119,7 @@
     <string name="sc_eventCount">%1$d件</string>
     <string name="sc_noEvents">予定なし</string>
     <string name="sc_addEvent">+ 予定を追加</string>
+    <string name="sc_addEventShort">予定追加</string>
 
     <!-- ============================================================
          ui/screens/SettingsScreen.kt

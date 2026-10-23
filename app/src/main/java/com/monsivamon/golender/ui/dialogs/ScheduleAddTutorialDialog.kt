@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,14 +59,25 @@ fun ScheduleAddTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
 private fun FabIllustration(colors: AppColors) {
     TutorialIllustrationFrame(colors) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // 実際の月表示右下のボタンと同じ「＋」＋「予定追加」の縦積み表示
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
+                    .width(88.dp)
+                    .height(64.dp)
+                    .clip(RoundedCornerShape(18.dp))
                     .background(colors.primaryAccent),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("+", color = Color.White, fontSize = 34.sp, fontWeight = FontWeight.Bold)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("+", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold, lineHeight = 22.sp)
+                    Text(
+                        stringResource(R.string.sc_addEventShort),
+                        color = Color.White,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        lineHeight = 13.sp,
+                    )
+                }
             }
             Spacer(Modifier.height(10.dp))
             Text(stringResource(R.string.dl1_schedAddFabHint), color = colors.textGray, fontSize = 12.sp)

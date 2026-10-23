@@ -15,6 +15,8 @@ import com.monsivamon.golender.data.LocalEvent
 import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.data.SelectedCalendarJson
 import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.data.holiday.HolidayCountry
+import com.monsivamon.golender.data.holiday.HolidayCountryJson
 import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.data.prefs.SettingsKeys
 import com.monsivamon.golender.data.source.CalendarMeta
@@ -90,8 +92,8 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     val availableAccounts: StateFlow<List<String>> = _availableAccounts.asStateFlow()
     private val _selectedCalendars = MutableStateFlow<List<SelectedCalendar>>(emptyList())
     val selectedCalendars: StateFlow<List<SelectedCalendar>> = _selectedCalendars.asStateFlow()
-    private val _showHolidays = MutableStateFlow(true)
-    val showHolidays: StateFlow<Boolean> = _showHolidays.asStateFlow()
+    private val _holidayCountries = MutableStateFlow(listOf(HolidayCountry.JP))
+    val holidayCountries: StateFlow<List<HolidayCountry>> = _holidayCountries.asStateFlow()
 
     // ---------- 表示タイムゾーン ----------
     // 表示タイムゾーン設定。固定 ON なら zoneId の時刻で全画面を表示する
@@ -169,6 +171,12 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     val showBackupTutorial: StateFlow<Boolean> = _showBackupTutorial.asStateFlow()
     private val _showWidgetTutorial = MutableStateFlow(false)
     val showWidgetTutorial: StateFlow<Boolean> = _showWidgetTutorial.asStateFlow()
+    private val _showTimezoneTutorial = MutableStateFlow(false)
+    val showTimezoneTutorial: StateFlow<Boolean> = _showTimezoneTutorial.asStateFlow()
+    private val _showHolidayTutorial = MutableStateFlow(false)
+    val showHolidayTutorial: StateFlow<Boolean> = _showHolidayTutorial.asStateFlow()
+    private val _showEventColorTutorial = MutableStateFlow(false)
+    val showEventColorTutorial: StateFlow<Boolean> = _showEventColorTutorial.asStateFlow()
     private val _aiSetupDone = MutableStateFlow(true)
     val aiSetupDone: StateFlow<Boolean> = _aiSetupDone.asStateFlow()
     private val _showAiSetup = MutableStateFlow(false)
@@ -225,6 +233,18 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     fun requestShowWidgetTutorial() { _showWidgetTutorial.value = true }
     // ウィジェットとショートカットのチュートリアルを閉じる
     fun dismissWidgetTutorial() { _showWidgetTutorial.value = false }
+    // タイムゾーン設定のチュートリアル表示を要求する
+    fun requestShowTimezoneTutorial() { _showTimezoneTutorial.value = true }
+    // タイムゾーン設定のチュートリアルを閉じる
+    fun dismissTimezoneTutorial() { _showTimezoneTutorial.value = false }
+    // 祝日表示のチュートリアル表示を要求する
+    fun requestShowHolidayTutorial() { _showHolidayTutorial.value = true }
+    // 祝日表示のチュートリアルを閉じる
+    fun dismissHolidayTutorial() { _showHolidayTutorial.value = false }
+    // 予定の色のチュートリアル表示を要求する
+    fun requestShowEventColorTutorial() { _showEventColorTutorial.value = true }
+    // 予定の色のチュートリアルを閉じる
+    fun dismissEventColorTutorial() { _showEventColorTutorial.value = false }
     // 外部からの画面遷移要求を記録する
     fun requestNavigation(route: String) { _pendingRoute.value = route }
     // 遷移要求を消費する
@@ -412,7 +432,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         val visibleIds = _selectedCalendars.value.filter { it.isVisible }.map { it.calendarId }
         val colorMap = _selectedCalendars.value.filter { it.colorArgb != 0 }.associate { it.calendarId to it.colorArgb }
         val displayNameMap = _selectedCalendars.value.associate { it.calendarId to it.displayName }
-        return eventLoader.loadEventsForSearch(start, end, _calendarMode.value, visibleIds, colorMap, displayNameMap, _showHolidays.value)
+        return eventLoader.loadEventsForSearch(start, end, _calendarMode.value, visibleIds, colorMap, displayNameMap)
     }
 
     // ---------- 祝日 ----------
@@ -420,7 +440,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     private fun checkAndFetchHolidays(force: Boolean = false) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if (holidayMgr.refreshIfNeeded(force)) loadEvents()
+                if (holidayMgr.refreshIfNeeded(force, _holidayCountries.value)) loadEvents()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -472,7 +492,20 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                     _calendarBgColor.value = if (colorStr == SettingsKeys.COLOR_UNSPECIFIED) Color.Unspecified
                     else Color(colorStr.toInt())
                 }
-                _showHolidays.value = preferences[SettingsKeys.SHOW_HOLIDAYS] ?: true
+                val savedCountries = HolidayCountryJson.fromJson(preferences[SettingsKeys.HOLIDAY_COUNTRIES])
+                _holidayCountries.value = if (savedCountries == null) {
+                    // v1.1.9 以前の「祝日を表示」ON/OFF を国選択へ引き継ぐ。
+                    // ON（または未設定）なら日本、OFF なら祝日なしから開始する。
+                    val legacyShow = preferences[SettingsKeys.LEGACY_SHOW_HOLIDAYS] ?: true
+                    val migrated = if (legacyShow) listOf(HolidayCountry.JP) else emptyList()
+                    // 次回起動で再移行しないよう新しいキーへ保存しておく
+                    try {
+                        settingsStore.saveHolidayCountries(migrated.map { it.iso })
+                    } catch (_: Exception) { }
+                    migrated
+                } else {
+                    HolidayCountry.fromIsoList(savedCountries)
+                }
 
                 // 表示タイムゾーン設定を読み込んで UI 状態とプロセス内キャッシュへ反映する
                 _timezoneSetting.value = TimezoneSetting(
@@ -530,6 +563,8 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                     refreshAvailableCalendars()
                 }
             } catch (_: Exception) { }
+            // 設定で選択されている国に合わせて祝日を確認する
+            checkAndFetchHolidays(force = false)
             loadEvents()
         }
     }
@@ -605,11 +640,14 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         val updated = _selectedCalendars.value.map { it.copy(isVisible = visible) }
         saveSelectedCalendars(updated)
     }
-    // 祝日表示 ON/OFF を保存し、再読込する
-    fun setShowHolidays(show: Boolean) {
-        _showHolidays.value = show
+    // 祝日を表示する国を保存し、祝日データを再取得して再読込する
+    fun setHolidayCountries(countries: List<HolidayCountry>) {
+        val normalized = countries.distinct().sortedBy { it.ordinal }
+        if (normalized == _holidayCountries.value) return
+        _holidayCountries.value = normalized
         viewModelScope.launch(Dispatchers.IO) {
-            try { settingsStore.saveShowHolidays(show) } catch (_: Exception) { }
+            try { settingsStore.saveHolidayCountries(normalized.map { it.iso }) } catch (_: Exception) { }
+            try { holidayMgr.refreshIfNeeded(force = true, normalized) } catch (_: Exception) { }
             invalidateSearchCache()
             loadEvents()
             widgetMgr.updateAll()
@@ -775,7 +813,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                     val visibleIds = _selectedCalendars.value.filter { it.isVisible }.map { it.calendarId }
                     val colorMap = _selectedCalendars.value.filter { it.colorArgb != 0 }.associate { it.calendarId to it.colorArgb }
                     val displayNameMap = _selectedCalendars.value.associate { it.calendarId to it.displayName }
-                    eventLoader.loadGoogleEvents(start, end, visibleIds, colorMap, displayNameMap, _showHolidays.value)
+                    eventLoader.loadGoogleEvents(start, end, visibleIds, colorMap, displayNameMap, _holidayCountries.value)
                 } else {
                     val visibleLocalIds = _localCalendars.value.filter { it.isVisible }.map { it.id }
                     val localColorMap = _localCalendars.value.associate { it.id to it.colorArgb }
@@ -785,7 +823,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                         it.id to if (it.isDefault && it.name.isEmpty()) defaultName else it.name
                     }
                     eventLoader.loadLocalEvents(
-                        start, end, _showHolidays.value, visibleLocalIds,
+                        start, end, _holidayCountries.value, visibleLocalIds,
                         calendarColorMap = localColorMap,
                         calendarNameMap = localNameMap,
                     )
@@ -795,7 +833,16 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 viewModelScope.launch(Dispatchers.IO) { NotificationScheduler.updateAlarms(context) }
                 widgetMgr.updateAll()
             } catch (_: SecurityException) {
-                _events.value = emptyList()
+                // Google モードで権限が取り消された場合は空表示のままにせず、
+                // Golendar モードへ自動フォールバックしてユーザーへ通知する。
+                if (_calendarMode.value == CalendarMode.GOOGLE) {
+                    fallbackToGolendar(
+                        LanguageSetting.wrap(context)
+                            .getString(R.string.vm_permission_revoked_fallback_golendar)
+                    )
+                } else {
+                    _events.value = emptyList()
+                }
             }
         }
     }
@@ -859,6 +906,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         newPhotoUris: List<Uri> = emptyList(),
         targetCalendarId: Long? = null,
         localCalendarId: Long? = null,
+        colorArgb: Int = 0,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             eventCrud.add(
@@ -868,6 +916,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 isAllDay = isAllDay, location = location, description = description,
                 rrule = rrule, newPhotoUris = newPhotoUris, targetCalendarId = targetCalendarId,
                 localCalendarId = localCalendarId,
+                colorArgb = colorArgb,
             )
             invalidateSearchCache()
             loadEvents()
@@ -882,6 +931,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         newPhotoUris: List<Uri> = emptyList(),
         keptPhotoIds: List<Long> = emptyList(),
         localCalendarId: Long? = null,
+        colorArgb: Int = 0,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             eventCrud.update(
@@ -891,6 +941,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 isAllDay = isAllDay, location = location, description = description,
                 rrule = rrule, newPhotoUris = newPhotoUris, keptPhotoIds = keptPhotoIds,
                 localCalendarId = localCalendarId,
+                colorArgb = colorArgb,
             )
             invalidateSearchCache()
             loadEvents()

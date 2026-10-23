@@ -222,7 +222,8 @@ class BackupManager(
                 .filter { it.description != LocalEvent.DESCRIPTION_HOLIDAY }
                 .filter { it.calendarId in visibleIds }
                 .map { Event(it.id, it.title, it.startTime, it.endTime, it.isAllDay,
-                    it.calendarId, it.location, it.description, it.rrule) }
+                    it.calendarId, it.location, it.description, it.rrule,
+                    colorArgb = it.colorArgb) }
             return events to sources
         }
     }
@@ -466,6 +467,7 @@ class BackupManager(
                     val newId = repository.insertLocalEvent(
                         ev.title, ev.startTime, ev.endTime, ev.isAllDay,
                         ev.location, ev.description, ev.rrule, targetId,
+                        colorArgb = ev.colorArgb,
                     )
                     photos.forEachIndexed { i, (fn, _) -> repository.importPhotoRecord(newId, fn, i) }
                     sigs.add(sig)
@@ -506,6 +508,7 @@ class BackupManager(
                 val newId = repository.insertLocalEvent(
                     ev.title, ev.startTime, ev.endTime, ev.isAllDay,
                     ev.location, ev.description, ev.rrule, target,
+                    colorArgb = ev.colorArgb,
                 )
                 photos.forEachIndexed { i, (fn, _) -> repository.importPhotoRecord(newId, fn, i) }
                 signatures.add(sig)
@@ -594,6 +597,7 @@ class BackupManager(
                     repository.insertLocalEvent(
                         ev.title, ev.startTime, ev.endTime, ev.isAllDay,
                         ev.location, ev.description, ev.rrule, target,
+                        colorArgb = ev.colorArgb,
                     )
                     signatures.add(sig)
                     inserted++
@@ -647,6 +651,7 @@ class BackupManager(
                 repository.insertLocalEvent(
                     ev.title, ev.startTime, ev.endTime, ev.isAllDay,
                     ev.location, ev.description, ev.rrule, targetId,
+                    colorArgb = ev.colorArgb,
                 )
                 sigs.add(sig)
                 inserted++
@@ -758,7 +763,6 @@ class BackupManager(
                 if (v != SettingsKeys.COLOR_UNSPECIFIED) prefs[SettingsKeys.BG_COLOR] = v
             }
             if (s.has("selected_calendars")) prefs[SettingsKeys.SELECTED_CALENDARS] = s.getString("selected_calendars")
-            if (s.has("show_holidays")) prefs[SettingsKeys.SHOW_HOLIDAYS] = s.getBoolean("show_holidays")
             if (s.has("day_colors")) {
                 val dc = s.getJSONObject("day_colors")
                 java.time.DayOfWeek.values().forEach { d ->

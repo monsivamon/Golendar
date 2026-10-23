@@ -42,10 +42,14 @@ import com.monsivamon.golender.ui.dialogs.SearchTutorialDialog
 import com.monsivamon.golender.ui.dialogs.NotificationTutorialDialog
 import com.monsivamon.golender.ui.dialogs.BackupTutorialDialog
 import com.monsivamon.golender.ui.dialogs.WidgetTutorialDialog
+import com.monsivamon.golender.ui.dialogs.TimezoneTutorialDialog
+import com.monsivamon.golender.ui.dialogs.HolidayTutorialDialog
+import com.monsivamon.golender.ui.dialogs.EventColorTutorialDialog
 import com.monsivamon.golender.R
 import com.monsivamon.golender.ui.sections.BackupSection
 import com.monsivamon.golender.ui.sections.CalendarModeSection
 import com.monsivamon.golender.ui.sections.CustomSettingsSection
+import com.monsivamon.golender.ui.sections.HolidaySettingsSection
 import com.monsivamon.golender.ui.sections.LanguageSettingsSection
 import com.monsivamon.golender.ui.sections.NotificationSection
 import com.monsivamon.golender.ui.sections.TutorialSection
@@ -155,6 +159,9 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     val showNotificationTutorial by viewModel.showNotificationTutorial.collectAsState()
     val showBackupTutorial by viewModel.showBackupTutorial.collectAsState()
     val showWidgetTutorial by viewModel.showWidgetTutorial.collectAsState()
+    val showTimezoneTutorial by viewModel.showTimezoneTutorial.collectAsState()
+    val showHolidayTutorial by viewModel.showHolidayTutorial.collectAsState()
+    val showEventColorTutorial by viewModel.showEventColorTutorial.collectAsState()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -198,6 +205,11 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
             )
 
             NotificationSection(
+                viewModel = viewModel,
+                colors = colors,
+            )
+
+            HolidaySettingsSection(
                 viewModel = viewModel,
                 colors = colors,
             )
@@ -353,6 +365,15 @@ fun SettingsScreen(viewModel: CalendarViewModel, onBack: () -> Unit) {
     }
     if (showWidgetTutorial) {
         WidgetTutorialDialog(colors = colors, onComplete = { viewModel.dismissWidgetTutorial() })
+    }
+    if (showTimezoneTutorial) {
+        TimezoneTutorialDialog(colors = colors, onComplete = { viewModel.dismissTimezoneTutorial() })
+    }
+    if (showHolidayTutorial) {
+        HolidayTutorialDialog(colors = colors, onComplete = { viewModel.dismissHolidayTutorial() })
+    }
+    if (showEventColorTutorial) {
+        EventColorTutorialDialog(colors = colors, onComplete = { viewModel.dismissEventColorTutorial() })
     }
     if (showNoAccountDialog) {
         AlertDialog(

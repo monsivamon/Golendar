@@ -55,6 +55,7 @@
     <!-- CalendarViewModel.kt -->
     <string name="vm_keep_one_calendar_visible">At least one calendar must be visible</string>
     <string name="vm_nothing_selected_fallback_golendar">Nothing was selected, so switched to Golendar mode</string>
+    <string name="vm_permission_revoked_fallback_golendar">Calendar permission was revoked, so switched to Golendar mode</string>
     <string name="vm_progress_preparing_backup">Preparing backup</string>
     <string name="vm_progress_preparing_import">Preparing import</string>
 

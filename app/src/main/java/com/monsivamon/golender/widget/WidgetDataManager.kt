@@ -135,8 +135,10 @@ object WidgetDataManager {
         val mode = prefs[SettingsKeys.MODE] ?: "GOLENDAR"
         val repo = CalendarRepository(context)
         val zone = AppTimeZone.effective()
-        val startMillis = start.atStartOfDay(zone).toInstant().toEpochMilli()
-        val endMillis = end.atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
+        // 終日予定（祝日）は UTC 深夜で保存されるため、負の UTC オフセット帯でも
+        // 取りこぼさないよう前後 1 日分広げて取得する（表示時に各日へ振り分ける）。
+        val startMillis = start.minusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+        val endMillis = end.plusDays(1).atTime(23, 59, 59).atZone(zone).toInstant().toEpochMilli()
         val events = if (mode == "GOOGLE") {
             val selectedJson = prefs[SettingsKeys.SELECTED_CALENDARS]
             val visibleIds = SelectedCalendarJson.fromJson(selectedJson ?: "")
@@ -149,15 +151,8 @@ object WidgetDataManager {
             if (visibleIds.isEmpty()) emptyList()
             else repo.getLocalEventsForMonth(startMillis, endMillis, visibleIds)
         }
-        // 「祝日を表示」ON/OFF をウィジェットにも適用する（アプリ内カレンダーと同じ挙動）。
-        return if (prefs[SettingsKeys.SHOW_HOLIDAYS] ?: true) events else events.filter { event ->
-            if (mode == "GOOGLE") {
-                !event.isHolidayCalendar
-            } else {
-                // Golendar モードの祝日は記載マーカー(description)で判別する
-                event.description != com.monsivamon.golender.data.LocalEvent.DESCRIPTION_HOLIDAY
-            }
-        }
+        // 祝日は選択国のものだけが DB に保存されているため、ここでの追加フィルタは不要
+        return events
     }
 
     private fun Event.toWidgetEvent(): WidgetEvent = WidgetEvent(

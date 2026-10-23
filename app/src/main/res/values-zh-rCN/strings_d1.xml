@@ -47,11 +47,37 @@
     <string name="dl1_calModeTitleGolendarOps">Golendar 模式的操作</string>
     <string name="dl1_calModeDescGolendarOps">勾选即可开关显示，点击色点可更改颜色，\n点击名称即可重命名。\n我的日历无法删除，\n但可以设为隐藏。</string>
     <string name="dl1_calModeTitleHidden">隐藏之后…</string>
-    <string name="dl1_calModeDescHidden">该日历的日程将不再显示在\n日历、小部件和通知中。\n节假日常驻显示。</string>
+    <string name="dl1_calModeDescHidden">该日历的日程将不再显示在\n日历、小部件和通知中。\n节假日仅显示在“节假日显示”中选择的国家。</string>
     <string name="dl1_calModeSubInApp">仅应用内</string>
     <string name="dl1_calModeSubSync">日历同步</string>
     <string name="dl1_calModeEditHint">← 点击名称可编辑</string>
-    <string name="dl1_calModeHolidaysAlways">节假日常驻显示</string>
+    <string name="dl1_calModeHolidaysAlways">仅显示所选国家的节假日</string>
+
+    <!-- TimezoneTutorialDialog -->
+    <string name="dl1_tzTitlePin">固定显示时区</string>
+    <string name="dl1_tzDescPin">在“设置 → 时区”中开启“固定显示时区”后，无论设备位于何处，日历都会按所选地区的时刻显示。旅行或出差时日程时间也不会错乱。</string>
+    <string name="dl1_tzTitleNotify">通知也按当地时钟</string>
+    <string name="dl1_tzDescNotify">开启“通知时间也按当地时钟”后，当显示时区的时钟到达日程时间时发送通知。移动途中也不会错过日程。</string>
+    <string name="dl1_tzPinHint">无论设备位置如何都显示相同时间</string>
+    <string name="dl1_tzNotifyHint">按显示时区的时钟通知</string>
+
+    <!-- HolidayTutorialDialog -->
+    <string name="dl1_holidayTitleSelect">选择要显示节假日的国家</string>
+    <string name="dl1_holidayDescSelect">在“设置 → 节假日显示”中，可从 G7、金砖创始成员国、韩国、台湾、香港中多选。同一天的节假日合并为一行，并用国旗徽章区分国家。</string>
+    <string name="dl1_holidayTitlePriority">Google 模式下的节假日</string>
+    <string name="dl1_holidayDescPriority">Google 模式下也优先显示所选国家的节假日，不会重复显示同一天的 Google 节假日。未选择国家时不显示节假日。</string>
+    <string name="dl1_holidaySelectedBadge">仅显示所选国家</string>
+    <string name="dl1_holidaySameDayBadge">同一天合并为一行并显示国旗</string>
+    <string name="dl1_holidayGoogleSuppressed">隐藏同一天的 Google 节假日</string>
+
+    <!-- EventColorTutorialDialog -->
+    <string name="dl1_colorTitlePerEvent">按日程更改颜色</string>
+    <string name="dl1_colorDescPerEvent">在日程编辑画面点击“颜色”，即可只更改该日程的颜色。它将优先于日历颜色显示。</string>
+    <string name="dl1_colorTitleReset">恢复默认颜色</string>
+    <string name="dl1_colorDescReset">选择“默认（紫色）”即可恢复为日历颜色。可为重要日程或家人日程等跨日历进行颜色区分。</string>
+    <string name="dl1_colorBadgePriority">优先于日历颜色</string>
+    <string name="dl1_colorBadgeDefault">默认（紫色）</string>
+    <string name="dl1_colorBadgeCustom">为每个日程选择颜色</string>
 
     <!-- CalendarPermissionDialog -->
     <string name="dl1_permDeniedCalendarTitle">未获得日历访问权限</string>
@@ -135,12 +161,12 @@
 
     <!-- ScheduleAddTutorialDialog -->
     <string name="dl1_schedAddTitleFab">从 FAB 添加</string>
-    <string name="dl1_schedAddDescFab">点击月视图右下角的“+”按钮，\n可以选择日期并添加日程。</string>
+    <string name="dl1_schedAddDescFab">点击月视图右下角的“+ 添加日程”按钮，\n即可在所选日期添加日程。</string>
     <string name="dl1_schedAddTitleEachDay">从各天添加</string>
     <string name="dl1_schedAddDescEachDay">在周视图中，可以通过各日期下方的\n“+ 添加日程”按钮创建当天的日程。</string>
     <string name="dl1_schedAddTitleShortcut">快捷方式</string>
     <string name="dl1_schedAddDescShortcut">长按主屏幕的图标，\n即可直接启动“添加日程”。</string>
-    <string name="dl1_schedAddFabHint">右下角的 + 按钮</string>
+    <string name="dl1_schedAddFabHint">右下角的 + 添加日程按钮</string>
     <string name="dl1_schedAddWeekButton">+ 添加日程</string>
     <string name="dl1_schedAddLongPress">长按</string>
 

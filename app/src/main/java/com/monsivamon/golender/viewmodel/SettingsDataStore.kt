@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import com.monsivamon.golender.data.SelectedCalendarJson
+import com.monsivamon.golender.data.holiday.HolidayCountryJson
 import com.monsivamon.golender.data.prefs.SettingsKeys
 import kotlinx.coroutines.flow.first
 import java.time.DayOfWeek
@@ -19,14 +20,25 @@ class SettingsDataStore(
     suspend fun lastHolidayFetch(): Long =
         all()[SettingsKeys.LAST_HOLIDAY_FETCH] ?: 0L
 
-    // 祝日データの最終取得時刻を保存する
-    suspend fun updateLastHolidayFetch(timestamp: Long) {
-        store.edit { it[SettingsKeys.LAST_HOLIDAY_FETCH] = timestamp }
+    // 最後に祝日を取得した国（ISO コード）を取得する
+    suspend fun lastHolidayFetchCountries(): List<String> =
+        HolidayCountryJson.fromJson(all()[SettingsKeys.LAST_HOLIDAY_FETCH_COUNTRIES]) ?: emptyList()
+
+    // 設定で選択されている祝日対象国（ISO コード）を取得する（未設定は null）
+    suspend fun holidayCountries(): List<String>? =
+        HolidayCountryJson.fromJson(all()[SettingsKeys.HOLIDAY_COUNTRIES])
+
+    // 祝日データの最終取得時刻と対象国を保存する
+    suspend fun updateLastHolidayFetch(timestamp: Long, countries: List<String>) {
+        store.edit {
+            it[SettingsKeys.LAST_HOLIDAY_FETCH] = timestamp
+            it[SettingsKeys.LAST_HOLIDAY_FETCH_COUNTRIES] = HolidayCountryJson.toJson(countries)
+        }
     }
 
-    // 祝日表示 ON/OFF を保存する
-    suspend fun saveShowHolidays(show: Boolean) {
-        store.edit { it[SettingsKeys.SHOW_HOLIDAYS] = show }
+    // 祝日を表示する国（ISO コード）を保存する
+    suspend fun saveHolidayCountries(isos: List<String>) {
+        store.edit { it[SettingsKeys.HOLIDAY_COUNTRIES] = HolidayCountryJson.toJson(isos) }
     }
 
     // テーマモードを保存する

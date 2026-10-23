@@ -28,6 +28,12 @@
     <string name="dl2_selectedMark">✓ 已选中</string>
     <string name="dl2_close">关闭</string>
 
+    <!-- EventColorPickerDialog -->
+    <string name="dl2_eventColorLabel">颜色</string>
+    <string name="dl2_eventColorTitle">日程颜色</string>
+    <string name="dl2_eventColorDefault">默认（紫色）</string>
+    <string name="dl2_eventColorChange">更改</string>
+
     <!-- CalendarSelectionDialog -->
     <string name="dl2_warning">警告</string>
     <string name="dl2_calendarSelectionEmptyWarning">未选择任何日历。这样日程将不会显示。要继续吗？</string>

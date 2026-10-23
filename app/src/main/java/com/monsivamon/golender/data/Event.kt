@@ -17,4 +17,8 @@ data class Event(
     val isBirthdayCalendar: Boolean = false,
     val calendarColorArgb: Int? = null,
     val calendarDisplayName: String = "",
+    // 予定ごとの任意色（ARGB）。0 は未設定を表し、カレンダー色 → 既定色の順で解決する
+    val colorArgb: Int = 0,
+    // 祝日の対象国 ISO コード（同日に複数国の祝日がある場合は複数）
+    val holidayCountries: List<String> = emptyList(),
 )

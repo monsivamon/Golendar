@@ -15,7 +15,11 @@ data class LocalEvent(
     val location: String,
     val description: String,
     val rrule: String? = null,
-    @ColumnInfo(defaultValue = "0") val calendarId: Long = 0L
+    @ColumnInfo(defaultValue = "0") val calendarId: Long = 0L,
+    // 予定ごとの任意色（ARGB）。0 は未設定（カレンダー色 → 既定色を使用）
+    @ColumnInfo(defaultValue = "0") val colorArgb: Int = 0,
+    // 祝日の対象国 ISO コード（例: "JP"）。通常の予定は null
+    val holidayCountry: String? = null
 ) {
     companion object {
         // システム祝日データを識別する description の値

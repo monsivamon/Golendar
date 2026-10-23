@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.monsivamon.golender.R
+import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.ui.theme.AppColors
 import java.time.LocalDate
 
@@ -149,7 +150,7 @@ private fun TodayButton(onClick: () -> Unit, colors: AppColors) {
                 Box(Modifier.fillMaxWidth().height(6.dp).background(colors.sunRed))
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        LocalDate.now().dayOfMonth.toString(), fontSize = 11.sp,
+                        LocalDate.now(AppTimeZone.effective()).dayOfMonth.toString(), fontSize = 11.sp,
                         fontWeight = FontWeight.Bold, color = colors.text,
                         modifier = Modifier.offset(y = (-1).dp),
                     )

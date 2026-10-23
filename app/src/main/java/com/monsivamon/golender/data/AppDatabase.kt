@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // ローカル予定と添付写真とローカルカレンダーを管理する Room データベース
 @Database(
     entities = [LocalEvent::class, EventPhoto::class, LocalCalendar::class],
-    version = 9,
+    version = 11,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -228,6 +228,28 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        // v9 → v10 : 予定ごとの任意色を保持するカラムを追加するマイグレーション
+        private val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE `local_events` ADD COLUMN `colorArgb` INTEGER NOT NULL DEFAULT 0"
+                )
+            }
+        }
+
+        // v10 → v11 : 祝日の対象国を識別するカラムを追加するマイグレーション。
+        //              既存の祝日は日本分のみのため JP として引き継ぐ
+        //              （再取得に失敗しても前回データを表示できる）。
+        private val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `local_events` ADD COLUMN `holidayCountry` TEXT")
+                db.execSQL(
+                    "UPDATE `local_events` SET `holidayCountry` = 'JP' " +
+                        "WHERE `description` = 'system_holiday'"
+                )
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -235,7 +257,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "golendar_database"
                 )
-                    .addMigrations(MIGRATION_1_3, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+                    .addMigrations(MIGRATION_1_3, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
                     .addCallback(SEED_DEFAULT_CALENDAR_CALLBACK)
                     .build()
                 INSTANCE = instance

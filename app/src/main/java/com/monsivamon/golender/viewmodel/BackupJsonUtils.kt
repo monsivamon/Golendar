@@ -24,9 +24,6 @@ object BackupJsonUtils {
             s.put("selected_calendars", selectedCalendarsJson)
         }
 
-        val showHolidays = prefs[SettingsKeys.SHOW_HOLIDAYS] ?: true
-        s.put("show_holidays", showHolidays)
-
         val dc = JSONObject()
         DayOfWeek.values().forEach { d ->
             val stored = prefs[SettingsKeys.dayColor(d)]
@@ -53,6 +50,8 @@ object BackupJsonUtils {
             o.put("startTime", e.startTime); o.put("endTime", e.endTime)
             o.put("isAllDay", e.isAllDay); o.put("location", e.location)
             o.put("description", e.description); o.put("rrule", e.rrule ?: JSONObject.NULL)
+            // 予定ごとの任意色（0 = 未設定）
+            o.put("colorArgb", e.colorArgb)
             // 復元時にカレンダー振り分けを行うため calendarId を保存する
             o.put("calendarId", e.calendarId)
             o.put("calendarColorArgb", e.calendarColorArgb)
@@ -74,7 +73,7 @@ object BackupJsonUtils {
                 o.getLong("endTime"), o.getBoolean("isAllDay"),
                 o.optString("location", ""), o.optString("description", ""),
                 if (o.isNull("rrule")) null else o.getString("rrule"),
-                o.optLong("calendarId", 0L)))
+                o.optLong("calendarId", 0L), o.optInt("colorArgb", 0)))
         }
         return list
     }
@@ -90,7 +89,7 @@ object BackupJsonUtils {
                 o.getLong("endTime"), o.getBoolean("isAllDay"),
                 o.optString("location", ""), o.optString("description", ""),
                 if (o.isNull("rrule")) null else o.getString("rrule"),
-                o.optLong("calendarId", 0L))
+                o.optLong("calendarId", 0L), o.optInt("colorArgb", 0))
             val photos = mutableListOf<Pair<String, Int>>()
             if (o.has("photos")) {
                 val pa = o.getJSONArray("photos")

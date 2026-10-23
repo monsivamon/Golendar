@@ -28,6 +28,12 @@
     <string name="dl2_selectedMark">✓ 선택 중</string>
     <string name="dl2_close">닫기</string>
 
+    <!-- EventColorPickerDialog -->
+    <string name="dl2_eventColorLabel">색상</string>
+    <string name="dl2_eventColorTitle">일정 색상</string>
+    <string name="dl2_eventColorDefault">기본(보라색)</string>
+    <string name="dl2_eventColorChange">변경</string>
+
     <!-- CalendarSelectionDialog -->
     <string name="dl2_warning">경고</string>
     <string name="dl2_calendarSelectionEmptyWarning">캘린더가 하나도 선택되지 않았습니다. 이 상태로는 일정이 표시되지 않습니다. 계속하시겠습니까?</string>

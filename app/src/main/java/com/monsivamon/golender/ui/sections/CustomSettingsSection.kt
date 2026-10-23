@@ -46,26 +46,11 @@ fun CustomSettingsSection(
 ) {
     val themeMode by viewModel.themeMode.collectAsState()
     val weekStartDay by viewModel.weekStartDay.collectAsState()
-    val showHolidays by viewModel.showHolidays.collectAsState()
     val calendarBgColor by viewModel.calendarBgColor.collectAsState()
     val dayColors by viewModel.dayColors.collectAsState()
     val context = LocalContext.current
 
     SettingsSection(stringResource(R.string.sc_customSettingsSection), colors) {
-        // 祝日表示 ON/OFF
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 8.dp)) {
-            Switch(
-                checked = showHolidays,
-                onCheckedChange = { viewModel.setShowHolidays(it) },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = colors.primaryAccent,
-                    checkedTrackColor = colors.primaryAccent.copy(alpha = 0.7f),
-                ),
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(stringResource(R.string.sc_showHolidays), fontSize = 16.sp, color = colors.text)
-        }
-        HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
         Text(
             stringResource(R.string.sc_appBgColor),
             fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray,

@@ -21,8 +21,12 @@ object SettingsKeys {
     val NOTIFY_AT_START = booleanPreferencesKey("notify_at_start")
     // 10 分前通知 ON/OFF
     val NOTIFY_10MIN    = booleanPreferencesKey("notify_10min_before")
+    // 選択中の祝日対象国（ISO コードの JSON 配列）
+    val HOLIDAY_COUNTRIES = stringPreferencesKey("holiday_countries")
     // 祝日データの最終取得時刻
     val LAST_HOLIDAY_FETCH = longPreferencesKey("last_holiday_fetch_time")
+    // 最後に祝日を取得した国（ISO コードの JSON 配列。選択変更の検知用）
+    val LAST_HOLIDAY_FETCH_COUNTRIES = stringPreferencesKey("last_holiday_fetch_countries")
     // 月表示下部リストの表示 ON/OFF
     val SHOW_BOTTOM_LIST = booleanPreferencesKey("show_bottom_list")
     // 初回起動時の Welcome 画面表示完了フラグ
@@ -44,10 +48,11 @@ object SettingsKeys {
     // カレンダーモードチュートリアルの初回表示済みフラグ
     val CALENDAR_MODE_TUTORIAL_SHOWN = booleanPreferencesKey("calendar_mode_tutorial_shown")
 
+    // 旧バージョンの「祝日を表示」設定（v1.2.0 の国選択へ移行するため読み取り専用で残す）
+    val LEGACY_SHOW_HOLIDAYS = booleanPreferencesKey("show_holidays")
+
     // 選択中カレンダー（JSON 文字列）
     val SELECTED_CALENDARS = stringPreferencesKey("selected_calendars_json")
-    // 祝日を表示するかどうか
-    val SHOW_HOLIDAYS = booleanPreferencesKey("show_holidays")
     // カレンダー選択ダイアログ完了フラグ
     val CALENDAR_SELECTION_DONE = booleanPreferencesKey("calendar_selection_done")
 

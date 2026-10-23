@@ -47,11 +47,37 @@
     <string name="dl1_calModeTitleGolendarOps">Golendar 모드 사용법</string>
     <string name="dl1_calModeDescGolendarOps">체크로 표시 ON/OFF, 색 원으로 색 변경,\n이름을 탭하여 이름을 변경할 수 있습니다.\n내 캘린더는 삭제할 수 없지만,\n숨김으로 할 수는 있습니다.</string>
     <string name="dl1_calModeTitleHidden">숨기면 어떻게 될까…?</string>
-    <string name="dl1_calModeDescHidden">해당 캘린더의 일정은,\n캘린더·위젯·알림에서\n표시되지 않게 됩니다.\n공휴일은 항상 표시됩니다.</string>
+    <string name="dl1_calModeDescHidden">해당 캘린더의 일정은,\n캘린더·위젯·알림에서\n표시되지 않게 됩니다.\n공휴일은 ‘공휴일 표시’에서 선택한 국가만 표시됩니다.</string>
     <string name="dl1_calModeSubInApp">앱 내에서만</string>
     <string name="dl1_calModeSubSync">캘린더 동기화</string>
     <string name="dl1_calModeEditHint">← 이름 탭으로 편집</string>
-    <string name="dl1_calModeHolidaysAlways">공휴일은 항상 표시</string>
+    <string name="dl1_calModeHolidaysAlways">선택한 국가의 공휴일만 표시</string>
+
+    <!-- TimezoneTutorialDialog -->
+    <string name="dl1_tzTitlePin">표시 시간대 고정</string>
+    <string name="dl1_tzDescPin">설정 → 시간대에서 "표시 시간대 고정"을 켜면 기기 위치와 관계없이 선택한 지역의 시각으로 캘린더를 표시합니다. 여행이나 출장 중에도 일정 시간이 어긋나지 않습니다.</string>
+    <string name="dl1_tzTitleNotify">알림도 현지 시계에 맞추기</string>
+    <string name="dl1_tzDescNotify">"알림 시간도 현지 시계에 맞추기"를 켜면 표시 시간대의 시계가 일정 시간에 도달했을 때 알림을 보냅니다. 이동 중에도 일정을 놓치지 않습니다.</string>
+    <string name="dl1_tzPinHint">기기 위치와 관계없이 같은 시각으로 표시</string>
+    <string name="dl1_tzNotifyHint">표시 시간대의 시계로 알림</string>
+
+    <!-- HolidayTutorialDialog -->
+    <string name="dl1_holidayTitleSelect">표시할 공휴일 국가 선택</string>
+    <string name="dl1_holidayDescSelect">설정 → 공휴일 표시에서 G7, BRICS 창립 회원국, 한국, 대만, 홍콩 중 여러 개를 선택할 수 있습니다. 같은 날의 공휴일은 한 줄로 합쳐지고 국기 배지로 국가를 구분합니다.</string>
+    <string name="dl1_holidayTitlePriority">Google 모드의 공휴일</string>
+    <string name="dl1_holidayDescPriority">Google 모드에서도 선택한 국가의 공휴일을 우선 표시하며, 같은 날의 Google 공휴일은 중복 표시하지 않습니다. 국가를 선택하지 않으면 공휴일을 표시하지 않습니다.</string>
+    <string name="dl1_holidaySelectedBadge">선택한 국가만 표시</string>
+    <string name="dl1_holidaySameDayBadge">같은 날은 한 줄로 합쳐 국기 표시</string>
+    <string name="dl1_holidayGoogleSuppressed">같은 날의 Google 공휴일은 숨김</string>
+
+    <!-- EventColorTutorialDialog -->
+    <string name="dl1_colorTitlePerEvent">일정마다 색 변경</string>
+    <string name="dl1_colorDescPerEvent">일정 편집 화면에서 "색"을 누르면 해당 일정만 색을 변경할 수 있습니다. 캘린더 색보다 우선하여 표시됩니다.</string>
+    <string name="dl1_colorTitleReset">기본 색으로 되돌리기</string>
+    <string name="dl1_colorDescReset">"기본(보라색)"을 선택하면 캘린더 색으로 돌아갑니다. 중요한 일정이나 가족 일정 등 캘린더를 넘어 색으로 구분할 수 있습니다.</string>
+    <string name="dl1_colorBadgePriority">캘린더 색보다 우선</string>
+    <string name="dl1_colorBadgeDefault">기본(보라색)</string>
+    <string name="dl1_colorBadgeCustom">일정마다 색 선택</string>
 
     <!-- CalendarPermissionDialog -->
     <string name="dl1_permDeniedCalendarTitle">캘린더 접근이 허용되지 않았습니다</string>
@@ -135,12 +161,12 @@
 
     <!-- ScheduleAddTutorialDialog -->
     <string name="dl1_schedAddTitleFab">FAB에서 추가</string>
-    <string name="dl1_schedAddDescFab">월 표시 오른쪽 아래의 ‘+’ 버튼을 탭하면,\n날짜를 골라 일정을 추가할 수 있습니다.</string>
+    <string name="dl1_schedAddDescFab">월 표시 오른쪽 아래의 ‘+ 일정 추가’ 버튼을 탭하면,\n선택한 날짜에 일정을 추가할 수 있습니다.</string>
     <string name="dl1_schedAddTitleEachDay">각 날짜에서 추가</string>
     <string name="dl1_schedAddDescEachDay">주 표시에서는 각 날짜 아래의 ‘+ 일정 추가’\n버튼으로 그날의 일정을 만들 수 있습니다.</string>
     <string name="dl1_schedAddTitleShortcut">바로가기</string>
     <string name="dl1_schedAddDescShortcut">홈 화면 아이콘을 길게 누르면,\n‘일정 추가’를 직접 실행할 수 있습니다.</string>
-    <string name="dl1_schedAddFabHint">오른쪽 아래 + 버튼</string>
+    <string name="dl1_schedAddFabHint">오른쪽 아래 + 일정 추가 버튼</string>
     <string name="dl1_schedAddWeekButton">+ 일정 추가</string>
     <string name="dl1_schedAddLongPress">길게 누르기</string>
 

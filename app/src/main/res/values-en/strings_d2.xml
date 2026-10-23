@@ -28,6 +28,12 @@
     <string name="dl2_selectedMark">✓ Selected</string>
     <string name="dl2_close">Close</string>
 
+    <!-- EventColorPickerDialog -->
+    <string name="dl2_eventColorLabel">Color</string>
+    <string name="dl2_eventColorTitle">Event color</string>
+    <string name="dl2_eventColorDefault">Default (purple)</string>
+    <string name="dl2_eventColorChange">Change</string>
+
     <!-- CalendarSelectionDialog -->
     <string name="dl2_warning">Warning</string>
     <string name="dl2_calendarSelectionEmptyWarning">No calendars are selected. No events will be shown like this. Continue?</string>

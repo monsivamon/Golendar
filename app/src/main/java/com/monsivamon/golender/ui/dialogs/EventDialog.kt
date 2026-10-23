@@ -4,9 +4,11 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -60,12 +62,15 @@ fun EventDialog(
     photosLoaded: Boolean = true,
     photoAttachEnabled: Boolean = false,
     aiParseEnabled: Boolean = false,
+    // Golendar モードのみ予定の任意色を設定できる
+    eventColorEnabled: Boolean = false,
     availableCalendars: List<SelectedCalendar> = emptyList(),
     localCalendars: List<LocalCalendar> = emptyList(),
     onDismiss: () -> Unit,
     onSave: (
         title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean,
         location: String, description: String, rrule: String?,
+        colorArgb: Int,
         newPhotoUris: List<Uri>, keptPhotoIds: List<Long>,
         targetCalendarId: Long?,
         localCalendarId: Long?,
@@ -105,6 +110,8 @@ fun EventDialog(
         availableCalendars.isEmpty() && localCalendars.count { it.isVisible } >= 2
 
     var isRecurring by remember(eventKey) { mutableStateOf(event?.rrule != null) }
+    // 予定ごとの任意色（0 = 未設定で既定色）
+    var eventColorArgb by remember(eventKey) { mutableStateOf(event?.colorArgb ?: 0) }
     var recurringType by remember(eventKey) {
         mutableStateOf(
             when (event?.rrule?.let { RruleExpander.baseRuleOf(it) }) {
@@ -146,6 +153,7 @@ fun EventDialog(
     var showEndTimePicker by remember { mutableStateOf(false) }
     var showRecurrenceEndPicker by remember { mutableStateOf(false) }
     var showPlacePicker by remember { mutableStateOf(false) }
+    var showEventColorPicker by remember { mutableStateOf(false) }
 
     var keptPhotoIds by remember(event?.id, initialPhotos) {
         mutableStateOf(if (event == null) emptySet() else initialPhotos.map { it.id }.toSet())
@@ -216,6 +224,39 @@ fun EventDialog(
                         cursorColor = colors.primaryAccent,
                     ),
                 )
+
+                if (eventColorEnabled) {
+                    // 予定の色。既定（未設定）は紫で表示し、タップでパレットを開く
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { showEventColorPicker = true }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            stringResource(R.string.dl2_eventColorLabel),
+                            color = colors.textGray, fontSize = 14.sp,
+                            modifier = Modifier.width(LABEL_WIDTH),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .clip(CircleShape)
+                                .background(if (eventColorArgb != 0) Color(eventColorArgb) else colors.primaryAccent)
+                                .border(1.dp, colors.textGray.copy(alpha = 0.4f), CircleShape),
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            stringResource(
+                                if (eventColorArgb == 0) R.string.dl2_eventColorDefault
+                                else R.string.dl2_eventColorChange
+                            ),
+                            color = colors.primaryAccent, fontSize = 14.sp,
+                        )
+                    }
+                }
 
                 Column(modifier = Modifier.fillMaxWidth()) {
                     val checkboxColors = CheckboxDefaults.colors(
@@ -390,6 +431,7 @@ fun EventDialog(
                 val finalLocalCalendarId = selectedLocalCalendarId.takeIf { it > 0L }
                 onSave(
                     finalTitle, startMillis, endMillis, isAllDay, location, description, finalRrule,
+                    if (eventColorEnabled) eventColorArgb else 0,
                     newPhotoUris, keptPhotoIds.toList(), finalTargetCalendarId, finalLocalCalendarId,
                 )
             }) {
@@ -459,6 +501,14 @@ fun EventDialog(
                 location = picked
                 showPlacePicker = false
             },
+        )
+    }
+    if (showEventColorPicker) {
+        EventColorPickerDialog(
+            colors = colors,
+            currentColorArgb = eventColorArgb,
+            onDismiss = { showEventColorPicker = false },
+            onColorSelected = { eventColorArgb = it; showEventColorPicker = false },
         )
     }
 }

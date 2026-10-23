@@ -47,10 +47,22 @@ interface LocalEventDao {
     // 予定を一括挿入する（REPLACE 戦略）
     suspend fun insertAll(events: List<LocalEvent>)
 
+    @Query("DELETE FROM local_events WHERE description = 'system_holiday' AND holidayCountry = :country")
+    // 指定国の祝日だけを削除する
+    suspend fun deleteHolidaysByCountry(country: String)
+
+    @Query("DELETE FROM local_events WHERE description = 'system_holiday' AND holidayCountry IS NULL")
+    // 国コードを持たない旧形式の祝日を削除する
+    suspend fun deleteLegacyHolidays()
+
+    @Query("DELETE FROM local_events WHERE description = 'system_holiday' AND holidayCountry NOT IN (:countries)")
+    // 選択されていない国の祝日を削除する
+    suspend fun deleteHolidaysNotIn(countries: List<String>)
+
     @Transaction
-    // 既存の祝日を全削除→再投入で置き換える
-    suspend fun replaceSystemHolidays(holidays: List<LocalEvent>) {
-        deleteByDescription(LocalEvent.DESCRIPTION_HOLIDAY)
+    // 指定国の祝日を削除→再投入で置き換える
+    suspend fun replaceHolidays(country: String, holidays: List<LocalEvent>) {
+        deleteHolidaysByCountry(country)
         insertAll(holidays)
     }
 

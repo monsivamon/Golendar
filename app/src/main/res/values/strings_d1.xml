@@ -47,11 +47,37 @@
     <string name="dl1_calModeTitleGolendarOps">Golendar モードの操作</string>
     <string name="dl1_calModeDescGolendarOps">チェックで表示 ON/OFF、色丸で色変更、\n名前タップで名前を変更できます。\nマイカレンダーは削除できませんが、\n非表示にはできます。</string>
     <string name="dl1_calModeTitleHidden">非表示にすると…</string>
-    <string name="dl1_calModeDescHidden">そのカレンダーの予定は、\nカレンダー・ウィジェット・通知から\n表示されなくなります。\n祝日は常に表示されます。</string>
+    <string name="dl1_calModeDescHidden">そのカレンダーの予定は、\nカレンダー・ウィジェット・通知から\n表示されなくなります。\n祝日は「祝日表示」で選んだ国のみ表示されます。</string>
     <string name="dl1_calModeSubInApp">アプリ内のみ</string>
     <string name="dl1_calModeSubSync">カレンダー同期</string>
     <string name="dl1_calModeEditHint">← 名前タップで編集</string>
-    <string name="dl1_calModeHolidaysAlways">祝日は常に表示</string>
+    <string name="dl1_calModeHolidaysAlways">祝日は選択した国のみ表示</string>
+
+    <!-- TimezoneTutorialDialog -->
+    <string name="dl1_tzTitlePin">表示タイムゾーンを固定</string>
+    <string name="dl1_tzDescPin">設定 → タイムゾーンで「表示タイムゾーンを固定」をONにすると、端末の場所に関係なく選んだ地域の時刻でカレンダーを表示します。旅行や出張先でも予定の時刻がずれません。</string>
+    <string name="dl1_tzTitleNotify">通知も現地の時計に合わせる</string>
+    <string name="dl1_tzDescNotify">「通知時刻も現地の時計に合わせる」をONにすると、表示タイムゾーンの時計が予定時刻に達したときに通知します。移動中でも予定の時刻を逃しません。</string>
+    <string name="dl1_tzPinHint">端末の場所に関係なく同じ時刻で表示</string>
+    <string name="dl1_tzNotifyHint">表示タイムゾーンの時計で通知</string>
+
+    <!-- HolidayTutorialDialog -->
+    <string name="dl1_holidayTitleSelect">表示する祝日の国を選ぶ</string>
+    <string name="dl1_holidayDescSelect">設定 → 祝日表示で、G7・BRICS原加盟国・韓国・台湾・香港から複数選択できます。同日の祝日は1行にまとまり、国旗バッジで国が分かります。</string>
+    <string name="dl1_holidayTitlePriority">Googleモードでの祝日</string>
+    <string name="dl1_holidayDescPriority">Googleモードでも選択した国の祝日を優先して表示し、同じ日のGoogle祝日は重複表示しません。国を選ばない場合は祝日を表示しません。</string>
+    <string name="dl1_holidaySelectedBadge">選択した国だけ表示</string>
+    <string name="dl1_holidaySameDayBadge">同日は1行にまとめて国旗表示</string>
+    <string name="dl1_holidayGoogleSuppressed">Googleの同日祝日は非表示</string>
+
+    <!-- EventColorTutorialDialog -->
+    <string name="dl1_colorTitlePerEvent">予定ごとに色を変える</string>
+    <string name="dl1_colorDescPerEvent">予定の編集画面で「色」をタップすると、その予定だけ色を変更できます。カレンダー色より優先して表示されます。</string>
+    <string name="dl1_colorTitleReset">既定の色に戻す</string>
+    <string name="dl1_colorDescReset">「既定（紫）」を選ぶとカレンダー色に戻ります。重要な予定や家族の予定など、カレンダーをまたいで色分けできます。</string>
+    <string name="dl1_colorBadgePriority">カレンダー色より優先</string>
+    <string name="dl1_colorBadgeDefault">既定（紫）</string>
+    <string name="dl1_colorBadgeCustom">予定ごとに色を選択</string>
 
     <!-- CalendarPermissionDialog -->
     <string name="dl1_permDeniedCalendarTitle">カレンダーへのアクセスが許可されていません</string>
@@ -135,12 +161,12 @@
 
     <!-- ScheduleAddTutorialDialog -->
     <string name="dl1_schedAddTitleFab">FAB から追加</string>
-    <string name="dl1_schedAddDescFab">月表示の右下にある「+」ボタンをタップすると、\n日付を選んで予定を追加できます。</string>
+    <string name="dl1_schedAddDescFab">月表示の右下にある「+ 予定追加」ボタンをタップすると、\n選択中の日付に予定を追加できます。</string>
     <string name="dl1_schedAddTitleEachDay">各日から追加</string>
     <string name="dl1_schedAddDescEachDay">週表示では、各日付の下の「+ 予定を追加」\nボタンからその日の予定を作成できます。</string>
     <string name="dl1_schedAddTitleShortcut">ショートカット</string>
     <string name="dl1_schedAddDescShortcut">ホーム画面のアイコンを長押しすると、\n「予定追加」を直接起動できます。</string>
-    <string name="dl1_schedAddFabHint">右下の + ボタン</string>
+    <string name="dl1_schedAddFabHint">右下の + 予定追加ボタン</string>
     <string name="dl1_schedAddWeekButton">+ 予定を追加</string>
     <string name="dl1_schedAddLongPress">長押し</string>
 

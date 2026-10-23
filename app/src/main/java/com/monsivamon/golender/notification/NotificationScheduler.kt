@@ -13,6 +13,7 @@ import com.monsivamon.golender.data.SelectedCalendarJson
 import com.monsivamon.golender.data.dataStore
 import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.data.prefs.SettingsKeys
+import com.monsivamon.golender.data.util.allDayNotificationBaseMillis
 import com.monsivamon.golender.R
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -98,25 +99,28 @@ object NotificationScheduler {
                     .filter { it.description != LocalEvent.DESCRIPTION_HOLIDAY }
             }
 
-            // 未来の予定のみを開始時刻順に上限件数だけ抽出する
+            // 未来の予定のみを通知基準時刻順に上限件数だけ抽出する。
+            // 終日予定は UTC 深夜保存のため、そのままでは地域によって深夜0時や
+            // 前日夕方に通知が鳴る。表示タイムゾーンの 9:00 を基準にする。
             val now = System.currentTimeMillis()
             val futureEvents = events
-                .filter { it.startTime > now - NotificationConfig.TEN_MIN_BEFORE_MS }
-                .sortedBy { it.startTime }
+                .map { event -> event to notificationBaseMillis(event) }
+                .filter { (_, base) -> base > now - NotificationConfig.TEN_MIN_BEFORE_MS }
+                .sortedBy { (_, base) -> base }
                 .take(NotificationConfig.MAX_SCHEDULED)
 
             // 各予定について 10 分前／定刻のアラームを登録する。
             // 通知固定モード（現地の時計に合わせる）では発火時刻を現地壁時計時刻へ寄せる
-            for (event in futureEvents) {
+            for ((event, base) in futureEvents) {
                 if (notify10MinBefore) {
-                    val t = AppTimeZone.notifyTriggerMillis(event.startTime, NotificationConfig.TEN_MIN_BEFORE_MS)
+                    val t = AppTimeZone.notifyTriggerMillis(base, NotificationConfig.TEN_MIN_BEFORE_MS)
                     if (t > now) {
                         val rc = scheduleExactAlarm(context, alarmManager, event, t, true)
                         if (rc >= 0) currentIds.add(rc)
                     }
                 }
-                if (notifyAtStart && event.startTime > now) {
-                    val t = AppTimeZone.notifyTriggerMillis(event.startTime, 0L)
+                if (notifyAtStart && base > now) {
+                    val t = AppTimeZone.notifyTriggerMillis(base, 0L)
                     val rc = scheduleExactAlarm(context, alarmManager, event, t, false)
                     if (rc >= 0) currentIds.add(rc)
                 }
@@ -125,6 +129,15 @@ object NotificationScheduler {
             // 今回登録した要求コードを台帳へ永続化する
             context.dataStore.edit { it[SettingsKeys.SCHEDULED_ALARM_IDS] = currentIds.joinToString(",") }
         }
+    }
+
+    // 終日予定の通知基準時刻を求める。
+    // 終日予定は UTC 日付境界（深夜0時）で保存されるため、その時刻をそのまま
+    // 通知に使うとタイムゾーンによって深夜0時や前日夕方に鳴ってしまう。
+    // 表示タイムゾーンにおける当日 9:00 を通知基準にする。
+    private fun notificationBaseMillis(event: Event): Long {
+        if (!event.isAllDay) return event.startTime
+        return allDayNotificationBaseMillis(event.startTime, AppTimeZone.effective())
     }
 
     // 要求コードから PendingIntent を復元してアラームを解除する。

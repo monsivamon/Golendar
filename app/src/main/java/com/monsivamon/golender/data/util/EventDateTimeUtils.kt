@@ -20,6 +20,9 @@ import android.icu.text.DateTimePatternGenerator
 private fun Context.displayLocale(): java.util.Locale =
     resources.configuration.locales[0]
 
+// 時刻表示用フォーマッタ（24 時間表記）
+private val TIME_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+
 // locale に応じた最適パターンで日付フォーマッタを組み立てる
 private fun LocalDate.formatLocal(context: Context, skeleton: String): String {
     val locale = context.displayLocale()
@@ -57,9 +60,26 @@ fun Event.localEndDateTime(): LocalDateTime {
 // 「09:00 - 10:00」または「終日」の形式で時刻範囲を返す
 fun Event.timeRangeString(context: Context): String {
     if (isAllDay) return context.getString(R.string.dt_all_day)
-    val fmt = DateTimeFormatter.ofPattern("HH:mm")
-    return "${localStartDateTime().format(fmt)} - ${localEndDateTime().format(fmt)}"
+    return "${localStartDateTime().format(TIME_FORMATTER)} - ${localEndDateTime().format(TIME_FORMATTER)}"
 }
+
+// 終日予定（UTC 深夜保存）の通知基準時刻を返す。
+// 保存されている日付を、表示タイムゾーンにおける 9:00 として解釈する。
+// これにより UTC 圏の深夜0時や米国圏の前日夕方に通知が鳴るのを防ぐ。
+fun allDayNotificationBaseMillis(startTime: Long, zone: ZoneId): Long {
+    val date = Instant.ofEpochMilli(startTime)
+        .atZone(ZoneOffset.UTC)
+        .toLocalDate()
+    return date.atTime(9, 0).atZone(zone).toInstant().toEpochMilli()
+}
+
+// 開始時刻を「HH:mm」で返す（終日予定は空文字）
+fun Event.startTimeText(): String =
+    if (isAllDay) "" else localStartDateTime().format(TIME_FORMATTER)
+
+// 終了時刻を「HH:mm」で返す（終日予定は空文字）
+fun Event.endTimeText(): String =
+    if (isAllDay) "" else localEndDateTime().format(TIME_FORMATTER)
 
 // 「2024年1月1日」（ja）/「Jan 1, 2024」（en）等、locale 適応の単日表記を返す
 fun Event.dateRangeString(context: Context): String {
@@ -78,6 +98,8 @@ fun DayOfWeek.dayShort(context: Context): String =
 
 // 予定の種別に応じたアクセント色を返す
 fun Event.accentColor(colors: AppColors): Color = when {
+    // 予定ごとの任意色が設定されていれば最優先で使う
+    colorArgb != 0 -> Color(colorArgb)
     calendarColorArgb != null && calendarColorArgb != 0 -> Color(calendarColorArgb)
     isBirthdayCalendar -> Color(0xFFFF9800)
     isCulturalEvent -> Color(0xFF4CAF50)

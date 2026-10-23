@@ -25,6 +25,7 @@ class EventCrudManager(private val repository: CalendarRepository) {
         newPhotoUris: List<Uri>,
         targetCalendarId: Long?,
         localCalendarId: Long? = null,
+        colorArgb: Int = 0,
     ): Long {
         val (finalStart, finalEnd) = if (isAllDay) {
             val c = correctAllDayMillis(startMillis, endMillis); c.start to c.end
@@ -54,7 +55,8 @@ class EventCrudManager(private val repository: CalendarRepository) {
                 ?: 0L
             repository.insertLocalEvent(
                 title, finalStart, finalEnd, isAllDay,
-                location, description, rrule, resolvedLocalId
+                location, description, rrule, resolvedLocalId,
+                colorArgb = colorArgb,
             )
         }
 
@@ -73,6 +75,7 @@ class EventCrudManager(private val repository: CalendarRepository) {
         isAllDay: Boolean, location: String, description: String, rrule: String?,
         newPhotoUris: List<Uri>, keptPhotoIds: List<Long>,
         localCalendarId: Long? = null,
+        colorArgb: Int = 0,
     ) {
         val (finalStart, finalEnd) = if (isAllDay) {
             val c = correctAllDayMillis(startMillis, endMillis); c.start to c.end
@@ -89,7 +92,7 @@ class EventCrudManager(private val repository: CalendarRepository) {
                 ?: repository.getVisibleLocalCalendars().firstOrNull()?.id
                 ?: 0L
             repository.updateLocalEvent(eventId, title, finalStart, finalEnd, isAllDay,
-                location, description, rrule, resolvedLocalId)
+                location, description, rrule, resolvedLocalId, colorArgb = colorArgb)
             val existing = repository.getPhotosForEvent(eventId)
             existing.filter { it.id !in keptPhotoIds }.forEach { repository.removePhoto(it) }
             val room = (EventPhoto.MAX_PHOTOS_PER_EVENT - keptPhotoIds.size).coerceAtLeast(0)
@@ -128,11 +131,11 @@ class EventCrudManager(private val repository: CalendarRepository) {
         when (dateToRemove) {
             eventStart -> {
                 if (isGoogle) repository.updateEvent(event.id, event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null)
-                else repository.updateLocalEvent(event.id, event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null, event.calendarId)
+                else repository.updateLocalEvent(event.id, event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null, event.calendarId, colorArgb = event.colorArgb)
             }
             eventEnd -> {
                 if (isGoogle) repository.updateEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null)
-                else repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null, event.calendarId)
+                else repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null, event.calendarId, colorArgb = event.colorArgb)
             }
             else -> {
                 if (isGoogle) {
@@ -153,8 +156,8 @@ class EventCrudManager(private val repository: CalendarRepository) {
                         )
                     }
                 } else {
-                    repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null, event.calendarId)
-                    repository.insertLocalEvent(event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null, event.calendarId)
+                    repository.updateLocalEvent(event.id, event.title, event.startTime, newEnd1, event.isAllDay, event.location, event.description, null, event.calendarId, colorArgb = event.colorArgb)
+                    repository.insertLocalEvent(event.title, newStart2, event.endTime, event.isAllDay, event.location, event.description, null, event.calendarId, colorArgb = event.colorArgb)
                 }
             }
         }

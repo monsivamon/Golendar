@@ -39,7 +39,10 @@
          ui/sections/CustomSettingsSection.kt
          ============================================================ -->
     <string name="sc_customSettingsSection">自定义设置</string>
-    <string name="sc_showHolidays">显示节假日</string>
+    <string name="sc_holidaySection">节假日显示</string>
+    <string name="sc_holidayCountrySearch">搜索国家或地区</string>
+    <string name="sc_holidaySelectedCount">已选择：%1$d 个</string>
+    <string name="sc_holidayEmptyHint">选择国家或地区后，其节假日将显示在日历中。未选择时不显示任何节假日。</string>
     <string name="sc_appBgColor">应用背景色</string>
     <string name="sc_appBgColorSelect">选择应用背景色</string>
     <string name="sc_dayColors">星期的颜色</string>
@@ -95,9 +98,12 @@
     <string name="sc_tutorialMap">查看地图用法</string>
     <string name="sc_tutorialAi">查看 AI 解析用法</string>
     <string name="sc_tutorialCalendarDisplay">查看日历显示与颜色设置</string>
+    <string name="sc_tutorialTimezone">查看时区设置</string>
+    <string name="sc_tutorialHoliday">查看节假日显示设置</string>
     <string name="sc_tutorialMonthList">查看月视图底部列表</string>
     <string name="sc_tutorialScheduleAdd">查看添加日程</string>
     <string name="sc_tutorialScheduleEdit">查看日程的编辑与删除</string>
+    <string name="sc_tutorialEventColor">查看日程颜色更改</string>
     <string name="sc_tutorialRecurring">查看重复日程的用法</string>
     <string name="sc_tutorialPhoto">查看照片功能</string>
     <string name="sc_tutorialSearch">查看搜索用法</string>
@@ -113,6 +119,7 @@
     <string name="sc_eventCount">%1$d 条</string>
     <string name="sc_noEvents">无日程</string>
     <string name="sc_addEvent">+ 添加日程</string>
+    <string name="sc_addEventShort">添加日程</string>
 
     <!-- ============================================================
          ui/screens/SettingsScreen.kt

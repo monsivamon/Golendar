@@ -77,7 +77,7 @@ fun MonthlyCalendarScreen(
     // AI 解析結果の登録先カレンダー ID（EventDialog の LocalCalendarSelector から引き継ぐ）
     var aiTargetCalendarId by remember { mutableStateOf<Long?>(null) }
     var editingEvent by remember { mutableStateOf<Event?>(null) }
-    var showDatePickerForFAB by remember { mutableStateOf(false) }
+    var showDatePickerForShortcut by remember { mutableStateOf(false) }
     var tempFABDate by remember { mutableStateOf<LocalDate?>(null) }
     var showEventDetailDialog by remember { mutableStateOf(false) }
     var viewingEvent by remember { mutableStateOf<Event?>(null) }
@@ -114,7 +114,7 @@ fun MonthlyCalendarScreen(
         if (requestAddEvent) {
             viewModel.consumeAddEventRequest()
             editingEvent = null; editingPhotos = emptyList(); editingPhotosLoaded = true
-            showDatePickerForFAB = true
+            showDatePickerForShortcut = true
         }
     }
 
@@ -194,28 +194,22 @@ fun MonthlyCalendarScreen(
                             }
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
-                            LazyColumn(state = bottomListState, modifier = Modifier.fillMaxSize()) {
+                            LazyColumn(
+                                state = bottomListState,
+                                modifier = Modifier.fillMaxSize(),
+                                // 右下の「＋予定追加」ボタンに最後の行が隠れないよう余白を確保する
+                                contentPadding = PaddingValues(bottom = 80.dp),
+                            ) {
                                 if (dailyEvents.isEmpty()) {
                                     item { Text(stringResource(R.string.sc_noEvents), color = colors.textGray, modifier = Modifier.padding(top = 8.dp)) }
                                 } else {
                                     items(dailyEvents) { event: Event ->
-                                        EventCard(
+                                        MonthBottomEventRow(
                                             event = event, colors = colors, showCalendarName = showCalendarName,
                                             photoCount = eventPhotoCounts[event.id] ?: 0,
                                             onClick = { ev -> viewingEvent = ev; viewingDate = selectedDate; showEventDetailDialog = true },
                                         )
                                     }
-                                }
-                                item {
-                                    Button(
-                                        onClick = { editingEvent = null; editingPhotos = emptyList(); editingPhotosLoaded = true; fromCalendar = true; showEventDialog = true },
-                                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = colors.primaryAccent.copy(alpha = 0.15f),
-                                            contentColor = colors.primaryAccent,
-                                        ),
-                                        shape = RoundedCornerShape(12.dp),
-                                    ) { Text(stringResource(R.string.sc_addEvent), fontSize = 16.sp, fontWeight = FontWeight.Medium) }
                                 }
                             }
                             // スクロール可能な未表示アイテムがあるときのみ下端 ▼ を表示する。
@@ -236,21 +230,49 @@ fun MonthlyCalendarScreen(
                     }
                 }
             }
+            // 選択中の日付に予定を追加する。日付選択ダイアログは挟まず、
+            // ホーム長押しのショートカット（showDatePickerForShortcut）とは経路を分離する。
             FloatingActionButton(
-                onClick = { editingEvent = null; editingPhotos = emptyList(); editingPhotosLoaded = true; showDatePickerForFAB = true },
+                onClick = {
+                    editingEvent = null
+                    editingPhotos = emptyList()
+                    editingPhotosLoaded = true
+                    fromCalendar = true
+                    tempFABDate = selectedDate
+                    showEventDialog = true
+                },
                 containerColor = colors.primaryAccent, contentColor = Color.White,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 28.dp, bottom = 72.dp),
-            ) { Text("+", fontSize = 24.sp) }
+                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 24.dp, bottom = 72.dp)
+                    .width(88.dp)
+                    .height(64.dp),
+            ) {
+                // 「＋」と「予定追加」を縦積みで表示する
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text("+", fontSize = 22.sp, fontWeight = FontWeight.Bold, lineHeight = 22.sp)
+                    Text(
+                        stringResource(R.string.sc_addEventShort),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        lineHeight = 13.sp,
+                    )
+                }
+            }
         }
     }
 
-    if (showDatePickerForFAB) {
+    if (showDatePickerForShortcut) {
         GolendarDatePickerDialog(
             initialDate = selectedDate, colors = colors,
-            onDismiss = { showDatePickerForFAB = false },
+            onDismiss = { showDatePickerForShortcut = false },
             onDateSelected = { date ->
                 tempFABDate = date; fromCalendar = true
-                showDatePickerForFAB = false; showEventDialog = true
+                showDatePickerForShortcut = false; showEventDialog = true
             },
         )
     }
@@ -298,21 +320,22 @@ fun MonthlyCalendarScreen(
             fromCalendar = fromCalendar, initialPhotos = editingPhotos,
             photoAttachEnabled = calendarMode == CalendarMode.GOLENDAR,
             aiParseEnabled = calendarMode == CalendarMode.GOLENDAR,
+            eventColorEnabled = calendarMode == CalendarMode.GOLENDAR,
             availableCalendars = if (calendarMode == CalendarMode.GOOGLE) availableCalendars else emptyList(),
             localCalendars = if (calendarMode == CalendarMode.GOLENDAR) localCalendars else emptyList(),
             onAiParse = { calId -> aiTargetCalendarId = calId; showAiParseDialog = true },
             onDismiss = { showEventDialog = false; tempFABDate = null },
             photosLoaded = editingPhotosLoaded,
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule,
-                       newPhotoUris, keptPhotoIds, targetCalendarId, localCalendarId ->
+                       colorArgb, newPhotoUris, keptPhotoIds, targetCalendarId, localCalendarId ->
                 if (editingEvent == null)
                     viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule,
                         newPhotoUris = newPhotoUris, targetCalendarId = targetCalendarId,
-                        localCalendarId = localCalendarId)
+                        localCalendarId = localCalendarId, colorArgb = colorArgb)
                 else
                     viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule,
                         newPhotoUris = newPhotoUris, keptPhotoIds = keptPhotoIds,
-                        localCalendarId = localCalendarId)
+                        localCalendarId = localCalendarId, colorArgb = colorArgb)
                 showEventDialog = false; tempFABDate = null
             },
             onDelete = { ev -> viewModel.deleteEvent(ev.id); showEventDialog = false; tempFABDate = null },

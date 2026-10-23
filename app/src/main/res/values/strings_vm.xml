@@ -55,6 +55,7 @@
     <!-- CalendarViewModel.kt -->
     <string name="vm_keep_one_calendar_visible">最低1つのカレンダーを表示してください</string>
     <string name="vm_nothing_selected_fallback_golendar">何も選択されなかったため Golendar モードに切り替えました</string>
+    <string name="vm_permission_revoked_fallback_golendar">カレンダー権限が取り消されたため Golendar モードに切り替えました</string>
     <string name="vm_progress_preparing_backup">バックアップを準備中</string>
     <string name="vm_progress_preparing_import">読み込みを準備中</string>
 

@@ -39,7 +39,16 @@ class LocalEventSource(private val dao: LocalEventDao) {
     // 既存に追記する
     suspend fun append(events: List<LocalEvent>) = dao.insertAll(events)
 
-    // 祝日データを全削除→再投入で置き換える
-    suspend fun replaceSystemHolidays(holidays: List<LocalEvent>) =
-        dao.replaceSystemHolidays(holidays)
+    // 指定国の祝日データを削除→再投入で置き換える
+    suspend fun replaceHolidays(country: String, holidays: List<LocalEvent>) =
+        dao.replaceHolidays(country, holidays)
+
+    // 国コードを持たない旧形式の祝日を削除する
+    suspend fun deleteLegacyHolidays() = dao.deleteLegacyHolidays()
+
+    // 選択されていない国の祝日を削除する
+    suspend fun deleteHolidaysNotIn(countries: List<String>) = dao.deleteHolidaysNotIn(countries)
+
+    // すべての祝日を削除する
+    suspend fun deleteAllSystemHolidays() = dao.deleteByDescription(LocalEvent.DESCRIPTION_HOLIDAY)
 }

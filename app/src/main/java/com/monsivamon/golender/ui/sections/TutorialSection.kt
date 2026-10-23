@@ -16,7 +16,7 @@ import com.monsivamon.golender.ui.SettingsSection
 import com.monsivamon.golender.ui.theme.AppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 
-// チュートリアル再表示セクション（カレンダー権限・ジェスチャー・AI解析）
+// チュートリアル再表示セクション（各機能の案内を再表示）
 @Composable
 fun TutorialSection(
     viewModel: CalendarViewModel,
@@ -81,9 +81,12 @@ fun TutorialSection(
             Text(stringResource(R.string.sc_tutorialAi), fontSize = 16.sp, color = colors.text)
         }
         TutorialRow(stringResource(R.string.sc_tutorialCalendarDisplay), colors) { viewModel.requestShowCalendarModeTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialTimezone), colors) { viewModel.requestShowTimezoneTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialHoliday), colors) { viewModel.requestShowHolidayTutorial() }
         TutorialRow(stringResource(R.string.sc_tutorialMonthList), colors) { viewModel.requestShowMonthViewToggleTutorial() }
         TutorialRow(stringResource(R.string.sc_tutorialScheduleAdd), colors) { viewModel.requestShowScheduleAddTutorial() }
         TutorialRow(stringResource(R.string.sc_tutorialScheduleEdit), colors) { viewModel.requestShowScheduleEditTutorial() }
+        TutorialRow(stringResource(R.string.sc_tutorialEventColor), colors) { viewModel.requestShowEventColorTutorial() }
         TutorialRow(stringResource(R.string.sc_tutorialRecurring), colors) { viewModel.requestShowRecurringTutorial() }
         TutorialRow(stringResource(R.string.sc_tutorialPhoto), colors) { viewModel.requestShowPhotoTutorial() }
         TutorialRow(stringResource(R.string.sc_tutorialSearch), colors) { viewModel.requestShowSearchTutorial() }

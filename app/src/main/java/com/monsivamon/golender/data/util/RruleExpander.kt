@@ -107,7 +107,8 @@ object RruleExpander {
                     Event(
                         event.id, event.title, event.startTime, event.endTime,
                         event.isAllDay, event.calendarId, event.location, event.description,
-                        null, isReadOnly = false
+                        null, isReadOnly = false, colorArgb = event.colorArgb,
+                        holidayCountries = listOfNotNull(event.holidayCountry)
                     )
                 )
             } else emptyList()
@@ -185,7 +186,8 @@ object RruleExpander {
                             currentStart.atZone(zone).toInstant().toEpochMilli(),
                             currentEnd.atZone(zone).toInstant().toEpochMilli(),
                             event.isAllDay, event.calendarId, event.location, event.description,
-                            event.rrule, isReadOnly = false
+                            event.rrule, isReadOnly = false, colorArgb = event.colorArgb,
+                            holidayCountries = listOfNotNull(event.holidayCountry)
                         )
                     )
                 }

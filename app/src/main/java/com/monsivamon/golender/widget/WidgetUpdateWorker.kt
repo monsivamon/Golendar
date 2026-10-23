@@ -6,12 +6,14 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.first
 import com.monsivamon.golender.data.dataStore
 import com.monsivamon.golender.data.CalendarRepository
+import com.monsivamon.golender.data.holiday.HolidayCountry
+import com.monsivamon.golender.data.holiday.HolidayCountryJson
 import com.monsivamon.golender.data.prefs.LanguageSetting
+import com.monsivamon.golender.data.prefs.SettingsKeys
 import com.monsivamon.golender.notification.NotificationScheduler
 
 // バックグラウンドで定期的にウィジェットを更新し、祝日データも 30 日ごとに更新するワーカー
@@ -26,16 +28,31 @@ class WidgetUpdateWorker(
             try {
                 val context = applicationContext
 
-                // 祝日データを 30 日ごとに更新（前回取得から 30 日以上経過していれば実行）
-                val lastFetchKey = longPreferencesKey("last_holiday_fetch_time")
+                // 祝日データを 30 日ごと、または選択国が変わったときに更新する
                 val prefs = context.dataStore.data.first()
-                val lastFetch = prefs[lastFetchKey] ?: 0L
+                val lastFetch = prefs[SettingsKeys.LAST_HOLIDAY_FETCH] ?: 0L
                 val now = System.currentTimeMillis()
                 val thirtyDays = 30L * 24 * 60 * 60 * 1000L
 
-                if (now - lastFetch > thirtyDays) {
-                    CalendarRepository(context).fetchAndSaveHolidays()
-                    context.dataStore.edit { it[lastFetchKey] = now }
+                val countries = HolidayCountry.fromIsoList(
+                    HolidayCountryJson.fromJson(prefs[SettingsKeys.HOLIDAY_COUNTRIES])
+                        ?: listOf(HolidayCountry.JP.iso)
+                )
+                val selectedIso = countries.map { it.iso }.sorted()
+                val lastCountries = (
+                    HolidayCountryJson.fromJson(prefs[SettingsKeys.LAST_HOLIDAY_FETCH_COUNTRIES])
+                        ?: emptyList()
+                    ).sorted()
+
+                if (selectedIso != lastCountries || now - lastFetch > thirtyDays) {
+                    val ok = CalendarRepository(context).refreshHolidays(countries)
+                    if (ok) {
+                        context.dataStore.edit {
+                            it[SettingsKeys.LAST_HOLIDAY_FETCH] = now
+                            it[SettingsKeys.LAST_HOLIDAY_FETCH_COUNTRIES] =
+                                HolidayCountryJson.toJson(selectedIso)
+                        }
+                    }
                 }
 
                 // 全ウィジェット（日・週・月）を強制更新する

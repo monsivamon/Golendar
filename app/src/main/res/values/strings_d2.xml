@@ -28,6 +28,12 @@
     <string name="dl2_selectedMark">✓ 選択中</string>
     <string name="dl2_close">閉じる</string>
 
+    <!-- EventColorPickerDialog -->
+    <string name="dl2_eventColorLabel">色</string>
+    <string name="dl2_eventColorTitle">予定の色</string>
+    <string name="dl2_eventColorDefault">既定（紫）</string>
+    <string name="dl2_eventColorChange">変更</string>
+
     <!-- CalendarSelectionDialog -->
     <string name="dl2_warning">警告</string>
     <string name="dl2_calendarSelectionEmptyWarning">カレンダーが1つも選択されていません。このままでは予定が表示されません。続行しますか？</string>

@@ -1,0 +1,134 @@
+package com.monsivamon.golender.ui.dialogs
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.monsivamon.golender.R
+import com.monsivamon.golender.ui.theme.AppColors
+import com.monsivamon.golender.ui.theme.calendarColorPalette
+
+// 予定ごとの任意色を選択するダイアログを表示する
+@Composable
+fun EventColorPickerDialog(
+    colors: AppColors,
+    currentColorArgb: Int,
+    onDismiss: () -> Unit,
+    onColorSelected: (Int) -> Unit,
+) {
+    // カレンダー色と共通の 16 色（ライト=濃いめ / ダーク=明るめ）
+    val palette = colors.calendarColorPalette()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = colors.surface,
+        title = {
+            Text(
+                stringResource(R.string.dl2_eventColorTitle),
+                color = colors.text,
+                fontWeight = FontWeight.Bold,
+            )
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // 「既定（紫）」= 未設定 (0) を選ぶ行
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .then(
+                            if (currentColorArgb == 0) Modifier.border(2.dp, colors.primaryAccent, RoundedCornerShape(8.dp))
+                            else Modifier
+                        )
+                        .clickable { onColorSelected(0) }
+                        .padding(vertical = 12.dp, horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clip(CircleShape)
+                                .background(colors.primaryAccent)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            stringResource(R.string.dl2_eventColorDefault),
+                            color = colors.text,
+                            fontSize = 15.sp,
+                        )
+                    }
+                    if (currentColorArgb == 0) {
+                        Text(
+                            stringResource(R.string.dl2_selectedMark),
+                            color = colors.primaryAccent,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                // 4 列 x 4 行のカラースウォッチ
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    palette.chunked(4).forEach { rowColors ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            rowColors.forEach { baseColor ->
+                                val argb = baseColor.toArgb()
+                                val isSelected = currentColorArgb == argb
+                                val checkColor = if (baseColor.luminance() > 0.5f) Color.Black else Color.White
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .clip(CircleShape)
+                                        .background(baseColor)
+                                        .border(
+                                            width = if (isSelected) 3.dp else 1.dp,
+                                            color = if (isSelected) colors.primaryAccent
+                                            else colors.textGray.copy(alpha = 0.4f),
+                                            shape = CircleShape,
+                                        )
+                                        .clickable { onColorSelected(argb) },
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (isSelected) {
+                                        Text(
+                                            text = "✓",
+                                            color = checkColor,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold,
+                                        )
+                                    }
+                                }
+                            }
+                            // 余り列をスペーサで埋める
+                            repeat(4 - rowColors.size) {
+                                Spacer(Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.dl2_close), color = colors.textGray) }
+        },
+    )
+}

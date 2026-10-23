@@ -47,11 +47,37 @@
     <string name="dl1_calModeTitleGolendarOps">Golendar mode basics</string>
     <string name="dl1_calModeDescGolendarOps">Checkboxes show/hide events, color circles change colors,\nand tapping a name renames the calendar.\nMy Calendar cannot be deleted,\nbut it can be hidden.</string>
     <string name="dl1_calModeTitleHidden">When a calendar is hidden…</string>
-    <string name="dl1_calModeDescHidden">Events in that calendar no longer appear\nin the calendar, widgets, or notifications.\nHolidays are always shown.\n</string>
+    <string name="dl1_calModeDescHidden">Events in that calendar no longer appear\nin the calendar, widgets, or notifications.\nHolidays are shown only for the countries\nselected under "Holidays".</string>
     <string name="dl1_calModeSubInApp">In-app only</string>
     <string name="dl1_calModeSubSync">Calendar sync</string>
     <string name="dl1_calModeEditHint">← Tap the name to edit</string>
-    <string name="dl1_calModeHolidaysAlways">Holidays are always shown</string>
+    <string name="dl1_calModeHolidaysAlways">Holidays only for selected countries</string>
+
+    <!-- TimezoneTutorialDialog -->
+    <string name="dl1_tzTitlePin">Pin the display time zone</string>
+    <string name="dl1_tzDescPin">Turn on "Pin display time zone" under Settings → Time zone to show the calendar in the selected region\'s time regardless of where the device is. Event times stay correct while traveling or on business trips.</string>
+    <string name="dl1_tzTitleNotify">Match notifications to local time</string>
+    <string name="dl1_tzDescNotify">Turn on "Match notification time to local clock" to be notified when the displayed time zone\'s clock reaches the event time. You won\'t miss events while traveling.</string>
+    <string name="dl1_tzPinHint">Same time regardless of device location</string>
+    <string name="dl1_tzNotifyHint">Notify by the displayed time zone clock</string>
+
+    <!-- HolidayTutorialDialog -->
+    <string name="dl1_holidayTitleSelect">Choose holiday countries</string>
+    <string name="dl1_holidayDescSelect">Under Settings → Holidays, select one or more from the G7, original BRICS members, Korea, Taiwan, and Hong Kong. Holidays on the same day are combined into one row with flag badges.</string>
+    <string name="dl1_holidayTitlePriority">Holidays in Google mode</string>
+    <string name="dl1_holidayDescPriority">In Google mode, holidays from the selected countries take priority, and Google holidays on the same day are not duplicated. If no country is selected, no holidays are shown.</string>
+    <string name="dl1_holidaySelectedBadge">Only selected countries are shown</string>
+    <string name="dl1_holidaySameDayBadge">Same-day holidays share one row with flags</string>
+    <string name="dl1_holidayGoogleSuppressed">Google holidays on the same day are hidden</string>
+
+    <!-- EventColorTutorialDialog -->
+    <string name="dl1_colorTitlePerEvent">Change colors per event</string>
+    <string name="dl1_colorDescPerEvent">Tap "Color" in the event edit screen to change the color of just that event. It takes priority over the calendar color.</string>
+    <string name="dl1_colorTitleReset">Return to the default color</string>
+    <string name="dl1_colorDescReset">Choosing "Default (purple)" restores the calendar color. Use colors to tell apart important or family events across calendars.</string>
+    <string name="dl1_colorBadgePriority">Overrides the calendar color</string>
+    <string name="dl1_colorBadgeDefault">Default (purple)</string>
+    <string name="dl1_colorBadgeCustom">Choose a color for each event</string>
 
     <!-- CalendarPermissionDialog -->
     <string name="dl1_permDeniedCalendarTitle">Calendar access is not allowed</string>
@@ -135,12 +161,12 @@
 
     <!-- ScheduleAddTutorialDialog -->
     <string name="dl1_schedAddTitleFab">Add from the FAB</string>
-    <string name="dl1_schedAddDescFab">Tap the "+" button in the bottom right of the monthly view\nto pick a date and add an event.</string>
+    <string name="dl1_schedAddDescFab">Tap the "+ Add Event" button in the bottom right of the monthly view\nto add an event on the selected date.</string>
     <string name="dl1_schedAddTitleEachDay">Add from each day</string>
     <string name="dl1_schedAddDescEachDay">In weekly view, use the "+ Add event" button\nunder each date to create that day\'s events.</string>
     <string name="dl1_schedAddTitleShortcut">Shortcut</string>
     <string name="dl1_schedAddDescShortcut">Long-press the home screen icon\nto launch "Add Event" directly.</string>
-    <string name="dl1_schedAddFabHint">+ button in the bottom right</string>
+    <string name="dl1_schedAddFabHint">+ Add Event button in the bottom right</string>
     <string name="dl1_schedAddWeekButton">+ Add event</string>
     <string name="dl1_schedAddLongPress">Long-press</string>
 

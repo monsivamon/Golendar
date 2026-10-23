@@ -201,21 +201,22 @@ fun WeeklyCalendarScreen(
             fromCalendar = fromCalendar, initialPhotos = editingPhotos,
             photoAttachEnabled = calendarMode == CalendarMode.GOLENDAR,
             aiParseEnabled = calendarMode == CalendarMode.GOLENDAR,
+            eventColorEnabled = calendarMode == CalendarMode.GOLENDAR,
             availableCalendars = if (calendarMode == CalendarMode.GOOGLE) availableCalendars else emptyList(),
             localCalendars = if (calendarMode == CalendarMode.GOLENDAR) localCalendars else emptyList(),
             onAiParse = { calId -> aiTargetCalendarId = calId; showAiParseDialog = true },
             onDismiss = { showEventDialog = false },
             photosLoaded = editingPhotosLoaded,
             onSave = { title, startMillis, endMillis, isAllDay, location, description, rrule,
-                       newPhotoUris, keptPhotoIds, targetCalendarId, localCalendarId ->
+                       colorArgb, newPhotoUris, keptPhotoIds, targetCalendarId, localCalendarId ->
                 if (editingEvent == null)
                     viewModel.addEvent(title, startMillis, endMillis, isAllDay, location, description, rrule,
                         newPhotoUris = newPhotoUris, targetCalendarId = targetCalendarId,
-                        localCalendarId = localCalendarId)
+                        localCalendarId = localCalendarId, colorArgb = colorArgb)
                 else
                     viewModel.updateEvent(editingEvent!!.id, title, startMillis, endMillis, isAllDay, location, description, rrule,
                         newPhotoUris = newPhotoUris, keptPhotoIds = keptPhotoIds,
-                        localCalendarId = localCalendarId)
+                        localCalendarId = localCalendarId, colorArgb = colorArgb)
                 showEventDialog = false
             },
             onDelete = { ev -> viewModel.deleteEvent(ev.id); showEventDialog = false },

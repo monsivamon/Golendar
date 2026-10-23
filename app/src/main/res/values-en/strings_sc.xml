@@ -39,7 +39,10 @@
          ui/sections/CustomSettingsSection.kt
          ============================================================ -->
     <string name="sc_customSettingsSection">Custom settings</string>
-    <string name="sc_showHolidays">Show holidays</string>
+    <string name="sc_holidaySection">Holidays</string>
+    <string name="sc_holidayCountrySearch">Search countries or regions</string>
+    <string name="sc_holidaySelectedCount">Selected: %1$d</string>
+    <string name="sc_holidayEmptyHint">Select countries or regions to show their holidays on the calendar. No holidays are shown when none are selected.</string>
     <string name="sc_appBgColor">App background color</string>
     <string name="sc_appBgColorSelect">Select app background color</string>
     <string name="sc_dayColors">Day colors</string>
@@ -95,9 +98,12 @@
     <string name="sc_tutorialMap">Learn how to use the map</string>
     <string name="sc_tutorialAi">Learn how AI parsing works</string>
     <string name="sc_tutorialCalendarDisplay">See calendar display and color settings</string>
+    <string name="sc_tutorialTimezone">See time zone settings</string>
+    <string name="sc_tutorialHoliday">See holiday display settings</string>
     <string name="sc_tutorialMonthList">See the monthly bottom list</string>
     <string name="sc_tutorialScheduleAdd">Learn how to add events</string>
     <string name="sc_tutorialScheduleEdit">Learn how to edit and delete events</string>
+    <string name="sc_tutorialEventColor">Learn how to change event colors</string>
     <string name="sc_tutorialRecurring">Learn how to use recurring events</string>
     <string name="sc_tutorialPhoto">Learn how to use photos</string>
     <string name="sc_tutorialSearch">Learn how to use search</string>
@@ -113,6 +119,7 @@
     <string name="sc_eventCount">%1$d events</string>
     <string name="sc_noEvents">No events</string>
     <string name="sc_addEvent">+ Add event</string>
+    <string name="sc_addEventShort">Add Event</string>
 
     <!-- ============================================================
          ui/screens/SettingsScreen.kt

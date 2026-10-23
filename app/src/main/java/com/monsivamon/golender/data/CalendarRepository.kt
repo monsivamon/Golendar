@@ -2,6 +2,7 @@ package com.monsivamon.golender.data
 
 import android.content.Context
 import android.net.Uri
+import com.monsivamon.golender.data.holiday.HolidayCountry
 import com.monsivamon.golender.data.source.EventPhotoSource
 import com.monsivamon.golender.data.source.HolidaySource
 import com.monsivamon.golender.data.source.LocalCalendarSource
@@ -122,17 +123,19 @@ class CalendarRepository(context: Context) {
     suspend fun insertLocalEvent(
         title: String, startMillis: Long, endMillis: Long, isAllDay: Boolean,
         location: String, description: String, rrule: String?, calendarId: Long = 0L,
+        colorArgb: Int = 0,
     ): Long = localSource.insert(
-        LocalEvent(0, title, startMillis, endMillis, isAllDay, location, description, rrule, calendarId)
+        LocalEvent(0, title, startMillis, endMillis, isAllDay, location, description, rrule, calendarId, colorArgb)
     )
 
     // ローカル予定を更新する
     suspend fun updateLocalEvent(
         eventId: Long, title: String, startMillis: Long, endMillis: Long,
         isAllDay: Boolean, location: String, description: String, rrule: String?, calendarId: Long = 0L,
+        colorArgb: Int = 0,
     ) {
         localSource.update(
-            LocalEvent(eventId, title, startMillis, endMillis, isAllDay, location, description, rrule, calendarId)
+            LocalEvent(eventId, title, startMillis, endMillis, isAllDay, location, description, rrule, calendarId, colorArgb)
         )
     }
 
@@ -152,14 +155,33 @@ class CalendarRepository(context: Context) {
     suspend fun appendLocalEvents(events: List<LocalEvent>) = localSource.append(events)
 
     // ---------- 祝日 ----------
-    // 祝日 API から取得してローカル DB を更新する
-    suspend fun fetchAndSaveHolidays(): Boolean = withContext(Dispatchers.IO) {
+    // 選択国の祝日を取得してローカル DB を更新する。
+    // 国ごとに取得成功した分だけ置き換え、失敗した国は前回データを残す。
+    // 戻り値は「選択国すべての取得に成功したか」（0 件選択時は true）。
+    suspend fun refreshHolidays(countries: List<HolidayCountry>): Boolean = withContext(Dispatchers.IO) {
         try {
-            val holidays = holidaySource.fetchHolidays()
-            if (holidays.isNotEmpty()) {
-                localSource.replaceSystemHolidays(holidays)
-                true
-            } else false
+            var allSuccess = true
+            for (country in countries) {
+                val holidays = holidaySource.fetchHolidays(country)
+                if (holidays != null) {
+                    localSource.replaceHolidays(country.iso, holidays)
+                } else {
+                    allSuccess = false
+                }
+            }
+
+            // 国コードを持たない旧形式の祝日は、全取得成功後に掃除する
+            // （取得失敗時は前回データを残して表示を維持する）
+            if (allSuccess) localSource.deleteLegacyHolidays()
+
+            // 選択を外した国の祝日を削除する
+            val selectedIso = countries.map { it.iso }
+            if (selectedIso.isEmpty()) {
+                localSource.deleteAllSystemHolidays()
+            } else {
+                localSource.deleteHolidaysNotIn(selectedIso)
+            }
+            allSuccess
         } catch (e: Exception) {
             e.printStackTrace()
             false
