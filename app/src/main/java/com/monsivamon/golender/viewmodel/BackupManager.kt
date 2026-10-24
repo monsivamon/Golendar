@@ -442,7 +442,7 @@ class BackupManager(
                     .filter { it.calendarId in auto.allTargetIds }
                     .map { it.id }
                 repository.withTransaction {
-                    ids.forEach { repository.deleteLocalEvent(it) }
+                    ids.forEach { repository.deleteLocalEventRecordOnly(it) }
                 }
             }
             val sigsByTarget = mutableMapOf<Long, MutableSet<String>>()
@@ -486,7 +486,7 @@ class BackupManager(
         if (!isAppend) {
             val ids = repository.getAllLocalEvents().filter { it.calendarId == target }.map { it.id }
             repository.withTransaction {
-                ids.forEach { repository.deleteLocalEvent(it) }
+                ids.forEach { repository.deleteLocalEventRecordOnly(it) }
             }
         }
 
@@ -577,7 +577,7 @@ class BackupManager(
             if (!isAppend) {
                 val ids = repository.getAllLocalEvents().filter { it.calendarId == target }.map { it.id }
                 repository.withTransaction {
-                    ids.forEach { repository.deleteLocalEvent(it) }
+                    ids.forEach { repository.deleteLocalEventRecordOnly(it) }
                 }
             }
 
@@ -628,7 +628,7 @@ class BackupManager(
                 .filter { it.calendarId in auto.allTargetIds }
                 .map { it.id }
             repository.withTransaction {
-                ids.forEach { repository.deleteLocalEvent(it) }
+                ids.forEach { repository.deleteLocalEventRecordOnly(it) }
             }
         }
         val sigsByTarget = mutableMapOf<Long, MutableSet<String>>()

@@ -29,6 +29,8 @@ object SettingsKeys {
     val LAST_HOLIDAY_FETCH_COUNTRIES = stringPreferencesKey("last_holiday_fetch_countries")
     // 月表示下部リストの表示 ON/OFF
     val SHOW_BOTTOM_LIST = booleanPreferencesKey("show_bottom_list")
+    // アルバムタブ表示 ON/OFF（Golendar モードのみ）
+    val SHOW_ALBUM_TAB = booleanPreferencesKey("show_album_tab")
     // 初回起動時の Welcome 画面表示完了フラグ
     val WELCOME_SHOWN = booleanPreferencesKey("welcome_shown")
     // 最後に Welcome を表示したバージョン名（バージョンアップ検知用）

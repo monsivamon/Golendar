@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,7 +35,7 @@ import com.monsivamon.golender.ui.common.TutorialIllustrationFrame
 import com.monsivamon.golender.ui.common.TutorialPage
 import com.monsivamon.golender.ui.theme.AppColors
 
-// 地図の使い方を 3 ページで案内するチュートリアル（設定画面から再表示可能）
+// 地図の使い方を 4 ページで案内するチュートリアル（設定画面から再表示可能）
 @Composable
 fun MapSetupDialog(
     colors: AppColors,
@@ -41,6 +43,11 @@ fun MapSetupDialog(
 ) {
     SetupTutorialScaffold(
         pages = listOf(
+            TutorialPage(
+                title = stringResource(R.string.dl1_mapTitleSearch),
+                description = stringResource(R.string.dl1_mapDescSearch),
+                illustration = { c -> PlaceSearchIllustration(c) },
+            ),
             TutorialPage(
                 title = stringResource(R.string.dl1_mapTitlePin),
                 description = stringResource(R.string.dl1_mapDescPin),
@@ -87,6 +94,98 @@ fun MapPermissionIntroDialog(
         confirmLabelLast = confirmLabel,
         dismissLabel = dismissLabel,
     )
+}
+
+// 検索欄と候補一覧のイラスト
+@Composable
+private fun PlaceSearchIllustration(colors: AppColors) {
+    TutorialIllustrationFrame(colors) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // 検索欄風の入力枠
+            Row(
+                modifier = Modifier
+                    .width(180.dp)
+                    .height(32.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(colors.surface)
+                    .border(1.dp, colors.primaryAccent, RoundedCornerShape(16.dp))
+                    .padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = colors.textGray,
+                    modifier = Modifier.size(16.dp),
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    text = stringResource(R.string.dl1_mapSearchHint),
+                    color = colors.textGray,
+                    fontSize = 11.sp,
+                )
+            }
+            // 検索候補の一覧（1件目を選択中として強調）
+            Column(
+                modifier = Modifier
+                    .width(180.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(colors.surface)
+                    .padding(vertical = 4.dp),
+            ) {
+                SearchResultRow(
+                    name = stringResource(R.string.dl1_mapSampleLocationName),
+                    address = stringResource(R.string.dl1_mapSampleAddress),
+                    colors = colors,
+                    highlighted = true,
+                )
+                // 2件目以降は候補が続くことを示すだけの行
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(colors.divider),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchResultRow(
+    name: String,
+    address: String,
+    colors: AppColors,
+    highlighted: Boolean,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(if (highlighted) colors.primaryAccent.copy(alpha = 0.15f) else Color.Transparent)
+            .padding(horizontal = 10.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            imageVector = Icons.Default.LocationOn,
+            contentDescription = null,
+            tint = colors.primaryAccent,
+            modifier = Modifier.size(16.dp),
+        )
+        Spacer(Modifier.width(6.dp))
+        Column {
+            Text(name, color = colors.text, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(address, color = colors.textGray, fontSize = 9.sp, maxLines = 1)
+        }
+    }
 }
 
 // 地図＋中央ピンのイラスト

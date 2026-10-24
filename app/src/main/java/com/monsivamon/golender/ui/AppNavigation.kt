@@ -48,6 +48,7 @@ import com.monsivamon.golender.viewmodel.WelcomeInfo
 import com.monsivamon.golender.ui.theme.PressScaleIndication
 import com.monsivamon.golender.ui.theme.getAppColors
 import com.monsivamon.golender.viewmodel.CalendarViewModel
+import com.monsivamon.golender.viewmodel.CalendarMode
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -96,6 +97,11 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     val weekStartDay by viewModel.weekStartDay.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val showBottomList by viewModel.showBottomList.collectAsState()
+    val showAlbumTab by viewModel.showAlbumTab.collectAsState()
+    val calendarMode by viewModel.calendarMode.collectAsState()
+    // アルバムタブは Golendar モードかつ設定 ON のときだけ有効にする
+    val albumEnabled = showAlbumTab && calendarMode == CalendarMode.GOLENDAR
+    val tabs = remember(albumEnabled) { tabOrderFor(albumEnabled) }
     val welcomeInfo: WelcomeInfo? by viewModel.welcomeInfo.collectAsState()
     val isWelcomeShowing = welcomeInfo != null
     val showNotificationSetup by viewModel.showNotificationSetup.collectAsState()
@@ -131,7 +137,7 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
     // 起動時の初期ルート／ショートカットに応じてタブを移動する
     LaunchedEffect(Unit) {
         val target = when {
-            initialRoute != null && initialRoute in tabOrder && initialRoute != Routes.MONTHLY -> initialRoute
+            initialRoute != null && initialRoute in tabs && initialRoute != Routes.MONTHLY -> initialRoute
             initialShortcut == "today" -> Routes.DAILY
             else -> null
         }
@@ -143,6 +149,10 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
         if (pendingSearchAfterNav && currentRoute == Routes.MONTHLY) { isSearchMode = true; viewModel.enterSearchMode(); pendingSearchAfterNav = false } else { isSearchMode = false }
         backNavFlag = false; viewModel.updateSearchQuery("")
     }
+    // アルバムタブが無効になったら月表示へ戻す
+    LaunchedEffect(albumEnabled, currentRoute) {
+        if (!albumEnabled && currentRoute == Routes.ALBUM) navigateToTab(navController, Routes.MONTHLY)
+    }
     // 外部からの画面遷移要求を監視する
     val pendingRoute by viewModel.pendingRoute.collectAsState()
     LaunchedEffect(pendingRoute) {
@@ -150,7 +160,7 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
         viewModel.consumeNavigation()
         when {
             route == Routes.SETTINGS -> isSettingsOpen = true
-            route in tabOrder -> { if (route != currentRoute) navigateToTab(navController, route) }
+            route in tabs -> { if (route != currentRoute) navigateToTab(navController, route) }
         }
     }
     // ショートカットからのアクション要求を監視する
@@ -178,31 +188,33 @@ private fun AppNavigationContent(viewModel: CalendarViewModel) {
         Routes.MONTHLY -> stringResource(R.string.co_header_month_title, currentMonth.year, currentMonth.monthValue)
         Routes.DAILY -> stringResource(R.string.co_header_daily_title, selectedDate.year, selectedDate.monthValue, selectedDate.dayOfMonth)
         Routes.WEEKLY -> { val offset = (selectedDate.dayOfWeek.value - weekStartDay.value + 7) % 7; val sow = selectedDate.minusDays(offset.toLong()); val eow = sow.plusDays(6); "${sow.year}/${sow.monthValue}/${sow.dayOfMonth}~${eow.monthValue}/${eow.dayOfMonth}" }
+        Routes.ALBUM -> stringResource(R.string.al_albumTitle)
         else -> ""
     }
     Surface(modifier = Modifier.fillMaxSize(), color = effectiveBg) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
                 // ヘッダー（タイトル・検索・同期・設定）
-                CalendarHeader(title = headerTitle, colors = colors, isSearchMode = isSearchMode, searchQuery = searchQuery, showBottomListToggle = currentRoute == Routes.MONTHLY, showBottomList = showBottomList,
-                    onTitleClick = { when (currentRoute) { Routes.MONTHLY -> showMonthPickerDialog = true; else -> showDatePickerDialog = true } },
+                CalendarHeader(title = headerTitle, colors = colors, isSearchMode = isSearchMode, searchQuery = searchQuery, showBottomListToggle = currentRoute == Routes.MONTHLY, showBottomList = showBottomList, isAlbum = currentRoute == Routes.ALBUM,
+                    onTitleClick = { when (currentRoute) { Routes.MONTHLY -> showMonthPickerDialog = true; Routes.ALBUM -> Unit; else -> showDatePickerDialog = true } },
                     onTodayClick = { navigateToTodayMonth(viewModel, navController) }, onToggleBottomList = { viewModel.setShowBottomList(!showBottomList) },
                     onSearchStart = { isSearchMode = true; viewModel.enterSearchMode() }, onSearchClose = { isSearchMode = false; viewModel.updateSearchQuery(""); viewModel.exitSearchMode() },
                     onSearchQueryChange = { viewModel.updateSearchQuery(it) }, onSyncClick = { showSyncDialog = true }, onSettingsClick = { isSettingsOpen = true })
-                // 日・週・月のタブ行
-                CalendarTabRow(currentRoute ?: Routes.MONTHLY, colors, navController)
+                // 日・週・月（＋アルバム）のタブ行
+                CalendarTabRow(currentRoute ?: Routes.MONTHLY, colors, navController, tabs)
                 // 本体の画面（左右スワイプでタブ切替）
                 Box(modifier = Modifier.weight(1f).swipeToNavigateHorizontal(
-                    onSwipeLeft = { currentRoute?.let { route -> if (route in tabOrder) navigateTab(navController, route, 1) } },
-                    onSwipeRight = { currentRoute?.let { route -> if (route in tabOrder) navigateTab(navController, route, -1) } })) {
+                    onSwipeLeft = { currentRoute?.let { route -> if (route in tabs) navigateTab(navController, route, 1, tabs) } },
+                    onSwipeRight = { currentRoute?.let { route -> if (route in tabs) navigateTab(navController, route, -1, tabs) } })) {
                     NavHost(navController = navController, startDestination = startDestination, modifier = Modifier.fillMaxSize(),
-                        enterTransition = { if (backNavFlag) slideInHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth } else slideInHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route) } },
-                        exitTransition = { if (backNavFlag) slideOutHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth } else slideOutHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route) } },
-                        popEnterTransition = { slideInHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route) } },
-                        popExitTransition = { slideOutHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route) } }) {
+                        enterTransition = { if (backNavFlag) slideInHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth } else slideInHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route, tabs) } },
+                        exitTransition = { if (backNavFlag) slideOutHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth } else slideOutHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route, tabs) } },
+                        popEnterTransition = { slideInHorizontally(animationSpec = animSpec) { fullWidth -> fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route, tabs) } },
+                        popExitTransition = { slideOutHorizontally(animationSpec = animSpec) { fullWidth -> -fullWidth * getSlideDirection(initialState.destination.route, targetState.destination.route, tabs) } }) {
                         composable(Routes.MONTHLY) { MonthlyCalendarScreen(viewModel = viewModel, navController = navController, isSearchMode = isSearchMode, onSearchResultSelected = onSearchResultSelected) }
                         composable(Routes.DAILY) { DailyCalendarScreen(viewModel = viewModel, navController = navController, isSearchMode = isSearchMode, onSearchResultSelected = onSearchResultSelected) }
                         composable(Routes.WEEKLY) { WeeklyCalendarScreen(viewModel = viewModel, navController = navController, isSearchMode = isSearchMode, onSearchResultSelected = onSearchResultSelected) }
+                        composable(Routes.ALBUM) { AlbumScreen(viewModel = viewModel, navController = navController, colors = colors) }
                     }
                 }
             }

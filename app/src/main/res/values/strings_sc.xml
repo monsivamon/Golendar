@@ -95,7 +95,7 @@
     <string name="sc_tutorialSection">チュートリアル</string>
     <string name="sc_tutorialCalendarPermission">カレンダーのアクセス権限を確認する</string>
     <string name="sc_tutorialGesture">ジェスチャー操作の案内を見る</string>
-    <string name="sc_tutorialMap">地図の使い方を見る</string>
+    <string name="sc_tutorialMap">地図と場所検索の使い方を見る</string>
     <string name="sc_tutorialAi">AI解析の使い方を見る</string>
     <string name="sc_tutorialCalendarDisplay">カレンダーの表示と色の設定を見る</string>
     <string name="sc_tutorialTimezone">タイムゾーン設定を見る</string>
@@ -105,7 +105,7 @@
     <string name="sc_tutorialScheduleEdit">予定の編集と削除を見る</string>
     <string name="sc_tutorialEventColor">予定の色の変え方を見る</string>
     <string name="sc_tutorialRecurring">繰り返し予定の使い方を見る</string>
-    <string name="sc_tutorialPhoto">写真の活用を見る</string>
+    <string name="sc_tutorialPhoto">写真とアルバムの活用を見る</string>
     <string name="sc_tutorialSearch">検索の使い方を見る</string>
     <string name="sc_tutorialNotification">通知の設定を見る</string>
     <string name="sc_tutorialBackup">バックアップと復元を見る</string>
@@ -135,4 +135,6 @@
     <string name="sc_noGoogleAccountMessage">端末にGoogleアカウントが設定されていないため、Googleモードを使用できません。\n\n端末の「設定」→「アカウント」からGoogleアカウントを追加してから、もう一度お試しください。\n\nGolendarモード（アプリ内のみ）は引き続きご利用いただけます。</string>
     <string name="sc_close">閉じる</string>
     <string name="sc_language">表示言語</string>
+    <string name="sc_albumTab">アルバムタブ</string>
+    <string name="sc_albumTabDesc">日・週・月のタブにアルバムを追加します</string>
 </resources>

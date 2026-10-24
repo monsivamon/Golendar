@@ -87,12 +87,15 @@
     <string name="dl1_gestureTitleVertical">위아래 스와이프로 앞뒤 기간 이동</string>
     <string name="dl1_gestureDescVertical">월·주·일 어느 표시에서든 같은 방향으로 빠르게 2번 스와이프하면 앞뒤 기간으로 이동합니다.</string>
     <string name="dl1_gestureTitleHorizontal">좌우 스와이프로 표시 전환</string>
-    <string name="dl1_gestureDescHorizontal">좌우로 스와이프하면 일·주·월 표시를 전환할 수 있습니다.</string>
+    <string name="dl1_gestureDescHorizontal">좌우로 스와이프하면 일·주·월 표시를 전환할 수 있습니다.\n앨범 탭을 ON으로 하면 앨범도 포함됩니다.</string>
     <string name="dl1_gestureTitleReady">준비 완료</string>
     <string name="dl1_gestureDescReady">바로 일정을 추가해 보세요.\n홈 화면 아이콘을 길게 누르면 바로가기도 사용할 수 있습니다.</string>
     <string name="dl1_gestureSwipeHint">좌우로 스와이프</string>
 
     <!-- MapSetupDialog -->
+    <string name="dl1_mapTitleSearch">장소를 검색해 이동</string>
+    <string name="dl1_mapDescSearch">지도 위쪽 검색란에 지명이나 주소를 입력해 검색하면\n후보가 목록으로 표시됩니다.\n후보를 탭하면 해당 장소로 이동합니다.</string>
+    <string name="dl1_mapSearchHint">장소·주소 검색</string>
     <string name="dl1_mapTitlePin">핀으로 장소 선택</string>
     <string name="dl1_mapDescPin">지도를 움직여 가운데 핀을 장소에 맞추고,\n‘결정’으로 장소를 저장합니다.</string>
     <string name="dl1_mapTitleLocationButton">현재 위치 버튼</string>
@@ -138,6 +141,8 @@
     <string name="dl1_photoTutDescAttach">일정 편집 화면의 ‘+’에서 최대 5장까지\n사진을 첨부할 수 있습니다(긴 변 1920px로 축소).\nGolendar 모드 전용입니다.</string>
     <string name="dl1_photoTutTitleViewer">확대·저장·공유</string>
     <string name="dl1_photoTutDescViewer">상세의 썸네일을 탭하면 전체 화면 표시.\n‘저장’으로 Pictures/Golendar에 내보내고,\n‘공유’로 다른 앱에 보낼 수 있습니다.</string>
+    <string name="dl1_photoTutTitleAlbum">앨범 탭</string>
+    <string name="dl1_photoTutDescAlbum">설정의 ‘사용자 설정’에서 앨범 탭을 ON으로 하면\n일·주·월 옆에 앨범 탭이 추가됩니다.\n사진을 탭한 뒤 ‘그날로 이동’으로 월 보기로 이동할 수 있습니다.</string>
     <string name="dl1_photoTutLabelPhoto">사진</string>
 
     <!-- RecurringTutorialDialog -->

@@ -87,12 +87,15 @@
     <string name="dl1_gestureTitleVertical">上下スワイプで前後の期間へ</string>
     <string name="dl1_gestureDescVertical">月・週・日どの表示でも、同じ方向に素早く2回スワイプすると前後の期間に移動します。</string>
     <string name="dl1_gestureTitleHorizontal">左右スワイプで表示切替</string>
-    <string name="dl1_gestureDescHorizontal">左右にスワイプすると、日・週・月の表示を切り替えられます。</string>
+    <string name="dl1_gestureDescHorizontal">左右にスワイプすると、日・週・月の表示を切り替えられます。\nアルバムタブをONにしているときはアルバムも含まれます。</string>
     <string name="dl1_gestureTitleReady">準備完了</string>
     <string name="dl1_gestureDescReady">さっそく予定を追加してみましょう。\nホーム画面のアイコン長押しでショートカットも使えます。</string>
     <string name="dl1_gestureSwipeHint">左右にスワイプ</string>
 
     <!-- MapSetupDialog -->
+    <string name="dl1_mapTitleSearch">場所を検索して移動</string>
+    <string name="dl1_mapDescSearch">地図上部の検索欄に地名や住所を入れて検索すると、\n候補が一覧で表示されます。\n候補をタップすると、その場所へ移動します。</string>
+    <string name="dl1_mapSearchHint">場所・住所を検索</string>
     <string name="dl1_mapTitlePin">ピンで場所を選ぶ</string>
     <string name="dl1_mapDescPin">地図を動かして中央のピンを場所に合わせ、\n「決定」で場所を保存します。</string>
     <string name="dl1_mapTitleLocationButton">現在地ボタン</string>
@@ -138,6 +141,8 @@
     <string name="dl1_photoTutDescAttach">予定編集画面の「+」から、最大5枚まで\n写真を添付できます（長辺1920pxに縮小）。\nGolendarモード専用です。</string>
     <string name="dl1_photoTutTitleViewer">拡大・保存・共有</string>
     <string name="dl1_photoTutDescViewer">詳細のサムネイルをタップすると全画面表示。\n「保存」でピクチャ/Golendarへ書き出し、\n「共有」で他アプリへ送れます。</string>
+    <string name="dl1_photoTutTitleAlbum">アルバムタブ</string>
+    <string name="dl1_photoTutDescAlbum">設定の「カスタム設定」でアルバムタブをONにすると、\n日・週・月と並ぶアルバムタブが追加されます。\n写真をタップし「その日へ」で月表示へ移動できます。</string>
     <string name="dl1_photoTutLabelPhoto">写真</string>
 
     <!-- RecurringTutorialDialog -->

@@ -17,6 +17,9 @@ class BootReceiver : BroadcastReceiver() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     NotificationScheduler.updateAlarms(context)
+                } catch (_: Exception) {
+                    // 再起動直後の再登録失敗は次回起動・6時間周期更新・
+                    // 次回通知発火時の自己修復に委ねる（未処理例外でプロセスを落とさない）
                 } finally {
                     pendingResult.finish()
                 }

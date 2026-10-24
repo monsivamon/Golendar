@@ -35,6 +35,7 @@ fun CalendarHeader(
     searchQuery: String,
     showBottomListToggle: Boolean,
     showBottomList: Boolean,
+    isAlbum: Boolean = false,
     onTitleClick: () -> Unit,
     onTodayClick: () -> Unit,
     onToggleBottomList: () -> Unit,
@@ -56,29 +57,43 @@ fun CalendarHeader(
             SearchBox(searchQuery, colors, onSearchQueryChange, onSearchClose, Modifier.weight(1f))
         } else {
             // 通常時はタイトルと操作ボタン群を表示する
-            DateTitleWithPicker(title, colors, onTitleClick)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // アイコン間はすべて均等な 2dp に統一する
-                if (showBottomListToggle) {
-                    BottomListToggleButton(
-                        isOn = showBottomList,
-                        colors = colors,
-                        onClick = onToggleBottomList,
-                    )
+            if (isAlbum) {
+                // アルバムでは日付選択・今日・検索を使わないためタイトルのみ表示する
+                Text(title, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.text)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CompactIconButton(onClick = onSyncClick) {
+                        Icon(Icons.Default.Refresh, stringResource(R.string.co_sync_cd), tint = colors.text)
+                    }
                     Spacer(Modifier.width(2.dp))
+                    CompactIconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, stringResource(R.string.co_settings_cd), tint = colors.text)
+                    }
                 }
-                TodayButton(onTodayClick, colors)
-                Spacer(Modifier.width(2.dp))
-                CompactIconButton(onClick = onSearchStart) {
-                    Icon(Icons.Default.Search, stringResource(R.string.co_search_cd), tint = colors.text)
-                }
-                Spacer(Modifier.width(2.dp))
-                CompactIconButton(onClick = onSyncClick) {
-                    Icon(Icons.Default.Refresh, stringResource(R.string.co_sync_cd), tint = colors.text)
-                }
-                Spacer(Modifier.width(2.dp))
-                CompactIconButton(onClick = onSettingsClick) {
-                    Icon(Icons.Default.Settings, stringResource(R.string.co_settings_cd), tint = colors.text)
+            } else {
+                DateTitleWithPicker(title, colors, onTitleClick)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // アイコン間はすべて均等な 2dp に統一する
+                    if (showBottomListToggle) {
+                        BottomListToggleButton(
+                            isOn = showBottomList,
+                            colors = colors,
+                            onClick = onToggleBottomList,
+                        )
+                        Spacer(Modifier.width(2.dp))
+                    }
+                    TodayButton(onTodayClick, colors)
+                    Spacer(Modifier.width(2.dp))
+                    CompactIconButton(onClick = onSearchStart) {
+                        Icon(Icons.Default.Search, stringResource(R.string.co_search_cd), tint = colors.text)
+                    }
+                    Spacer(Modifier.width(2.dp))
+                    CompactIconButton(onClick = onSyncClick) {
+                        Icon(Icons.Default.Refresh, stringResource(R.string.co_sync_cd), tint = colors.text)
+                    }
+                    Spacer(Modifier.width(2.dp))
+                    CompactIconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, stringResource(R.string.co_settings_cd), tint = colors.text)
+                    }
                 }
             }
         }

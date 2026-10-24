@@ -3,6 +3,7 @@ package com.monsivamon.golender.data.util
 import android.content.Context
 import androidx.compose.ui.graphics.Color
 import com.monsivamon.golender.R
+import com.monsivamon.golender.data.AlbumPhoto
 import com.monsivamon.golender.data.Event
 import com.monsivamon.golender.data.prefs.AppTimeZone
 import com.monsivamon.golender.ui.theme.AppColors
@@ -10,6 +11,7 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -34,9 +36,18 @@ private fun LocalDate.formatLocal(context: Context, skeleton: String): String {
 // 表示タイムゾーン固定 ON なら固定ゾーン、OFF なら端末のシステムゾーン。
 fun Event.zone(): ZoneId = if (isAllDay) ZoneOffset.UTC else AppTimeZone.effective()
 
+// 開始ミリ秒と終日フラグから表示上の開始日を返す
+fun startDateOf(startTime: Long, isAllDay: Boolean): LocalDate =
+    LocalDateTime.ofInstant(
+        Instant.ofEpochMilli(startTime),
+        if (isAllDay) ZoneOffset.UTC else AppTimeZone.effective(),
+    ).toLocalDate()
+
 // 予定の開始日をローカル日付で返す
-fun Event.localStartDate(): LocalDate =
-    LocalDateTime.ofInstant(Instant.ofEpochMilli(startTime), zone()).toLocalDate()
+fun Event.localStartDate(): LocalDate = startDateOf(startTime, isAllDay)
+
+// アルバム写真に紐づく予定の開始日をローカル日付で返す
+fun AlbumPhoto.localStartDate(): LocalDate = startDateOf(startTime, isAllDay)
 
 // 予定の終了日をローカル日付で返す（終日は endTime-1ms で当日に丸める）
 fun Event.localEndDate(): LocalDate {
@@ -132,4 +143,35 @@ fun correctAllDayMillis(startMillis: Long, endMillis: Long): CorrectedMillis {
     // 終了が開始以下なら 1 日分に補正する
     if (end <= start) end = start + dayMs
     return CorrectedMillis(start, end)
+}
+
+// 終日予定の日付範囲（終了日はその日を含む）を、UTC 日付境界のミリ秒範囲へ変換する。
+// モデル上の終了は exclusive（翌日 0 時）で保持するため、終了日には +1 日する。
+fun allDayMillisRange(startDate: LocalDate, endDateInclusive: LocalDate): CorrectedMillis {
+    val start = startDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    val end = endDateInclusive.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+    return CorrectedMillis(start, end)
+}
+
+// 時間指定予定の終了日を解決する。
+// 同じ日付で終了時刻が開始時刻より前なら、日をまたぐ予定（23:50〜01:30 など）として翌日にする。
+fun resolveTimedEndDate(
+    startDate: LocalDate,
+    startTime: LocalTime,
+    endDate: LocalDate,
+    endTime: LocalTime,
+): LocalDate = if (endDate == startDate && endTime < startTime) startDate.plusDays(1) else endDate
+
+// 終了が開始より前かどうかを判定する。
+// 終日は日付のみ、時間指定は日時で比較する（同時刻は 0 分の予定として許容する）。
+fun isEndBeforeStart(
+    startDate: LocalDate,
+    startTime: LocalTime,
+    endDate: LocalDate,
+    endTime: LocalTime,
+    isAllDay: Boolean,
+): Boolean = if (isAllDay) {
+    endDate.isBefore(startDate)
+} else {
+    endDate.atTime(endTime).isBefore(startDate.atTime(startTime))
 }

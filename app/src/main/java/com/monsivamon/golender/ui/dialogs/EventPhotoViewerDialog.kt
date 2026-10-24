@@ -53,6 +53,7 @@ fun EventPhotoViewerDialog(
     initialIndex: Int,
     colors: AppColors,
     onDismiss: () -> Unit,
+    onGoToDate: (() -> Unit)? = null,
 ) {
     if (photos.isEmpty()) return
     val context = LocalContext.current
@@ -190,6 +191,23 @@ fun EventPhotoViewerDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
                 ) { Text(stringResource(R.string.dl2_close), color = Color.White, fontWeight = FontWeight.Bold) }
+
+                // 下部中央：アルバムから開いたときのみ、その日の月カレンダーへ移動する
+                onGoToDate?.let { goToDate ->
+                    TextButton(
+                        onClick = goToDate,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 40.dp)
+                            .background(colors.primaryAccent, RoundedCornerShape(24.dp)),
+                    ) {
+                        Text(
+                            stringResource(R.string.al_goToDate),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
             }
         }
     }

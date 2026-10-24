@@ -95,7 +95,7 @@
     <string name="sc_tutorialSection">教程</string>
     <string name="sc_tutorialCalendarPermission">检查日历访问权限</string>
     <string name="sc_tutorialGesture">查看手势操作指南</string>
-    <string name="sc_tutorialMap">查看地图用法</string>
+    <string name="sc_tutorialMap">查看地图与地点搜索用法</string>
     <string name="sc_tutorialAi">查看 AI 解析用法</string>
     <string name="sc_tutorialCalendarDisplay">查看日历显示与颜色设置</string>
     <string name="sc_tutorialTimezone">查看时区设置</string>
@@ -105,7 +105,7 @@
     <string name="sc_tutorialScheduleEdit">查看日程的编辑与删除</string>
     <string name="sc_tutorialEventColor">查看日程颜色更改</string>
     <string name="sc_tutorialRecurring">查看重复日程的用法</string>
-    <string name="sc_tutorialPhoto">查看照片功能</string>
+    <string name="sc_tutorialPhoto">查看照片与相册功能</string>
     <string name="sc_tutorialSearch">查看搜索用法</string>
     <string name="sc_tutorialNotification">查看通知设置</string>
     <string name="sc_tutorialBackup">查看备份与还原</string>
@@ -135,4 +135,6 @@
     <string name="sc_noGoogleAccountMessage">设备中未设置 Google 账户，因此无法使用 Google 模式。\n\n请在设备的“设置”→“账户”中添加 Google 账户后再试一次。\n\nGolendar 模式（仅应用内）仍可继续使用。</string>
     <string name="sc_close">关闭</string>
     <string name="sc_language">显示语言</string>
+    <string name="sc_albumTab">相册标签</string>
+    <string name="sc_albumTabDesc">在日、周、月标签旁添加相册</string>
 </resources>

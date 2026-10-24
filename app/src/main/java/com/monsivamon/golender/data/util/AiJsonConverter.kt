@@ -76,6 +76,13 @@ object AiJsonConverter {
                         if (untilStr.isNotBlank() && untilStr != "null" && untilDate == null) {
                             warnings.add("IGNORED invalid UNTIL: $untilStr")
                         }
+                        // 開始日より前の UNTIL は展開結果が 0 件確定のため、
+                        // event ごとスキップする（UNTIL を外すと 5 年分の
+                        // 無限繰り返し予定が生成されてしまう）。
+                        if (untilDate != null && untilDate.isBefore(date)) {
+                            warnings.add("SKIPPED event: UNTIL before start: $untilStr")
+                            return@mapNotNull null
+                        }
 
                         // freq に応じた基本ルールを構築する
                         val base = when (freq) {
@@ -94,13 +101,13 @@ object AiJsonConverter {
                             }
                         }
                         // UNTIL 指定があれば付与する
-                        if (base != null && untilDate != null) "$base;UNTIL=${untilStr.replace("/", "-").replace("-", "")}T235959Z" else base
+                        if (base != null && untilDate != null) "$base;UNTIL=${RruleExpander.formatUntil(untilDate)}" else base
                     } else null
 
                     // 終日／時間指定それぞれの方式でミリ秒へ変換する
                     val zone = AppTimeZone.effective()
                     val startMillis: Long
-                    val endMillis: Long
+                    var endMillis: Long
 
                     if (allDay) {
                         // 終日予定は UTC 日付境界で表現する
@@ -110,8 +117,17 @@ object AiJsonConverter {
                         // 時間指定予定はシステム TZ で表現する（時刻未指定時は 0 時〜+1h）
                         val st = startTime ?: LocalTime.MIDNIGHT
                         val et = endTime ?: st.plusHours(1)
+                        // 同じ日付で終了時刻が開始時刻より前なら日をまたぐ予定として翌日にする
+                        val endLocalDate = resolveTimedEndDate(date, st, endDate ?: date, et)
                         startMillis = date.atTime(st).atZone(zone).toInstant().toEpochMilli()
-                        endMillis = (endDate ?: date).atTime(et).atZone(zone).toInstant().toEpochMilli()
+                        endMillis = endLocalDate.atTime(et).atZone(zone).toInstant().toEpochMilli()
+                    }
+
+                    // 開始以前の終了は不正なので、終日は 1 日後、時間指定は 1 時間後に補正する
+                    val endIsInvalid = if (allDay) endMillis <= startMillis else endMillis < startMillis
+                    if (endIsInvalid) {
+                        endMillis = startMillis + if (allDay) 86_400_000L else 3_600_000L
+                        warnings.add("FIXED end before start")
                     }
 
                     // LocalEvent を生成して返す

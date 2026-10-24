@@ -8,11 +8,16 @@ object Routes {
     const val DAILY = "daily"
     const val WEEKLY = "weekly"
     const val MONTHLY = "monthly"
+    const val ALBUM = "album"
     const val SETTINGS = "settings"
 }
 
-// タブの並び順（日→週→月）を保持する
+// 基本のタブ順（日→週→月）を保持する
 val tabOrder = listOf(Routes.DAILY, Routes.WEEKLY, Routes.MONTHLY)
+
+// アルバムタブ表示時のみ、月の後ろにアルバムを追加したタブ順を返す
+fun tabOrderFor(showAlbum: Boolean): List<String> =
+    if (showAlbum) tabOrder + Routes.ALBUM else tabOrder
 
 // 状態保存・復元付きで指定タブへ遷移する
 fun navigateToTab(navController: NavController, route: String) {
@@ -24,17 +29,26 @@ fun navigateToTab(navController: NavController, route: String) {
 }
 
 // 現在のタブから前後方向のタブへ循環移動する
-fun navigateTab(navController: NavController, currentRoute: String, direction: Int) {
-    val currentIndex = tabOrder.indexOf(currentRoute)
+fun navigateTab(
+    navController: NavController,
+    currentRoute: String,
+    direction: Int,
+    tabs: List<String> = tabOrder,
+) {
+    val currentIndex = tabs.indexOf(currentRoute)
     if (currentIndex == -1) return
-    val newIndex = (currentIndex + direction).mod(tabOrder.size)
-    navigateToTab(navController, tabOrder[newIndex])
+    val newIndex = (currentIndex + direction).mod(tabs.size)
+    navigateToTab(navController, tabs[newIndex])
 }
 
 // タブ順序に基づきスライドアニメーションの方向を返す
-fun getSlideDirection(initialRoute: String?, targetRoute: String?): Int {
-    val initialIndex = tabOrder.indexOf(initialRoute)
-    val targetIndex = tabOrder.indexOf(targetRoute)
+fun getSlideDirection(
+    initialRoute: String?,
+    targetRoute: String?,
+    tabs: List<String> = tabOrder,
+): Int {
+    val initialIndex = tabs.indexOf(initialRoute)
+    val targetIndex = tabs.indexOf(targetRoute)
     if (initialIndex == -1 || targetIndex == -1) return 1
     return if (targetIndex > initialIndex) 1 else -1
 }

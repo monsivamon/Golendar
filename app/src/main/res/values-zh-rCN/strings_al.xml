@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ui/screens/AlbumScreen.kt -->
+    <string name="al_albumTitle">相册</string>
+    <string name="al_photoCount">%1$d 张</string>
+    <string name="al_noPhotos">没有照片</string>
+    <string name="al_goToDate">前往该日</string>
+</resources>

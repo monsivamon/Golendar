@@ -87,12 +87,15 @@
     <string name="dl1_gestureTitleVertical">Swipe up/down to move between periods</string>
     <string name="dl1_gestureDescVertical">In month, week, or day view, quickly swipe twice in the same direction to move to the previous or next period.</string>
     <string name="dl1_gestureTitleHorizontal">Swipe left/right to switch views</string>
-    <string name="dl1_gestureDescHorizontal">Swipe left or right to switch between day, week, and month views.</string>
+    <string name="dl1_gestureDescHorizontal">Swipe left or right to switch between day, week, and month views.\nThe album is included too when the Album tab is on.</string>
     <string name="dl1_gestureTitleReady">You\'re all set</string>
     <string name="dl1_gestureDescReady">Try adding an event now.\nLong-press the home screen icon to use shortcuts, too.</string>
     <string name="dl1_gestureSwipeHint">Swipe left / right</string>
 
     <!-- MapSetupDialog -->
+    <string name="dl1_mapTitleSearch">Search for a place</string>
+    <string name="dl1_mapDescSearch">Enter a place name or address in the search field\nat the top of the map and run the search.\nTap a suggestion to move the map there.</string>
+    <string name="dl1_mapSearchHint">Search places or addresses</string>
     <string name="dl1_mapTitlePin">Choose a location with the pin</string>
     <string name="dl1_mapDescPin">Move the map to place the center pin on the location,\nthen save it with "OK".</string>
     <string name="dl1_mapTitleLocationButton">Current-location button</string>
@@ -138,6 +141,8 @@
     <string name="dl1_photoTutDescAttach">From the "+" button on the event editor, you can attach\nup to 5 photos (downscaled to 1920px on the long side).\nGolendar mode only.</string>
     <string name="dl1_photoTutTitleViewer">Zoom, save, share</string>
     <string name="dl1_photoTutDescViewer">Tap a thumbnail in the details to view full screen.\n"Save" exports to Pictures/Golendar,\n"Share" sends to other apps.</string>
+    <string name="dl1_photoTutTitleAlbum">Album tab</string>
+    <string name="dl1_photoTutDescAlbum">Turn on the Album tab in Custom settings to add\nan Album tab next to Day, Week, and Month.\nTap a photo and use "Go to date" to jump to the month view.</string>
     <string name="dl1_photoTutLabelPhoto">Photo</string>
 
     <!-- RecurringTutorialDialog -->

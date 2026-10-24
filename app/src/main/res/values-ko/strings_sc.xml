@@ -95,7 +95,7 @@
     <string name="sc_tutorialSection">튜토리얼</string>
     <string name="sc_tutorialCalendarPermission">캘린더 접근 권한 확인하기</string>
     <string name="sc_tutorialGesture">제스처 조작 안내 보기</string>
-    <string name="sc_tutorialMap">지도 사용법 보기</string>
+    <string name="sc_tutorialMap">지도와 장소 검색 사용법 보기</string>
     <string name="sc_tutorialAi">AI 분석 사용법 보기</string>
     <string name="sc_tutorialCalendarDisplay">캘린더 표시와 색 설정 보기</string>
     <string name="sc_tutorialTimezone">시간대 설정 보기</string>
@@ -105,7 +105,7 @@
     <string name="sc_tutorialScheduleEdit">일정 편집과 삭제 보기</string>
     <string name="sc_tutorialEventColor">일정 색 변경 보기</string>
     <string name="sc_tutorialRecurring">반복 일정 사용법 보기</string>
-    <string name="sc_tutorialPhoto">사진 활용 보기</string>
+    <string name="sc_tutorialPhoto">사진과 앨범 활용 보기</string>
     <string name="sc_tutorialSearch">검색 사용법 보기</string>
     <string name="sc_tutorialNotification">알림 설정 보기</string>
     <string name="sc_tutorialBackup">백업과 복원 보기</string>
@@ -135,4 +135,6 @@
     <string name="sc_noGoogleAccountMessage">기기에 Google 계정이 설정되어 있지 않아 Google 모드를 사용할 수 없습니다.\n\n기기의 ‘설정’→‘계정’에서 Google 계정을 추가한 뒤 다시 시도해 주세요.\n\nGolendar 모드(앱 내에서만)는 계속 이용할 수 있습니다.</string>
     <string name="sc_close">닫기</string>
     <string name="sc_language">표시 언어</string>
+    <string name="sc_albumTab">앨범 탭</string>
+    <string name="sc_albumTabDesc">일·주·월 탭에 앨범을 추가합니다</string>
 </resources>

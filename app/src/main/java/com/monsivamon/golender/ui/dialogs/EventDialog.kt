@@ -33,6 +33,9 @@ import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.data.LocalCalendar
 import com.monsivamon.golender.data.SelectedCalendar
 import com.monsivamon.golender.data.util.RruleExpander
+import com.monsivamon.golender.data.util.allDayMillisRange
+import com.monsivamon.golender.data.util.isEndBeforeStart
+import com.monsivamon.golender.data.util.resolveTimedEndDate
 import com.monsivamon.golender.ui.common.GolendarDatePickerDialog
 import com.monsivamon.golender.ui.common.GolendarTimePickerDialog
 import com.monsivamon.golender.ui.dialogs.event.CalendarSelector
@@ -45,7 +48,6 @@ import com.monsivamon.golender.data.prefs.AppTimeZone
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneOffset
 
 internal val LABEL_WIDTH: Dp = 60.dp
@@ -175,6 +177,17 @@ fun EventDialog(
     val isLightBackground = colors.bg.luminance() > 0.5f
     val startDateLocked = fromCalendar
     val endDateLocked = fromCalendar && isRecurring
+    // 繰り返しで終了日を固定している場合は開始日を基準にする
+    val baseEndDate = if (endDateLocked) startDate else endDate
+    // 時間指定で終了時刻が開始時刻より前なら翌日にまたぐ予定として扱う（23:50〜01:30 など）
+    val effectiveEndDate =
+        if (isAllDay) baseEndDate else resolveTimedEndDate(startDate, startTime, baseEndDate, endTime)
+    // 終了日は開始日以降（時間指定は終了日時が開始日時以降）でなければ保存させない
+    val endBeforeStart = isEndBeforeStart(startDate, startTime, effectiveEndDate, endTime, isAllDay)
+    // 繰り返しの終了日が開始日より前だと展開結果が 0 件になり、予定が表示されない
+    val recurrenceEndBeforeStart =
+        isRecurring && hasRecurrenceEnd && recurrenceEndDate.isBefore(startDate)
+    val canSave = (event == null || photosLoaded) && !endBeforeStart && !recurrenceEndBeforeStart
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -308,11 +321,19 @@ fun EventDialog(
                         onTimeClick = { showStartTimePicker = true },
                     )
                     DateTimeRow(
-                        label = stringResource(R.string.dl2_endLabel), date = endDate, time = endTime, isAllDay = isAllDay,
+                        label = stringResource(R.string.dl2_endLabel), date = effectiveEndDate, time = endTime, isAllDay = isAllDay,
                         isDateLocked = endDateLocked, topPadding = 16.dp, colors = colors,
                         onDateClick = { showEndDatePicker = true },
                         onTimeClick = { showEndTimePicker = true },
                     )
+                    // 終了が開始より前のときは保存できない理由を表示する
+                    if (endBeforeStart) {
+                        Text(
+                            stringResource(R.string.dl2_endBeforeStart),
+                            color = colors.sunRed, fontSize = 11.sp,
+                            modifier = Modifier.padding(start = 12.dp, top = 6.dp),
+                        )
+                    }
 
                     if (isRecurring) {
                         Text(
@@ -353,6 +374,14 @@ fun EventDialog(
                                         color = colors.text,
                                     )
                                 }
+                            }
+                            // 開始日より前の繰り返し終了日は受け付けない
+                            if (recurrenceEndBeforeStart) {
+                                Text(
+                                    stringResource(R.string.dl2_recurrenceEndBeforeStart),
+                                    color = colors.sunRed, fontSize = 11.sp,
+                                    modifier = Modifier.padding(start = 12.dp, top = 4.dp),
+                                )
                             }
                         }
                     }
@@ -409,14 +438,17 @@ fun EventDialog(
             }
         },
         confirmButton = {
-            TextButton(enabled = (event == null || photosLoaded), onClick = {
-                val effectiveEndDate = if (endDateLocked) startDate else endDate
+            TextButton(enabled = canSave, onClick = {
                 val finalTitle = title.ifBlank { context.getString(R.string.dl2_unnamedCalendar) }
-                val saveZone = if (isAllDay) ZoneOffset.UTC else AppTimeZone.effective()
-                val startDateTime = startDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else startTime)
-                val endDateTime = effectiveEndDate.atTime(if (isAllDay) LocalTime.MIDNIGHT else endTime)
-                val startMillis = startDateTime.atZone(saveZone).toInstant().toEpochMilli()
-                val endMillis = endDateTime.atZone(saveZone).toInstant().toEpochMilli()
+                // 終日は終了日を「その日を含む」日付として扱い、モデル上の exclusive な翌日 0 時へ変換する
+                val (startMillis, endMillis) = if (isAllDay) {
+                    val range = allDayMillisRange(startDate, effectiveEndDate)
+                    range.start to range.end
+                } else {
+                    val saveZone = AppTimeZone.effective()
+                    startDate.atTime(startTime).atZone(saveZone).toInstant().toEpochMilli() to
+                        effectiveEndDate.atTime(endTime).atZone(saveZone).toInstant().toEpochMilli()
+                }
                 val finalRrule = when {
                     !isRecurring -> null
                     else -> {
@@ -435,7 +467,7 @@ fun EventDialog(
                     newPhotoUris, keptPhotoIds.toList(), finalTargetCalendarId, finalLocalCalendarId,
                 )
             }) {
-                Text(stringResource(R.string.dl2_save), color = if (event == null || photosLoaded) colors.primaryAccent else colors.textGray, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.dl2_save), color = if (canSave) colors.primaryAccent else colors.textGray, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {

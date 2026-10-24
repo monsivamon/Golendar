@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.net.Uri
 import com.monsivamon.golender.R
+import com.monsivamon.golender.data.AlbumPhoto
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.data.LocalCalendar
 import androidx.compose.ui.graphics.Color
@@ -120,6 +121,12 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
     val notify10MinBefore: StateFlow<Boolean> = _notify10MinBefore.asStateFlow()
     private val _showBottomList = MutableStateFlow(true)
     val showBottomList: StateFlow<Boolean> = _showBottomList.asStateFlow()
+    // アルバムタブ表示（Golendar モードのみ・既定 OFF）
+    private val _showAlbumTab = MutableStateFlow(false)
+    val showAlbumTab: StateFlow<Boolean> = _showAlbumTab.asStateFlow()
+    // アルバムに表示する全写真（予定日情報付き）
+    private val _albumPhotos = MutableStateFlow<List<AlbumPhoto>>(emptyList())
+    val albumPhotos: StateFlow<List<AlbumPhoto>> = _albumPhotos.asStateFlow()
     private val _backupPhotos = MutableStateFlow(false)
     val backupPhotos: StateFlow<Boolean> = _backupPhotos.asStateFlow()
 
@@ -477,6 +484,7 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
                 preferences[SettingsKeys.NOTIFY_AT_START]?.let { _notifyAtStart.value = it }
                 preferences[SettingsKeys.NOTIFY_10MIN]?.let { _notify10MinBefore.value = it }
                 preferences[SettingsKeys.SHOW_BOTTOM_LIST]?.let { _showBottomList.value = it }
+                preferences[SettingsKeys.SHOW_ALBUM_TAB]?.let { _showAlbumTab.value = it }
                 preferences[SettingsKeys.BACKUP_PHOTOS]?.let { _backupPhotos.value = it }
 
                 val welcome = setupFlow.decideWelcome(currentVersionName, preferences)
@@ -667,6 +675,25 @@ class CalendarViewModel(application: Application) : AndroidViewModel(application
         _showBottomList.value = show
         viewModelScope.launch(Dispatchers.IO) {
             try { settingsStore.saveShowBottomList(show) } catch (_: Exception) { }
+        }
+    }
+
+    // アルバムタブ ON/OFF を保存する
+    fun setShowAlbumTab(show: Boolean) {
+        _showAlbumTab.value = show
+        viewModelScope.launch(Dispatchers.IO) {
+            try { settingsStore.saveShowAlbumTab(show) } catch (_: Exception) { }
+        }
+    }
+
+    // アルバム用に全写真を予定日情報付きで再読込する
+    fun loadAlbumPhotos() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _albumPhotos.value = repository.getAlbumPhotos()
+            } catch (_: Exception) {
+                _albumPhotos.value = emptyList()
+            }
         }
     }
 

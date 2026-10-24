@@ -79,7 +79,13 @@ object LanguageSetting {
             return resolved
         }
         // 初回のみ DataStore をブロッキング読み取りしてミラーへ書き戻す。
-        val tag = runBlocking { context.dataStore.data.first()[SettingsKeys.APP_LANGUAGE] }
+        // DataStore ファイルの破損や I/O エラー時は端末言語へフォールバックし、
+        // attachBaseContext 経由の起動クラッシュを防ぐ。
+        val tag = try {
+            runBlocking { context.dataStore.data.first()[SettingsKeys.APP_LANGUAGE] }
+        } catch (_: Exception) {
+            null
+        }
         val resolved = normalize(tag, context)
         prefs.edit().putString(MIRROR_KEY, resolved).apply()
         return resolved

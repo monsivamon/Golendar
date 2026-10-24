@@ -14,7 +14,7 @@ It offers two modes: privacy-focused **Golendar Mode** (self-contained in the ap
 
 > **For detailed usage, see the in-app tutorial**  
 > Go to Settings → "Tutorial" for 17+ illustrated guides.  
-> Covers calendar permissions, gestures, the map, AI parsing, adding/editing events, recurring events, photos, search, notifications, backup, widgets, and more.
+> Covers calendar permissions, gestures, the map and place search, AI parsing, adding/editing events, recurring events, photos and the album, search, notifications, backup, widgets, and more.
 
 ---
 
@@ -42,7 +42,8 @@ Open the APK on your device and allow "Install unknown apps" to install.
 - **Two calendar modes**: Golendar Mode (self-contained; network used only for holidays and the map) and Google Mode (Google Calendar sync).
 - **Month, week, and day views**: Swipe to move between periods or switch tabs. The event list below the month grid can be toggled on/off. Search covers 2 years back to 2 years ahead.
 - **Event management**: Add, edit, and delete; recurring events (daily/weekdays/weekly/monthly/yearly with an end date); share as text.
-- **Photos and AI parsing (Golendar Mode)**: Attach up to 5 photos (auto-resized to a 1920px long edge). AI parsing is BETA and registers events in bulk from a calendar image.
+- **Map and place search**: Pick event locations on the map. Search by place name or address to jump there, then drag the map to fine-tune the pin (network connection required).
+- **Photos and AI parsing (Golendar Mode)**: Attach up to 5 photos (auto-resized to a 1920px long edge). When enabled in settings, an Album tab appears alongside Day, Week, and Month, listing all saved photos grouped by date; tap a photo to view it and jump to that day's month view. AI parsing is BETA and registers events in bulk from a calendar image.
 - **Notifications and time zone**: Notify at start and 10 minutes before. Holidays and cultural events are excluded (birthdays are included). All-day events notify at 9:00 in the display time zone. Pin the display time zone from about 600 zones, and optionally match notification times to the local clock.
 - **Holidays**: Choose from 15 countries/regions: the G7, original BRICS members, Korea, Taiwan, and Hong Kong. Same-day holidays are combined into one row with flags.
 - **Widgets and shortcuts**: Day/week/month widgets. Long-press the app icon for "Add Event", "Today", and "Search".
@@ -68,8 +69,8 @@ Open the APK on your device and allow "Install unknown apps" to install.
 - **Backup**: In Google Mode, "Restore (overwrite)" is unavailable; only "Append" is possible. For old-format backups, follow the guidance in the in-app backup screen.
 - **Notifications**: Disabling battery optimization and allowing exact alarms is recommended. Notifications may be delayed on some manufacturers' devices.
 - **Pinned time zone**: When enabled, new and edited timed events are saved in the pinned zone (all-day events use UTC date boundaries).
-- **Map**: Requires a network connection. The map is still usable if you decline location access.
-- **Golendar Mode only**: Photo attachments, AI parsing, and per-event colors.
+- **Map**: Requires a network connection. The map is still usable if you decline location access. Place search queries Nominatim only when you run a search.
+- **Golendar Mode only**: Photo attachments, the Album tab, AI parsing, and per-event colors.
 - **Holiday data**: Japan uses `holidays-jp`; other supported countries use the public JSON from `vacanza/holidays`. When offline, the last fetched data is shown. Holiday data is not included in backups and is re-fetched on restore.
 
 ---
@@ -86,7 +87,7 @@ Open the APK on your device and allow "Install unknown apps" to install.
 | Settings | Preferences DataStore |
 | Background | Coroutines, AlarmManager, WorkManager |
 | Map | MapLibre Native GL (OpenFreeMap) |
-| Reverse geocoding | Nominatim, Geospatial Information Authority of Japan |
+| Geocoding | Nominatim, Geospatial Information Authority of Japan |
 | Image loading | Coil |
 | Architecture | MVVM |
 
@@ -98,7 +99,7 @@ Open the APK on your device and allow "Install unknown apps" to install.
 - Holiday data (other supported countries): [vacanza/holidays](https://github.com/vacanza/holidays) (MIT)
 - Map data: [OpenStreetMap](https://www.openstreetmap.org/) contributors (ODbL)
 - Tile delivery: [OpenFreeMap](https://openfreemap.org/)
-- Reverse geocoding: [Nominatim](https://nominatim.org/) / [Geospatial Information Authority of Japan](https://mreversegeocoder.gsi.go.jp/)
+- Geocoding (place search and reverse geocoding): [Nominatim](https://nominatim.org/) / [Geospatial Information Authority of Japan](https://mreversegeocoder.gsi.go.jp/)
 - Libraries: MapLibre Native for Android (BSD-2-Clause), AndroidX / Jetpack (Apache 2.0), Kotlin (Apache 2.0), Coil (Apache 2.0)
 - Assets: Android robot (created by Google, CC BY 3.0)
 

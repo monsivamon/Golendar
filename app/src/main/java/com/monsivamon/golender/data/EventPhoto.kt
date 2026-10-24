@@ -18,3 +18,13 @@ data class EventPhoto(
         const val MAX_PHOTOS_PER_EVENT = 5
     }
 }
+
+// アルバム表示用に、写真と紐づくローカル予定の日付情報を結合した行
+data class AlbumPhoto(
+    val photoId: Long,
+    val eventId: Long,
+    val fileName: String,
+    val eventTitle: String,
+    val startTime: Long,
+    val isAllDay: Boolean,
+)

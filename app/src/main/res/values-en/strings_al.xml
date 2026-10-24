@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ui/screens/AlbumScreen.kt -->
+    <string name="al_albumTitle">Album</string>
+    <string name="al_photoCount">%1$d photos</string>
+    <string name="al_noPhotos">No photos</string>
+    <string name="al_goToDate">Go to date</string>
+</resources>

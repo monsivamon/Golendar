@@ -82,6 +82,8 @@
     <string name="dl2_dateLockedNote">※カレンダーで選んだ日付に追加されます（日付は変更できません）</string>
     <string name="dl2_startLabel">開始</string>
     <string name="dl2_endLabel">終了</string>
+    <string name="dl2_endBeforeStart">終了日時は開始日時以降にしてください</string>
+    <string name="dl2_recurrenceEndBeforeStart">繰り返しの終了日は開始日以降にしてください</string>
     <string name="dl2_recurringDurationNote">※「終了」は1回分の所要時間です。繰り返しの終了日は下で指定します。</string>
     <string name="dl2_specifyRecurrenceEnd">繰り返しの終了日を指定</string>
     <string name="dl2_recurrenceEndDate">終了日</string>
@@ -124,7 +126,12 @@
     <string name="dl2_locating">現在地を取得中...</string>
     <string name="dl2_geocoding">住所を取得中...</string>
     <string name="dl2_unknownAddress">住所不明</string>
-    <string name="dl2_pinInstruction">地図を動かして中央のピンを場所に合わせてください。</string>
+    <string name="dl2_pinInstruction">検索で場所へ移動し、地図をドラッグしてピンを微調整できます。</string>
+    <string name="dl2_placeSearchHint">場所・住所を検索</string>
+    <string name="dl2_placeSearchClear">検索をクリア</string>
+    <string name="dl2_placeSearching">検索中...</string>
+    <string name="dl2_placeSearchNoResults">場所が見つかりませんでした。</string>
+    <string name="dl2_placeSearchError">検索できませんでした。通信環境を確認してください。</string>
 
     <!-- RestoreOptionsDialog -->
     <string name="dl2_backupAppend">バックアップを追記</string>

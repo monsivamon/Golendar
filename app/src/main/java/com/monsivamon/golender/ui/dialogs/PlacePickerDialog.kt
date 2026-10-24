@@ -12,13 +12,23 @@ import android.view.ViewGroup
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -30,9 +40,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,21 +56,26 @@ import androidx.core.content.ContextCompat
 import androidx.datastore.preferences.core.edit
 import com.monsivamon.golender.R
 import com.monsivamon.golender.data.dataStore
+import com.monsivamon.golender.data.prefs.LanguageSetting
 import com.monsivamon.golender.data.prefs.SettingsKeys
+import com.monsivamon.golender.data.util.ForwardGeocoder
 import com.monsivamon.golender.data.util.ReverseGeocoder
 import com.monsivamon.golender.ui.common.findActivity
 import com.monsivamon.golender.ui.theme.AppColors
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
+import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.location.LocationComponentActivationOptions
 import org.maplibre.android.location.modes.CameraMode
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
+import java.util.concurrent.atomic.AtomicBoolean
 
 // 使用する地図スタイルの URL（OpenFreeMap の bright）
 private const val MAP_STYLE_URL = "https://tiles.openfreemap.org/styles/bright"
@@ -69,6 +86,10 @@ private const val DEFAULT_LNG = 139.767125
 
 // 逆ジオコーディングのデバウンス時間（ミリ秒）
 private const val GEOCODE_DEBOUNCE_MS = 600L
+
+// 検索結果へ移動するときのズームとアニメーション時間
+private const val SEARCH_RESULT_ZOOM = 17.0
+private const val SEARCH_CAMERA_ANIMATION_MS = 600
 
 // 位置情報権限が許可されているかを判定する
 private fun hasLocationPermission(context: Context): Boolean =
@@ -155,6 +176,7 @@ fun PlacePickerDialog(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
+    val keyboardController = LocalSoftwareKeyboardController.current
     // MapLibre を初期化する
     MapLibre.getInstance(context)
 
@@ -174,6 +196,20 @@ fun PlacePickerDialog(
     var mapInstance by remember { mutableStateOf<MapLibreMap?>(null) }
     var trackingMode by remember { mutableIntStateOf(CameraMode.NONE) }
     var styleLoaded by remember { mutableStateOf(false) }
+    // 地図の初期化が一度だけ行われるようにするフラグ
+    val mapInitialized = remember { AtomicBoolean(false) }
+
+    // 地図を指定座標へ移動する（現在地の追従は解除する）
+    fun moveCameraTo(latitude: Double, longitude: Double, zoom: Double = SEARCH_RESULT_ZOOM) {
+        try {
+            trackingMode = CameraMode.NONE
+            mapInstance?.locationComponent?.cameraMode = CameraMode.NONE
+        } catch (_: Exception) { }
+        mapInstance?.animateCamera(
+            CameraUpdateFactory.newLatLngZoom(LatLng(latitude, longitude), zoom),
+            SEARCH_CAMERA_ANIMATION_MS,
+        )
+    }
 
     // 位置情報セットアップ完了フラグを DataStore に保存する
     fun markLocationSetupDone() {
@@ -195,8 +231,11 @@ fun PlacePickerDialog(
         if (granted) {
             // 許可されたら現在地（または既定座標）に合わせる
             val loc = getBestLastKnownLocation(context)
-            resolvedLat = loc?.first ?: DEFAULT_LAT
-            resolvedLng = loc?.second ?: DEFAULT_LNG
+            val newLat = loc?.first ?: DEFAULT_LAT
+            val newLng = loc?.second ?: DEFAULT_LNG
+            resolvedLat = newLat
+            resolvedLng = newLng
+            moveCameraTo(newLat, newLng)
             if (styleLoaded) {
                 mapInstance?.let { activateLocationComponent(context, it) }
             }
@@ -253,6 +292,45 @@ fun PlacePickerDialog(
     var addressText by remember { mutableStateOf("") }
     var poiText by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+
+    // 検索欄と検索結果の状態
+    var searchQuery by remember { mutableStateOf("") }
+    var searchResults by remember { mutableStateOf<List<ForwardGeocoder.Place>>(emptyList()) }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchFailed by remember { mutableStateOf(false) }
+    var showSearchResults by remember { mutableStateOf(false) }
+    var searchJob by remember { mutableStateOf<Job?>(null) }
+
+    // Nominatim へ送る言語タグ（アプリ内の言語選択に合わせる）
+    val languageTag = remember(context) {
+        runCatching { LanguageSetting.sync(context) }
+            .getOrDefault(LanguageSetting.defaultTag(context))
+    }
+
+    // 検索操作が実行されたときだけ Nominatim へ問い合わせる
+    fun submitSearch() {
+        val keyword = searchQuery.trim()
+        if (keyword.isBlank()) return
+        keyboardController?.hide()
+        searchJob?.cancel()
+        isSearching = true
+        searchFailed = false
+        searchResults = emptyList()
+        showSearchResults = true
+        searchJob = scope.launch {
+            when (val result = ForwardGeocoder.search(keyword, languageTag)) {
+                is ForwardGeocoder.SearchResult.Success -> {
+                    searchResults = result.places
+                    searchFailed = false
+                }
+                ForwardGeocoder.SearchResult.Failure -> {
+                    searchResults = emptyList()
+                    searchFailed = true
+                }
+            }
+            isSearching = false
+        }
+    }
 
     // 中央座標が変わるたびにデバウンスして逆ジオコーディングを実行する
     LaunchedEffect(currentLat, currentLng) {
@@ -405,6 +483,9 @@ fun PlacePickerDialog(
                             factory = { mapView },
                             modifier = Modifier.fillMaxSize(),
                             update = { view ->
+                                // 再コンポーズのたびに地図を作り直さないよう初回だけ初期化する
+                                if (!mapInitialized.compareAndSet(false, true)) return@AndroidView
+
                                 view.layoutParams = ViewGroup.LayoutParams(
                                     ViewGroup.LayoutParams.MATCH_PARENT,
                                     ViewGroup.LayoutParams.MATCH_PARENT,
@@ -435,6 +516,13 @@ fun PlacePickerDialog(
                                         map.cameraPosition.target?.let { target ->
                                             currentLat = target.latitude
                                             currentLng = target.longitude
+                                        }
+                                    }
+                                    // ユーザーが地図を動かしたら検索結果を閉じる
+                                    map.addOnCameraMoveStartedListener { reason ->
+                                        if (reason == MapLibreMap.OnCameraMoveStartedListener.REASON_API_GESTURE) {
+                                            showSearchResults = false
+                                            keyboardController?.hide()
                                         }
                                     }
                                 }
@@ -502,6 +590,163 @@ fun PlacePickerDialog(
                                 painter = painterResource(id = R.drawable.ic_my_location),
                                 contentDescription = stringResource(R.string.dl2_currentLocation),
                             )
+                        }
+
+                        // 検索欄と検索結果（地図の上に重ねて表示する）
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                        ) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { text ->
+                                    searchQuery = text
+                                    if (text.isBlank()) {
+                                        searchResults = emptyList()
+                                        searchFailed = false
+                                        showSearchResults = false
+                                    }
+                                },
+                                placeholder = {
+                                    Text(
+                                        stringResource(R.string.dl2_placeSearchHint),
+                                        color = colors.textGray,
+                                        fontSize = 14.sp,
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Search,
+                                        contentDescription = null,
+                                        tint = colors.textGray,
+                                    )
+                                },
+                                trailingIcon = {
+                                    if (searchQuery.isNotEmpty()) {
+                                        IconButton(onClick = {
+                                            searchQuery = ""
+                                            searchResults = emptyList()
+                                            searchFailed = false
+                                            showSearchResults = false
+                                        }) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = stringResource(R.string.dl2_placeSearchClear),
+                                                tint = colors.textGray,
+                                            )
+                                        }
+                                    }
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(28.dp),
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                                keyboardActions = KeyboardActions(onSearch = { submitSearch() }),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = colors.text,
+                                    unfocusedTextColor = colors.text,
+                                    focusedContainerColor = colors.surface,
+                                    unfocusedContainerColor = colors.surface,
+                                    focusedBorderColor = colors.primaryAccent,
+                                    unfocusedBorderColor = Color.Transparent,
+                                    cursorColor = colors.primaryAccent,
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+
+                            // 検索結果の一覧（検索中・失敗・0 件もここに表示する）
+                            if (showSearchResults) {
+                                Spacer(Modifier.height(6.dp))
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = colors.surface,
+                                    shadowElevation = 6.dp,
+                                ) {
+                                    when {
+                                        isSearching -> Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(18.dp),
+                                                strokeWidth = 2.dp,
+                                                color = colors.primaryAccent,
+                                            )
+                                            Spacer(Modifier.width(12.dp))
+                                            Text(
+                                                stringResource(R.string.dl2_placeSearching),
+                                                color = colors.textGray,
+                                                fontSize = 14.sp,
+                                            )
+                                        }
+                                        searchFailed -> Text(
+                                            stringResource(R.string.dl2_placeSearchError),
+                                            color = colors.textGray,
+                                            fontSize = 13.sp,
+                                            modifier = Modifier.padding(16.dp),
+                                        )
+                                        searchResults.isEmpty() -> Text(
+                                            stringResource(R.string.dl2_placeSearchNoResults),
+                                            color = colors.textGray,
+                                            fontSize = 13.sp,
+                                            modifier = Modifier.padding(16.dp),
+                                        )
+                                        else -> LazyColumn(
+                                            modifier = Modifier.heightIn(max = 260.dp)
+                                        ) {
+                                            items(searchResults) { place ->
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clickable {
+                                                            // 検索結果へ移動し、ピンの微調整に切り替える
+                                                            keyboardController?.hide()
+                                                            showSearchResults = false
+                                                            searchResults = emptyList()
+                                                            searchQuery = place.name
+                                                            currentLat = place.latitude
+                                                            currentLng = place.longitude
+                                                            moveCameraTo(place.latitude, place.longitude, place.zoom)
+                                                        }
+                                                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ) {
+                                                    Icon(
+                                                        Icons.Default.LocationOn,
+                                                        contentDescription = null,
+                                                        tint = colors.textGray,
+                                                        modifier = Modifier.size(20.dp),
+                                                    )
+                                                    Spacer(Modifier.width(12.dp))
+                                                    Column(modifier = Modifier.weight(1f)) {
+                                                        Text(
+                                                            place.name,
+                                                            color = colors.text,
+                                                            fontSize = 14.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            maxLines = 1,
+                                                            overflow = TextOverflow.Ellipsis,
+                                                        )
+                                                        if (place.address.isNotBlank()) {
+                                                            Text(
+                                                                place.address,
+                                                                color = colors.textGray,
+                                                                fontSize = 12.sp,
+                                                                maxLines = 1,
+                                                                overflow = TextOverflow.Ellipsis,
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

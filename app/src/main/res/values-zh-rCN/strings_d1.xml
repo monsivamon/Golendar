@@ -87,12 +87,15 @@
     <string name="dl1_gestureTitleVertical">上下滑动切换前后时段</string>
     <string name="dl1_gestureDescVertical">在月、周、日任一视图下，沿同一方向快速滑动两次，即可移动到前后的时段。</string>
     <string name="dl1_gestureTitleHorizontal">左右滑动切换视图</string>
-    <string name="dl1_gestureDescHorizontal">左右滑动即可切换日、周、月视图。</string>
+    <string name="dl1_gestureDescHorizontal">左右滑动即可切换日、周、月视图。\n开启相册标签后也会包含相册。</string>
     <string name="dl1_gestureTitleReady">准备就绪</string>
     <string name="dl1_gestureDescReady">现在就来添加一个日程吧。\n长按主屏幕图标也能使用快捷方式。</string>
     <string name="dl1_gestureSwipeHint">左右滑动</string>
 
     <!-- MapSetupDialog -->
+    <string name="dl1_mapTitleSearch">搜索地点并移动</string>
+    <string name="dl1_mapDescSearch">在地图上方的搜索框输入地名或地址并搜索，\n即可列出候选地点。\n点击候选项即可移动到该地点。</string>
+    <string name="dl1_mapSearchHint">搜索地点・地址</string>
     <string name="dl1_mapTitlePin">用图钉选择地点</string>
     <string name="dl1_mapDescPin">拖动地图，让中央的图钉对准地点，\n点击“确定”即可保存地点。</string>
     <string name="dl1_mapTitleLocationButton">当前位置按钮</string>
@@ -138,6 +141,8 @@
     <string name="dl1_photoTutDescAttach">在日程编辑界面通过“+”，最多可附加\n5张照片（缩放到长边1920px）。\n仅限 Golendar 模式使用。</string>
     <string name="dl1_photoTutTitleViewer">放大・保存・分享</string>
     <string name="dl1_photoTutDescViewer">点击详情的缩略图即可全屏显示。\n“保存”可导出到 Pictures/Golendar，\n“分享”可发送到其他应用。</string>
+    <string name="dl1_photoTutTitleAlbum">相册标签</string>
+    <string name="dl1_photoTutDescAlbum">在设置的“自定义设置”中开启相册标签后，\n日、周、月旁会添加相册标签。\n点击照片后可用“前往该日”跳转到月视图。</string>
     <string name="dl1_photoTutLabelPhoto">照片</string>
 
     <!-- RecurringTutorialDialog -->

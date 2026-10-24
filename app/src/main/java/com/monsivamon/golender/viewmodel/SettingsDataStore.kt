@@ -76,6 +76,11 @@ class SettingsDataStore(
         store.edit { it[SettingsKeys.SHOW_BOTTOM_LIST] = show }
     }
 
+    // アルバムタブ表示 ON/OFF を保存する
+    suspend fun saveShowAlbumTab(show: Boolean) {
+        store.edit { it[SettingsKeys.SHOW_ALBUM_TAB] = show }
+    }
+
     // 定刻・10 分前通知の ON/OFF をまとめて保存する
     suspend fun saveNotify(atStart: Boolean, before10: Boolean) {
         store.edit { prefs ->

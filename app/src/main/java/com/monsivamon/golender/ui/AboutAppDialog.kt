@@ -207,6 +207,7 @@ private fun AboutDescription(colors: AppColors) {
 private fun AboutCredits(colors: AppColors) {
     val items = listOf(
         CreditItem("🗓", "holidays-jp", "MIT"),
+        CreditItem("🌐", "vacanza/holidays", "MIT"),
         CreditItem("🗺", "OpenStreetMap", "ODbL"),
         CreditItem("🏛", stringResource(R.string.co_credit_gsi), stringResource(R.string.co_credit_gsi_license)),
         CreditItem("📍", "Nominatim", "GPL v2"),
@@ -214,6 +215,7 @@ private fun AboutCredits(colors: AppColors) {
         CreditItem("🎨", "AndroidX / Jetpack", "Apache 2.0"),
         CreditItem("⚡", "Kotlin", "Apache 2.0"),
         CreditItem("🖼", "Coil", "Apache 2.0"),
+        CreditItem("🤖", "Android robot", "CC BY 3.0"),
     )
 
     AboutCard(colors = colors, title = stringResource(R.string.co_about_credits_title)) {

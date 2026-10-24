@@ -95,7 +95,7 @@
     <string name="sc_tutorialSection">Tutorials</string>
     <string name="sc_tutorialCalendarPermission">Check calendar access permissions</string>
     <string name="sc_tutorialGesture">Learn about gesture controls</string>
-    <string name="sc_tutorialMap">Learn how to use the map</string>
+    <string name="sc_tutorialMap">Learn how to use the map and place search</string>
     <string name="sc_tutorialAi">Learn how AI parsing works</string>
     <string name="sc_tutorialCalendarDisplay">See calendar display and color settings</string>
     <string name="sc_tutorialTimezone">See time zone settings</string>
@@ -105,7 +105,7 @@
     <string name="sc_tutorialScheduleEdit">Learn how to edit and delete events</string>
     <string name="sc_tutorialEventColor">Learn how to change event colors</string>
     <string name="sc_tutorialRecurring">Learn how to use recurring events</string>
-    <string name="sc_tutorialPhoto">Learn how to use photos</string>
+    <string name="sc_tutorialPhoto">Learn how to use photos and the album</string>
     <string name="sc_tutorialSearch">Learn how to use search</string>
     <string name="sc_tutorialNotification">Check notification settings</string>
     <string name="sc_tutorialBackup">Learn about backup and restore</string>
@@ -135,4 +135,6 @@
     <string name="sc_noGoogleAccountMessage">No Google account is set up on this device, so Google mode is unavailable.\n\nAdd a Google account under device "Settings" → "Accounts &amp; sync" and try again.\n\nGolendar mode (within the app) remains available.</string>
     <string name="sc_close">Close</string>
     <string name="sc_language">Display language</string>
+    <string name="sc_albumTab">Album tab</string>
+    <string name="sc_albumTabDesc">Adds an Album tab next to Day, Week, and Month</string>
 </resources>

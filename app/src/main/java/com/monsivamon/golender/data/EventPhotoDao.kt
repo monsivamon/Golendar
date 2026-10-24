@@ -20,6 +20,18 @@ interface EventPhotoDao {
     @Query("SELECT COUNT(*) FROM event_photos WHERE eventId = :eventId")
     suspend fun countByEventId(eventId: Long): Int
 
+    // アルバム用に、全写真を予定の開始日時と結合して新しい順で取得する
+    @Query(
+        """
+        SELECT p.id AS photoId, p.eventId AS eventId, p.fileName AS fileName,
+               e.title AS eventTitle, e.startTime AS startTime, e.isAllDay AS isAllDay
+        FROM event_photos p
+        INNER JOIN local_events e ON e.id = p.eventId
+        ORDER BY e.startTime DESC, p.position ASC, p.id ASC
+        """
+    )
+    suspend fun getAllWithEvent(): List<AlbumPhoto>
+
     // 写真レコードを挿入し採番 ID を返す
     @Insert
     suspend fun insert(photo: EventPhoto): Long

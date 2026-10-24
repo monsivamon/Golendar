@@ -147,6 +147,14 @@ class CalendarRepository(context: Context) {
         localSource.deleteById(eventId)
     }
 
+    // ローカル予定を DB レコードのみ削除する（写真ファイルは呼び出し側で管理）。
+    // 復元処理で「DB を確定 → 写真実体を後始末」するために使う。
+    // 復元失敗時に写真ファイルまで失うのを防ぐための専用メソッド。
+    suspend fun deleteLocalEventRecordOnly(eventId: Long) {
+        photoSource.deleteByEventId(eventId)
+        localSource.deleteById(eventId)
+    }
+
     // 全ローカル予定を取得する（バックアップ用）
     suspend fun getAllLocalEvents(): List<LocalEvent> = localSource.getAll()
     // ローカル予定を全削除→再投入で復元する
@@ -197,6 +205,9 @@ class CalendarRepository(context: Context) {
     // 指定予定の添付写真枚数を返す
     suspend fun getPhotoCountForEvent(eventId: Long): Int = photoSource.countByEventId(eventId)
 
+    // アルバム用に、全写真を予定の日付情報と結合して新しい順で取得する
+    suspend fun getAlbumPhotos(): List<AlbumPhoto> = photoSource.getAllWithEvent()
+
     // 予定に写真を添付し、レコードを返す
     suspend fun attachPhotoToEvent(eventId: Long, uri: Uri): EventPhoto? = withContext(Dispatchers.IO) {
         val cnt = photoSource.countByEventId(eventId)
@@ -227,6 +238,27 @@ class CalendarRepository(context: Context) {
     // 復元時に写真レコードを 1 件登録する
     suspend fun importPhotoRecord(eventId: Long, fileName: String, position: Int) {
         photoSource.insert(EventPhoto(eventId = eventId, fileName = fileName, position = position))
+    }
+
+    // 孤児化した写真ファイル（DB レコードから参照されていない実ファイル）を一括削除する。
+    // 復元時に deleteLocalEventRecordOnly で DB レコードのみ削除するため、
+    // 復元成否に関わらず旧予定の実写真ファイルが filesDir/event_photos/ に残る。
+    // 起動時に呼び出して掃除する。戻り値は削除したファイル数。
+    suspend fun purgeOrphanPhotoFiles(): Int = withContext(Dispatchers.IO) {
+        try {
+            // INNER JOIN により、予定が存在する写真の fileName のみを取得する
+            val referenced = photoSource.getAllWithEvent().map { it.fileName }.toSet()
+            val dir = PhotoStorage.getPhotoDir(appContext)
+            var deleted = 0
+            dir.listFiles()?.forEach { file ->
+                if (file.isFile && file.name !in referenced) {
+                    if (file.delete()) deleted++
+                }
+            }
+            deleted
+        } catch (_: Exception) {
+            0
+        }
     }
 
     // 全写真レコードを削除する

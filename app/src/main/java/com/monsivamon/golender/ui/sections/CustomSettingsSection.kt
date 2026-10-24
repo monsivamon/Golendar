@@ -30,6 +30,7 @@ import com.monsivamon.golender.ui.SECTION_DIVIDER_VERTICAL
 import com.monsivamon.golender.ui.SECTION_LABEL_BOTTOM
 import com.monsivamon.golender.ui.SettingsSection
 import com.monsivamon.golender.ui.theme.AppColors
+import com.monsivamon.golender.viewmodel.CalendarMode
 import com.monsivamon.golender.viewmodel.CalendarViewModel
 import com.monsivamon.golender.viewmodel.ThemeMode
 import kotlinx.coroutines.launch
@@ -48,6 +49,8 @@ fun CustomSettingsSection(
     val weekStartDay by viewModel.weekStartDay.collectAsState()
     val calendarBgColor by viewModel.calendarBgColor.collectAsState()
     val dayColors by viewModel.dayColors.collectAsState()
+    val calendarMode by viewModel.calendarMode.collectAsState()
+    val showAlbumTab by viewModel.showAlbumTab.collectAsState()
     val context = LocalContext.current
 
     SettingsSection(stringResource(R.string.sc_customSettingsSection), colors) {
@@ -80,6 +83,32 @@ fun CustomSettingsSection(
             }
         }
         HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
+        // アルバムタブは Golendar モードでのみ利用できる
+        if (calendarMode == CalendarMode.GOLENDAR) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { viewModel.setShowAlbumTab(!showAlbumTab) }
+                    .padding(vertical = LIST_ROW_VERTICAL),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(stringResource(R.string.sc_albumTab), fontSize = 16.sp, color = colors.text)
+                    Text(stringResource(R.string.sc_albumTabDesc), fontSize = 12.sp, color = colors.textGray)
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Switch(
+                    checked = showAlbumTab,
+                    onCheckedChange = { viewModel.setShowAlbumTab(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = colors.primaryAccent,
+                        checkedTrackColor = colors.primaryAccent.copy(alpha = 0.7f),
+                    ),
+                )
+            }
+            HorizontalDivider(color = colors.divider, modifier = Modifier.padding(vertical = SECTION_DIVIDER_VERTICAL))
+        }
         Text(
             stringResource(R.string.sc_dayColors),
             fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textGray,

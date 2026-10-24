@@ -44,6 +44,11 @@ fun PhotoTutorialDialog(colors: AppColors, onComplete: () -> Unit) {
                 description = stringResource(R.string.dl1_photoTutDescViewer),
                 illustration = { c -> ViewerIllustration(c) },
             ),
+            TutorialPage(
+                title = stringResource(R.string.dl1_photoTutTitleAlbum),
+                description = stringResource(R.string.dl1_photoTutDescAlbum),
+                illustration = { c -> AlbumIllustration(c) },
+            ),
         ),
         colors = colors,
         onComplete = onComplete,
@@ -113,6 +118,73 @@ private fun ViewerIllustration(colors: AppColors) {
                 ) {
                     Text(stringResource(R.string.dl1_share), color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
+            }
+        }
+    }
+}
+
+// アルバムタブと日付ごとの写真一覧・「その日へ」ボタンのイメージ
+@Composable
+private fun AlbumIllustration(colors: AppColors) {
+    TutorialIllustrationFrame(colors) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // 日・週・月・アルバムのタブ（アルバムを選択中として強調）
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                listOf(
+                    stringResource(R.string.co_tab_daily) to false,
+                    stringResource(R.string.co_tab_weekly) to false,
+                    stringResource(R.string.co_tab_monthly) to false,
+                    stringResource(R.string.al_albumTitle) to true,
+                ).forEach { (label, selected) ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (selected) colors.primaryAccent else colors.surface)
+                            .border(
+                                1.dp,
+                                if (selected) colors.primaryAccent else colors.divider,
+                                RoundedCornerShape(10.dp),
+                            )
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                    ) {
+                        Text(
+                            label,
+                            color = if (selected) Color.White else colors.text,
+                            fontSize = 9.sp,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            // 同じ日の写真を横並びにしたイメージ
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                repeat(3) { index ->
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(colors.primaryAccent.copy(alpha = 0.2f + index * 0.1f)),
+                    )
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            // ビューア内の「その日へ」ボタン
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(colors.primaryAccent)
+                    .padding(horizontal = 12.dp, vertical = 3.dp),
+            ) {
+                Text(
+                    stringResource(R.string.al_goToDate),
+                    color = Color.White,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                )
             }
         }
     }

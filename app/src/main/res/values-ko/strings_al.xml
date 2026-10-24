@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ui/screens/AlbumScreen.kt -->
+    <string name="al_albumTitle">앨범</string>
+    <string name="al_photoCount">%1$d장</string>
+    <string name="al_noPhotos">사진이 없습니다</string>
+    <string name="al_goToDate">그날로 이동</string>
+</resources>

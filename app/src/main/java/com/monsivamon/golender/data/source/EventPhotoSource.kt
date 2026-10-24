@@ -1,5 +1,6 @@
 package com.monsivamon.golender.data.source
 
+import com.monsivamon.golender.data.AlbumPhoto
 import com.monsivamon.golender.data.EventPhoto
 import com.monsivamon.golender.data.EventPhotoDao
 
@@ -12,6 +13,8 @@ class EventPhotoSource(private val dao: EventPhotoDao) {
         if (eventIds.isEmpty()) emptyList() else dao.getByEventIds(eventIds)
     // 指定予定の写真枚数を取得する
     suspend fun countByEventId(eventId: Long): Int = dao.countByEventId(eventId)
+    // アルバム用に、全写真を予定の日付情報と結合して取得する
+    suspend fun getAllWithEvent(): List<AlbumPhoto> = dao.getAllWithEvent()
     // 写真を 1 件登録する
     suspend fun insert(photo: EventPhoto): Long = dao.insert(photo)
     // 写真を一括登録する

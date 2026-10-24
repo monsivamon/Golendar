@@ -82,6 +82,8 @@
     <string name="dl2_dateLockedNote">* The event is added to the date selected on the calendar (the date cannot be changed)</string>
     <string name="dl2_startLabel">Start</string>
     <string name="dl2_endLabel">End</string>
+    <string name="dl2_endBeforeStart">The end must be on or after the start</string>
+    <string name="dl2_recurrenceEndBeforeStart">The recurrence end date must be on or after the start date</string>
     <string name="dl2_recurringDurationNote">* "End" is the duration of a single occurrence. Specify the repeat end date below.</string>
     <string name="dl2_specifyRecurrenceEnd">Specify repeat end date</string>
     <string name="dl2_recurrenceEndDate">End date</string>
@@ -124,7 +126,12 @@
     <string name="dl2_locating">Getting current location...</string>
     <string name="dl2_geocoding">Getting address...</string>
     <string name="dl2_unknownAddress">Unknown address</string>
-    <string name="dl2_pinInstruction">Move the map to place the center pin on the location.</string>
+    <string name="dl2_pinInstruction">Search for a place to jump there, then drag the map to fine-tune the pin.</string>
+    <string name="dl2_placeSearchHint">Search places or addresses</string>
+    <string name="dl2_placeSearchClear">Clear search</string>
+    <string name="dl2_placeSearching">Searching...</string>
+    <string name="dl2_placeSearchNoResults">No places found.</string>
+    <string name="dl2_placeSearchError">Search failed. Check your connection.</string>
 
     <!-- RestoreOptionsDialog -->
     <string name="dl2_backupAppend">Append from backup</string>
